@@ -1,10 +1,11 @@
 ;;*****************************************************************************
 ;;
-;; Title:       FtpClientExample.dbl
+;; Title:       SparseSelect.dbl
 ;;
 ;; Type:        Program
 ;;
-;; Description: An example of using FTPClient
+;; Description: An example of SPARSE select to significantly reduce the amount
+;;              of data transferred between xfServer and a client application.
 ;;
 ;; Date:        September 2014
 ;;
@@ -40,47 +41,55 @@
 ;;
 ;;*****************************************************************************
 
-import SynPSG
-import SynPSG.System.Net.Sockets
+import Synergex.SynergyDE.Select
 
-main FtpClientExample
-
-	record
-		ftpClient, @FtpClient
+main SparseSelect
+	
+	record syntxt
+		fac		,a3
+		num		,d5
+		code	,a10
+		sev		,a199
 	endrecord
 
-	.define FILE_NAME     "bridge.jpg"
-	.define NEW_FILE_NAME "bridge_new.jpg"
+	record 
+		s, @Select
+		f, @From
+		e, @AlphaEnumerator
+	endrecord
 
 proc
-
-    open(1,i,"TT:")
-
-	xcall delet(FILE_NAME)
 	
-	;Create an instance of the FTP client
-    ftpClient = new ftpclient("ftp.synergexpsg.com",21,FtpConnectMode.Passive)
-
-	;Connect to the remote server
-	writes(1,'Connecting ...')
-	if (!ftpClient.Connect("staples","p@ssw0rd")) then 
-		writes(1,ftpClient.ErrorMessage)
-	else
+	open(1,i,"tt:")
+	
+	f = new From("DBLDIR:syntxt.ism@LOCALHOST",syntxt)
+	s = new Select(f)
+	e = s.GetEnumerator()
+	
+	;;This example is similar to the SelectExample.dbl, except that here we use
+	;;a SPARSE RECORD specification. We name the fields that we want to be returned
+	;;by the server. Only these fields will be populated in the record, with the
+	;;remainder of the record being filled with spaces. Assiming that xfServer
+	;;compression is enabled then all of these spaces will be compressed out of
+	;;the network traffic, resulting in a massive reduction in the amount of data
+	;;being transmitted over the network.
+	
+	s.SparseRecord(fac,code)
+	
+	while (e.MoveNext())
 	begin
-		;Receive a binary file from the server
-		writes(1,"Downloading "+FILE_NAME+" from server...")
-		if (!ftpClient.Download(FILE_NAME,FILE_NAME,FtpTransferType.Binary)) then 
-			writes(1,ftpClient.ErrorMessage)
-		else
-		begin
-			;Send the binary file back to the server
-			writes(1,"Uploading "+FILE_NAME+" to server as "+NEW_FILE_NAME+"...")
-			if (!ftpClient.Upload(FILE_NAME,FILE_NAME,FtpTransferType.Binary))
-				writes(1,ftpClient.ErrorMessage)
-		end
-
-		writes(1,'Disconnecting...')
-		ftpClient.Disconnect()
+		syntxt = e.Current
+		call process_record
 	end
+	
+	s.Dispose()
+	f.Dispose()
+	
+	close 1
+	stop
+	
+process_record,
+	writes(1,fac+" "+code)
+	return
 	
 endmain

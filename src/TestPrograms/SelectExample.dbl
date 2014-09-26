@@ -1,10 +1,12 @@
 ;;*****************************************************************************
 ;;
-;; Title:       FtpClientExample.dbl
+;; Title:       SelectExample.dbl
 ;;
 ;; Type:        Program
 ;;
-;; Description: An example of using FTPClient
+;; Description: An example of how to use the Select classes in such a way that
+;;              it is still possible to CALL existing code (it's not possible
+;;              to CALL out of a FOREACH).
 ;;
 ;; Date:        September 2014
 ;;
@@ -40,47 +42,62 @@
 ;;
 ;;*****************************************************************************
 
-import SynPSG
-import SynPSG.System.Net.Sockets
+import Synergex.synergyde.Select
 
-main FtpClientExample
-
-	record
-		ftpClient, @FtpClient
+main SelectExample
+	
+	record syntxt
+		fac		,a3
+		num		,d5
+		code	,a10
+		sev		,a199
+	endrecord
+	
+	record 
+		s, @Select
+		f, @From
+		e, @AlphaEnumerator
 	endrecord
 
-	.define FILE_NAME     "bridge.jpg"
-	.define NEW_FILE_NAME "bridge_new.jpg"
-
 proc
-
-    open(1,i,"TT:")
-
-	xcall delet(FILE_NAME)
 	
-	;Create an instance of the FTP client
-    ftpClient = new ftpclient("ftp.synergexpsg.com",21,FtpConnectMode.Passive)
-
-	;Connect to the remote server
-	writes(1,'Connecting ...')
-	if (!ftpClient.Connect("staples","p@ssw0rd")) then 
-		writes(1,ftpClient.ErrorMessage)
-	else
+	open(1,i,"tt:")
+	
+	;;If you want to be able to implement select in existing code, where it
+	;;is necessary to CALL out to existing logic, then FOREACH can't be used.
+	;;This is because FOREACH established a local data scope, out of whih it
+	;;is not valid to CALL.
+	;;
+	;;The solution is to manually operate the SELECT class's enumerator (that's
+	;;pretty much all FOREACH does).
+	;;
+	;;First instantiate the objects you will need, making sure to have seperate
+	;;object handles for both the FROM and SELECT objects. This is because it is
+	;;important to call the DISPOSE methods on these objects (that's another thing
+	;;FOREACH does for you IF the NEW is within the FOREACH.
+	
+	f = new From("DBLDIR:syntxt.ism@LOCALHOST",syntxt)
+	s = new Select(f)
+	e = s.GetEnumerator()
+	
+	;;Now operate the enumerator (to work through the resulting data)
+	
+	while (e.MoveNext())
 	begin
-		;Receive a binary file from the server
-		writes(1,"Downloading "+FILE_NAME+" from server...")
-		if (!ftpClient.Download(FILE_NAME,FILE_NAME,FtpTransferType.Binary)) then 
-			writes(1,ftpClient.ErrorMessage)
-		else
-		begin
-			;Send the binary file back to the server
-			writes(1,"Uploading "+FILE_NAME+" to server as "+NEW_FILE_NAME+"...")
-			if (!ftpClient.Upload(FILE_NAME,FILE_NAME,FtpTransferType.Binary))
-				writes(1,ftpClient.ErrorMessage)
-		end
-
-		writes(1,'Disconnecting...')
-		ftpClient.Disconnect()
+		;;The enumerator's CURRENT property represents the current record
+		syntxt = e.Current
+		call process_record
 	end
+	
+	;;When you're done, don't forget to DISPOSE the SELECT and FROM objects.
+	s.Dispose()
+	f.Dispose()
+	
+	close 1
+	stop
+	
+process_record,
+	writes(1,syntxt.code)
+	return
 	
 endmain

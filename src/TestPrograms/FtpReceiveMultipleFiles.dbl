@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       FtpClientExample.dbl
+;; Title:       FtpClientReceiveMultipleFiles.dbl
 ;;
 ;; Type:        Program
 ;;
-;; Description: An example of using FTPClient
+;; Description: An example of receiving multiple files with FTPClient
 ;;
 ;; Date:        September 2014
 ;;
@@ -40,24 +40,20 @@
 ;;
 ;;*****************************************************************************
 
+import System.Collections
 import SynPSG
 import SynPSG.System.Net.Sockets
 
-main FtpClientExample
+main FtpReceiveMultipleFiles
 
 	record
 		ftpClient, @FtpClient
 	endrecord
 
-	.define FILE_NAME     "bridge.jpg"
-	.define NEW_FILE_NAME "bridge_new.jpg"
-
 proc
 
-    open(1,i,"TT:")
+	open(1,i,"TT:")
 
-	xcall delet(FILE_NAME)
-	
 	;Create an instance of the FTP client
     ftpClient = new ftpclient("ftp.synergexpsg.com",21,FtpConnectMode.Passive)
 
@@ -67,20 +63,24 @@ proc
 		writes(1,ftpClient.ErrorMessage)
 	else
 	begin
-		;Receive a binary file from the server
-		writes(1,"Downloading "+FILE_NAME+" from server...")
-		if (!ftpClient.Download(FILE_NAME,FILE_NAME,FtpTransferType.Binary)) then 
+		data files, @ArrayList, new ArrayList()
+		files.Add((string)"textfile1.txt")
+		files.Add((string)"textfile2.txt")
+		files.Add((string)"textfile3.txt")
+
+		xcall delet("textfile1.txt")
+		xcall delet("textfile2.txt")
+		xcall delet("textfile3.txt")
+
+		;Download files from server
+		writes(1,'Download three files from server...')
+		if (!ftpClient.DownloadMultiple(files))
 			writes(1,ftpClient.ErrorMessage)
-		else
-		begin
-			;Send the binary file back to the server
-			writes(1,"Uploading "+FILE_NAME+" to server as "+NEW_FILE_NAME+"...")
-			if (!ftpClient.Upload(FILE_NAME,FILE_NAME,FtpTransferType.Binary))
-				writes(1,ftpClient.ErrorMessage)
-		end
 
 		writes(1,'Disconnecting...')
 		ftpClient.Disconnect()
 	end
 	
 endmain
+
+

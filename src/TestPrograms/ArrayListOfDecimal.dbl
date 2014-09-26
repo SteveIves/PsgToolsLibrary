@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       FtpClientExample.dbl
+;; Title:       ArrayListOfDecimal.dbl
 ;;
 ;; Type:        Program
 ;;
-;; Description: An example of using FTPClient
+;; Description: An example of using an ArrayList with deciml data items
 ;;
 ;; Date:        September 2014
 ;;
@@ -40,47 +40,41 @@
 ;;
 ;;*****************************************************************************
 
-import SynPSG
-import SynPSG.System.Net.Sockets
+import System.Collections
 
-main FtpClientExample
+main ArrayListOfDecimal
 
-	record
-		ftpClient, @FtpClient
+	record 
+		orderNumbers,		@ArrayList
+		orderNumber,		@d
 	endrecord
 
-	.define FILE_NAME     "bridge.jpg"
-	.define NEW_FILE_NAME "bridge_new.jpg"
-
+	;;Other boxing options
+	;
+	;	Type		Box		Unbox
+	;	Alpha		(@a)	(a)
+	;	Decimal		(@d)	(d)
+	;	Implied		(@d.)	(d.)
+	;	Integer		(@i)	(i)
+	
 proc
 
-    open(1,i,"TT:")
-
-	xcall delet(FILE_NAME)
+	open(1,i,"tt:")
 	
-	;Create an instance of the FTP client
-    ftpClient = new ftpclient("ftp.synergexpsg.com",21,FtpConnectMode.Passive)
-
-	;Connect to the remote server
-	writes(1,'Connecting ...')
-	if (!ftpClient.Connect("staples","p@ssw0rd")) then 
-		writes(1,ftpClient.ErrorMessage)
-	else
-	begin
-		;Receive a binary file from the server
-		writes(1,"Downloading "+FILE_NAME+" from server...")
-		if (!ftpClient.Download(FILE_NAME,FILE_NAME,FtpTransferType.Binary)) then 
-			writes(1,ftpClient.ErrorMessage)
-		else
+	orderNumbers = new ArrayList()
+	orderNumbers.Add((@d)1)
+	orderNumbers.Add((@d)2)
+	orderNumbers.Add((@d)3)
+	orderNumbers.Add((@d)4)
+	orderNumbers.Add((@d)5)
+	
+	writes(1,%string(orderNumbers.Count) + " order numbers added to the collection")
+	
+	foreach orderNumber in orderNumbers
 		begin
-			;Send the binary file back to the server
-			writes(1,"Uploading "+FILE_NAME+" to server as "+NEW_FILE_NAME+"...")
-			if (!ftpClient.Upload(FILE_NAME,FILE_NAME,FtpTransferType.Binary))
-				writes(1,ftpClient.ErrorMessage)
+		writes(1,"Order number: " + %string((d)orderNumber,"XXXXXX"))
 		end
 
-		writes(1,'Disconnecting...')
-		ftpClient.Disconnect()
-	end
+	close 1
 	
 endmain

@@ -1,12 +1,13 @@
 ;;*****************************************************************************
 ;;
-;; Title:       FtpClientExample.dbl
+;; Title:       ScheduledTaskRemove.dbl
 ;;
 ;; Type:        Program
 ;;
-;; Description: An example of using FTPClient
+;; Description: A program that demonstrates how to remove a Windows Scheduled
+;;              task.
 ;;
-;; Date:        September 2014
+;; Date:        23rd September 2014
 ;;
 ;; Author:      Steve Ives, Synergex Professional Services Group
 ;;              http://www.synergex.com
@@ -40,47 +41,25 @@
 ;;
 ;;*****************************************************************************
 
-import SynPSG
-import SynPSG.System.Net.Sockets
+import SynPSG.Windows
 
-main FtpClientExample
-
+main ScheduledTaskControl
 	record
-		ftpClient, @FtpClient
+		tt,				i4
+		task,			@ScheduledTask
+		errorMessage, 	string
 	endrecord
-
-	.define FILE_NAME     "bridge.jpg"
-	.define NEW_FILE_NAME "bridge_new.jpg"
-
 proc
+	open(tt=0,i,'tt:')
 
-    open(1,i,"TT:")
-
-	xcall delet(FILE_NAME)
+	task = new ScheduledTask("Synergy Task 1")
 	
-	;Create an instance of the FTP client
-    ftpClient = new ftpclient("ftp.synergexpsg.com",21,FtpConnectMode.Passive)
-
-	;Connect to the remote server
-	writes(1,'Connecting ...')
-	if (!ftpClient.Connect("staples","p@ssw0rd")) then 
-		writes(1,ftpClient.ErrorMessage)
+	if (task.Delete(errorMessage)) then
+		writes(tt,"Task removed.")
 	else
-	begin
-		;Receive a binary file from the server
-		writes(1,"Downloading "+FILE_NAME+" from server...")
-		if (!ftpClient.Download(FILE_NAME,FILE_NAME,FtpTransferType.Binary)) then 
-			writes(1,ftpClient.ErrorMessage)
-		else
-		begin
-			;Send the binary file back to the server
-			writes(1,"Uploading "+FILE_NAME+" to server as "+NEW_FILE_NAME+"...")
-			if (!ftpClient.Upload(FILE_NAME,FILE_NAME,FtpTransferType.Binary))
-				writes(1,ftpClient.ErrorMessage)
-		end
-
-		writes(1,'Disconnecting...')
-		ftpClient.Disconnect()
-	end
+		writes(tt,"ERROR: Failed to remove task! Error was " + errorMessage)
 	
+	close tt
+	stop
+
 endmain

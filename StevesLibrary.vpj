@@ -141,6 +141,7 @@
 			<F N="src/System/Datetime.dbl"/>
 			<F N="src/VmsCompatibility/DBL$SETKRF.DBL"/>
 			<F N="src/System/Net/DNS.dbl"/>
+			<F N="src/ExpandLogicalInFileSpec.dbl"/>
 			<F N="src/System/IO/FileStream.dbl"/>
 			<F N="src/FtpClient.dbl"/>
 			<F N="src/System/Net/IPEndPoint.dbl"/>

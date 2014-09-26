@@ -1,12 +1,13 @@
 ;;*****************************************************************************
 ;;
-;; Title:       FtpClientExample.dbl
+;; Title:       ScheduledTaskCreate.dbl
 ;;
 ;; Type:        Program
 ;;
-;; Description: An example of using FTPClient
+;; Description: A program that demonstrates how to start a Traditional
+;;              Synergy application as a Windows Scheduled task.
 ;;
-;; Date:        September 2014
+;; Date:        23rd September 2014
 ;;
 ;; Author:      Steve Ives, Synergex Professional Services Group
 ;;              http://www.synergex.com
@@ -40,47 +41,43 @@
 ;;
 ;;*****************************************************************************
 
-import SynPSG
-import SynPSG.System.Net.Sockets
+import SynPSG.Windows
 
-main FtpClientExample
-
+main ScheduledTaskCreate
 	record
-		ftpClient, @FtpClient
+		tt,				i4
+		folder,			a128
+		length,			i4
+		task,			@ScheduledTask
+		errorMessage, 	string
 	endrecord
-
-	.define FILE_NAME     "bridge.jpg"
-	.define NEW_FILE_NAME "bridge_new.jpg"
-
 proc
+	open(tt=0,i,'tt:')
+	xcall getlog("ROOT",folder,length)
 
-    open(1,i,"TT:")
-
-	xcall delet(FILE_NAME)
+	task = new ScheduledTask("Synergy Task 1","EXE:ScheduledTask.dbr")
 	
-	;Create an instance of the FTP client
-    ftpClient = new ftpclient("ftp.synergexpsg.com",21,FtpConnectMode.Passive)
-
-	;Connect to the remote server
-	writes(1,'Connecting ...')
-	if (!ftpClient.Connect("staples","p@ssw0rd")) then 
-		writes(1,ftpClient.ErrorMessage)
+	;;Optional settings	
+	;task.System			= "system_name"		;;System to run/control the scheduled task on
+	;task.RunAsUser			= "username"		;;Username to use to manage the scheduled task (default is current user)
+	;task.RunAsPassword		= "password"		;;Password for user account used to manage scheduled task
+	task.RunTaskAsUser		= "scheduledTasks"	;;User account to run scheduled task as (default is "SYSTEM")
+	task.RunTaskAsPassword	= "scheduledTasks"	;;Password for user account used to run scheduled task
+	task.CommandLogFile     = "D:\command.log"
+		
+	if (task.Create(TaskSchedule.Minute,1,errorMessage)) then
+	begin
+		writes(tt,"Task started.")
+		writes(tt,"Check for TEMP:scheduled_task_yyyymmddhhmmssuuuuuu.txt files.")
+		writes(tt,"Task will be automatically run every minute until stopped or removed.")
+	end
 	else
 	begin
-		;Receive a binary file from the server
-		writes(1,"Downloading "+FILE_NAME+" from server...")
-		if (!ftpClient.Download(FILE_NAME,FILE_NAME,FtpTransferType.Binary)) then 
-			writes(1,ftpClient.ErrorMessage)
-		else
-		begin
-			;Send the binary file back to the server
-			writes(1,"Uploading "+FILE_NAME+" to server as "+NEW_FILE_NAME+"...")
-			if (!ftpClient.Upload(FILE_NAME,FILE_NAME,FtpTransferType.Binary))
-				writes(1,ftpClient.ErrorMessage)
-		end
-
-		writes(1,'Disconnecting...')
-		ftpClient.Disconnect()
+		writes(tt,"ERROR: " + errorMessage)
+		writes(tt,"Command was: " + task.Command)
 	end
 	
+	close tt
+	stop
+
 endmain

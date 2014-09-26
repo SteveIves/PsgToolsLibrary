@@ -56,26 +56,6 @@ proc
 	open(tt=0,i,'tt:')
 	xcall getlog("ROOT",folder,length)
 
-	begin
-		data tasks, @ArrayList, ScheduledTask.GetTasks(^null,TaskStatus.All)
-		data task, @TaskInfo
-
-		if (tasks.Count == 0) then 
-			writes(tt,"No matching tasks!")
-		else
-		begin
-			open(55,o:s,"d:\results.txt")
-			foreach task in tasks
-			begin
-;				writes(tt,task.LogonMode)
-				;writes(55,%string(task.PowerManagement))
-				writes(55,task.Schedule)
-			end
-			close 55
-			writes(tt,%string(tasks.Count) + " matching tasks!")
-		end
-	end
-
 	task = new ScheduledTask("Synergy Task 1",%atrim(folder)+"ScheduledTask.dbr")
 	
 	;;Optional settings
@@ -87,35 +67,34 @@ proc
 ;	task.RunTaskAsPassword	= "password"		;;Password for user account used to run scheduled task
 	
 	
-;	if (task.Create(TaskSchedule.Minute,1,errorMessage)) then
-;	begin
-;		writes(tt,"Task started.")
-;		writes(tt,"Check for <windows_dir>\Temp\scheduled_task_yyyymmddhhmmssuuuuuu.txt files.")
-;		writes(tt,"Task will be automatically run once per minute.")
-;
-;
+	if (task.Create(TaskSchedule.Minute,1,errorMessage)) then
+	begin
+		writes(tt,"Task started.")
+		writes(tt,"Check for <windows_dir>\Temp\scheduled_task_yyyymmddhhmmssuuuuuu.txt files.")
+		writes(tt,"Task will be automatically run once per minute.")
+
 ;		writes(tt,"Task will be manually run in 5 seconds")
 ;		sleep 5
 ;		if (task.Run(errorMessage)) then
 ;			writes(tt,"Task was manually run.")
 ;		else
 ;			writes(tt,"ERROR: Failed to manually run task. Error was " + errorMessage)
-;
-;		writes(tt,"Task will be stopped and deleted in 2 minutes.")
-;
-;		writes(tt,"")
-;		writes(tt,"If you kill the program early, don't forget to delete the scheduled task!")
-;
-;		sleep 120
-;
-;		if (task.Delete(errorMessage)) then
-;			writes(tt,"Task deleted.")
-;		else
-;			writes(tt,"ERROR: Failed to delete task. Error was " + errorMessage)
-;
-;	end
-;	else
-;		writes(tt,"ERROR: Failed to start task! Error was " + errorMessage)
+
+		writes(tt,"Task will be stopped and deleted in 2 minutes.")
+
+		writes(tt,"")
+		writes(tt,"If you kill the program early, don't forget to delete the scheduled task!")
+
+		sleep 120
+
+		if (task.Delete(errorMessage)) then
+			writes(tt,"Task deleted.")
+		else
+			writes(tt,"ERROR: Failed to delete task. Error was " + errorMessage)
+
+	end
+	else
+		writes(tt,"ERROR: Failed to start task! Error was " + errorMessage)
 	
 	close tt
 	stop

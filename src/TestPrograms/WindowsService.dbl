@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       FtpClientExample.dbl
+;; Title:       WindowsService.dbl
 ;;
 ;; Type:        Program
 ;;
-;; Description: An example of using FTPClient
+;; Description: An example of running a DBR as a Windows Service
 ;;
 ;; Date:        September 2014
 ;;
@@ -39,48 +39,51 @@
 ;; POSSIBILITY OF SUCH DAMAGE.
 ;;
 ;;*****************************************************************************
+;;
+;; Refer to the following batch files for examples of how to:
+;;
+;;	Register the program as a Service	WindowsServiceRegister.bat
+;;	Start the service					WindowsServiceStart.bat
+;;	Stop the service					WindowsServiceStop.bat
+;;	Remove the service					WindowsServiceRemove.bat
+;;
+;; Start, stop and error messages will be logged in the Windows Event Log under
+;; "Application"
+;;
+;; Your code can also write messages to this event log using %SYN_REPORT_EVENT
+;;
 
-import SynPSG
-import SynPSG.System.Net.Sockets
-
-main FtpClientExample
-
-	record
-		ftpClient, @FtpClient
-	endrecord
-
-	.define FILE_NAME     "bridge.jpg"
-	.define NEW_FILE_NAME "bridge_new.jpg"
+main WindowsService
 
 proc
 
-    open(1,i,"TT:")
-
-	xcall delet(FILE_NAME)
+	;;Register a shutdown event handler. This is a subroutine that the
+	;;Windows service control manager will call if your service is being
+	;;stopped
+	xcall syn_atexit(%xaddr("WinServiceShutdown"))
 	
-	;Create an instance of the FTP client
-    ftpClient = new ftpclient("ftp.synergexpsg.com",21,FtpConnectMode.Passive)
+	;;Log a message in the Windows event log
+	xcall syn_reportevent(D_EVENTLOG_INFORMATION_TYPE,"Bonjour from Windows service!!!")
 
-	;Connect to the remote server
-	writes(1,'Connecting ...')
-	if (!ftpClient.Connect("staples","p@ssw0rd")) then 
-		writes(1,ftpClient.ErrorMessage)
-	else
+	repeat
 	begin
-		;Receive a binary file from the server
-		writes(1,"Downloading "+FILE_NAME+" from server...")
-		if (!ftpClient.Download(FILE_NAME,FILE_NAME,FtpTransferType.Binary)) then 
-			writes(1,ftpClient.ErrorMessage)
-		else
-		begin
-			;Send the binary file back to the server
-			writes(1,"Uploading "+FILE_NAME+" to server as "+NEW_FILE_NAME+"...")
-			if (!ftpClient.Upload(FILE_NAME,FILE_NAME,FtpTransferType.Binary))
-				writes(1,ftpClient.ErrorMessage)
-		end
-
-		writes(1,'Disconnecting...')
-		ftpClient.Disconnect()
+		sleep 5
+		xcall syn_reportevent(D_EVENTLOG_INFORMATION_TYPE,"Windows service is doing some work!")
 	end
-	
+
+	stop
+
 endmain
+
+;;; <summary>
+;;; This subroutine will be called by Windows when your service is stopped
+;;; </summary>
+subroutine WinServiceShutdown
+	
+proc
+
+	xcall syn_reportevent(D_EVENTLOG_INFORMATION_TYPE,"Windows Service is has received a shutdown notification!")
+
+	xreturn
+
+endsubroutine

@@ -4,10 +4,9 @@
 ;;
 ;; Type:        Class
 ;;
-;; Description: Implements a simple API to allow Traditional Synergy applications
-;;              to be run as Windows Scheduled tasks.
+;; Description: Runs DBR's as Windows Scheduled Tasks
 ;;
-;; Date:        23rd September 2014
+;; Date:        15th April 2014
 ;;
 ;; Author:      Steve Ives, Synergex Professional Services Group
 ;;              http://www.synergex.com
@@ -41,8 +40,6 @@
 ;;
 ;;*****************************************************************************
 
-import System.Collections
-
 namespace SynPSG.Windows
 
 	public enum TaskSchedule
@@ -63,17 +60,22 @@ namespace SynPSG.Windows
 		
 		public method ScheduledTask
 			required in aTaskName,	String
-			required in aTaskDbr,	String
 		proc
 			;;Store constructor parameters
 			TaskName = aTaskName
-			TaskDbr = aTaskDbr
-			;;Set default values
-			RunTaskAsUser = "SYSTEM"
 		endmethod
 		
+		public method ScheduledTask
+			required in aTaskName,	String
+			required in aTaskDbr,	String
+			this(aTaskName)
+		proc
+			;;Store constructor parameters
+			TaskDbr = aTaskDbr
+		endmethod
+
 		private mTaskName, String
-		
+
 		public property TaskName, String
 			method get
 			proc
@@ -97,9 +99,9 @@ namespace SynPSG.Windows
 				mTaskDbr = value
 			endmethod
 		endproperty
-
+		
 		private mSystem, String
-
+		
 		public property System, String
 			method get
 			proc
@@ -110,9 +112,9 @@ namespace SynPSG.Windows
 				mSystem = value
 			endmethod
 		endproperty
-
+		
 		private mRunAsUser, String
-
+		
 		public property RunAsUser, String
 			method get
 			proc
@@ -149,9 +151,9 @@ namespace SynPSG.Windows
 				mRunTaskAsUser = value
 			endmethod
 		endproperty
-
+		
 		private mRunTaskAsPassword, String
-
+		
 		public property RunTaskAsPassword, String
 			method get
 			proc
@@ -163,6 +165,24 @@ namespace SynPSG.Windows
 			endmethod
 		endproperty
 		
+		private mCommand, string
+		
+		public property Command, string
+			method get
+			proc
+				mreturn mCommand
+			endmethod
+		endproperty
+		
+		private mCommandLogFile, string
+
+		public property CommandLogFile, string
+			method set
+			proc
+				mCommandLogFile = value
+			endmethod
+		endproperty
+
 		public method Create, boolean
 			required in  schedule		,TaskSchedule
 			required out errorMessage	,String
@@ -187,125 +207,157 @@ namespace SynPSG.Windows
 			required out errorMessage	,String
 			endparams
 			record 
-				ch, i4
-				command, String
-				message, a256
-				lastmessage, string
+				ok,			boolean
+				ch, 		i4
+				dbrPath, 	string
+				message, 	a256
 			endrecord
 		proc
-			command = '|schtasks /create /f'
+			ok = true
+			mCommand = 'schtasks /create /f'
 
 			using schedule select
 			(TaskSchedule.None),
 				nop
 			(TaskSchedule.Minute),
 			begin
-				command += ' /sc MINUTE'
+				mCommand += ' /sc MINUTE'
 				if (modifier && modifier >= 1 && modifier <= 1439) then
-					command += ' /mo '+%string(modifier)
+					mCommand += ' /mo '+%string(modifier)
 				else if (modifier)
 				begin
 					errorMessage = 'Modifier value ' + %string(modifier) + ' is not valid for schedule type MINUTE'
-					mreturn false
+					ok = false
 				end
 			end
 			(TaskSchedule.Hourly),
 			begin
-				command += ' /sc HOURLY'
+				mCommand += ' /sc HOURLY'
 				if (modifier && modifier >= 1 && modifier <= 23) then
-					command += ' /mo '+%string(modifier)
+					mCommand += ' /mo '+%string(modifier)
 				else if (modifier)
 				begin
 					errorMessage = 'Modifier value ' + %string(modifier) + ' is not valid for schedule type HOURLY'
-					mreturn false
+					ok = false
 				end
 			end
 			(TaskSchedule.Daily),
 			begin
-				command += ' /sc DAILY'
+				mCommand += ' /sc DAILY'
 				if (modifier && modifier >= 1 && modifier <= 365) then
-					command += ' /mo '+%string(modifier)
+					mCommand += ' /mo '+%string(modifier)
 				else if (modifier)
 				begin
 					errorMessage = 'Modifier value ' + %string(modifier) + ' is not valid for schedule type DAILY'
-					mreturn false
+					ok = false
 				end
 				if ((startTime!=^null)&&(startTime.Length>0))
-					command += ' /st ' + startTime
+					mCommand += ' /st ' + startTime
 			end
 			(TaskSchedule.Weekly),
 			begin
-				command += ' /sc WEEKLY'
+				mCommand += ' /sc WEEKLY'
 				if (modifier && modifier >= 1 && modifier <= 365) then
-					command += ' /mo '+%string(modifier)
+					mCommand += ' /mo '+%string(modifier)
 				else if (modifier)
 				begin
 					errorMessage = 'Modifier value ' + %string(modifier) + ' is not valid for schedule type DAILY'
-					mreturn false
+					ok = false
 				end
 				if ((startTime!=^null)&&(startTime.Length>0))
-					command += ' /st ' + startTime
+					mCommand += ' /st ' + startTime
 			end
 			(TaskSchedule.Monthly),
 			begin
-				command += ' /sc MONTHLY'
+				mCommand += ' /sc MONTHLY'
 				if (modifier && modifier >= 1 && modifier <= 12) then
-					command += ' /mo '+%string(modifier)
+					mCommand += ' /mo '+%string(modifier)
 				else if (modifier)
 				begin
 					errorMessage = 'Modifier value ' + %string(modifier) + ' is not valid for schedule type MONTHLY'
-					mreturn false
+					ok = false
 				end
 				if ((startTime!=^null)&&(startTime.Length>0))
-					command += ' /st ' + startTime
+					mCommand += ' /st ' + startTime
 			end
 			(TaskSchedule.Once),
 			begin
-				command += ' /sc ONCE'
+				mCommand += ' /sc ONCE'
 				if ((startTime!=^null)&&(startTime.Length>0))
-					command += ' /st ' + startTime
+					mCommand += ' /st ' + startTime
 			end
 			(TaskSchedule.OnStart),
 			begin
-				command += ' /sc ONSTART'
+				mCommand += ' /sc ONSTART'
 			end
 			(TaskSchedule.OnLogon),
 			begin
-				command += ' /sc ONLOGON'
+				mCommand += ' /sc ONLOGON'
 			end
 			(TaskSchedule.OnIdle),
 			begin
-				command += ' /sc ONIDLE'
+				mCommand += ' /sc ONIDLE'
 			end
 			(TaskSchedule.OnEvent),
 			begin
 				errorMessage = 'Schedule type ONEVENT is sot supported yet'
-				mreturn false
+				ok = false
 			end
 			endusing
 
-			command += getTaskAndAuthInfo()
-			command += ' /ru ' + RunTaskAsUser
-			if (RunTaskAsPassword!=^null)
-				command += ' /rp ' + RunTaskAsPassword
-			command += ' /tr "C:\Program Files (x86)\Synergex\SynergyDE\dbl\bin\dbs.exe ' + TaskDbr + '"'
+			if (ok)
+			begin
+				mCommand += getTaskAndAuthInfo()
+				if ((RunTaskAsUser!=^null) && (RunTaskAsUser.Length > 0))
+					mCommand += ' /ru ' + RunTaskAsUser
+				if (RunTaskAsPassword!=^null)
+					mCommand += ' /rp ' + RunTaskAsPassword
 
-			open(ch=0,i,command)
-			repeat
-			begin
-				reads(ch,message,eof)
-				lastmessage = %atrim(message)
-			end
-		eof,
-			close ch
-			
-			if (lastmessage!='SUCCESS: The scheduled task "' + TaskName + '" has successfully been created.')
-			begin
-				errorMessage = lastmessage
-				mreturn false
+				if (%instr(1,mTaskDbr,":")) then
+					dbrPath = %ExpandLogicalInFileSpec(mTaskDbr)
+				else
+					dbrPath = mTaskDbr
+
+				mCommand += ' /tr "C:\Program Files\Synergex\SynergyDE\dbl\bin\dbs.exe ' + dbrPath + '"'
+				
+				logCommand()
+				
+				try 
+				begin
+					open(ch=0,i,"|"+mCommand)
+					reads(ch,message)
+					if (message=='SUCCESS: The scheduled task "' + TaskName + '" has successfully been created.') then 
+						nop
+					else if (message == "ERROR: Access is denied.") then
+					begin
+						errorMessage = "Access Denied. Use RunAsUser/RunAsPassword to specify an alternate user account."
+						ok = false
+					end
+					else
+					begin
+						errorMessage = %atrim(message)
+						ok = false
+					end
+				end
+				catch (ex,@EndOfFileException)
+				begin
+					errorMessage = "The command produced no output. You may not have the privileges required to perform the operation."
+					ok = false
+				end
+				catch (ex,@Exception)
+				begin
+					errorMessage = ex.Message
+					ok = false
+				end
+				finally
+				begin
+					if (ch&&%chopen(ch))
+						close ch
+				end
+				endtry
 			end
 				
-			mreturn true
+			mreturn ok
 			
 		endmethod
 		
@@ -315,17 +367,18 @@ namespace SynPSG.Windows
 			record 
 				ok, boolean
 				ch, i4
-				command, string
 				message, a256
 			endrecord
 		proc
 			ok = true
 			errorMessage = ""
 
-			command = "|schtasks /run /i"
-			command += getTaskAndAuthInfo()
+			mCommand = "schtasks /run /i"
+			mCommand += getTaskAndAuthInfo()
 
-			open(ch=0,i,command)
+			logCommand()
+
+			open(ch=0,i,"|"+mCommand)
 			reads(ch,message)
 			close ch
 
@@ -345,17 +398,18 @@ namespace SynPSG.Windows
 			record 
 				ok, boolean
 				ch, i4
-				command, string
 				message, a256
 			endrecord
 		proc
 			ok = true
 			errorMessage = ""
 
-			command = "|schtasks /end"
-			command += getTaskAndAuthInfo()
+			mCommand = "schtasks /end"
+			mCommand += getTaskAndAuthInfo()
 
-			open(ch=0,i,command)
+			logCommand()
+
+			open(ch=0,i,"|"+mCommand)
 			reads(ch,message)
 			close ch
 
@@ -375,17 +429,18 @@ namespace SynPSG.Windows
 			record 
 				ok, boolean
 				ch, i4
-				command, string
 				message, a256
 			endrecord
 		proc
 			ok = true
 			errorMessage = ""
 
-			command = "|schtasks /delete /f"
-			command += getTaskAndAuthInfo()
+			mCommand = "schtasks /delete /f"
+			mCommand += getTaskAndAuthInfo()
 
-			open(ch=0,i,command)
+			logCommand()
+
+			open(ch=0,i,"|"+mCommand)
 			reads(ch,message)
 			close ch
 
@@ -403,13 +458,15 @@ namespace SynPSG.Windows
 			endparams
 			record 
 				ch, int
-				command, string
 				message, a256
 				returnMsg, string
 			endrecord
 		proc
-			command = '|schtasks /query /tn "' + TaskName + '"'
-			open(ch=0,i,command)
+			mCommand = 'schtasks /query /tn "' + TaskName + '"'
+
+			logCommand()
+
+			open(ch=0,i,"|"+mCommand)
 			repeat
 			begin
 				reads(ch,message,eof)
@@ -436,332 +493,31 @@ namespace SynPSG.Windows
 			mreturn authInfo
 		endmethod
 		
-		;;; <summary>
-		;;; Get all tasks for a specific system
-		;;; </summary>
-		;;; <param name="system">System to get tasks for</param>
-		;;; <returns></returns>
-		public static method GetTasks, @ArrayList
-			required in system, string
-			required in status, TaskStatus
-			endparams
-			record 
-				ch, int
-				command, string
-				dataline, a256
-				linekey, string
-				linevalue, string
-				currentFolder, string
-				tsk, @TaskInfo
-				tasks, @ArrayList
-			endrecord
+		private method logCommand, void
 		proc
-			;;Define the command to execute
-			command = '|schtasks /query /v /fo list'
-			if ((system != ^null) && (system.Length > 0))
-				command += " /s " + system
-			
-			;;Create the returned collection
-			tasks = new ArrayList()
-			currentFolder = ""
-
-			;;Execute the command
-			open(ch=0,i,command)
-			
-			;;Read the resulting data
-			repeat
+			if ((mCommandLogFile!=^null) && (mCommandLogFile.Length>0))
 			begin
-				reads(ch,dataline,eof)
-
-				if (!dataline) then
+				data tmpch, int, 0
+				try 
 				begin
-					;;Add the previous task to the returned collection
-					if (tsk!=^null && ((tsk.TaskName!=^null)&&(tsk.TaskName.Length>0)))
-						call addTask
-					;;Start recording a new task
-					tsk = new TaskInfo()
-					tsk.Folder = currentFolder
+					open(tmpch,o:s,mCommandLogFile)
+					writes(tmpch,mCommand)
 				end
-				else if (dataline.eq."Folder: ") then
-				begin
-					currentFolder = %atrim(dataline(9,^size(dataline)))
-					tsk.Folder = currentFolder
-				end
-				else if (dataline.eq."INFO: ") then
+				catch (ex, @Exception)
 				begin
 					nop
 				end
-				else
+				finally
 				begin
-					linekey = %atrim(dataline(1:38))
-					linevalue = %atrim( dataline(39,^size(dataline))   )
-					
-					;;Extract the data
-					using linekey select
-					("HostName:"),
-						tsk.HostName = linevalue
-					("TaskName:"),
-						tsk.TaskName = linevalue
-					("Next Run Time:"),
-						tsk.NextRunTime = stringToDateAndTime(linevalue)
-					("Status:"),
-					begin
-						using linevalue select
-						("Disabled"),
-							tsk.Status = TaskStatus.Disabled
-						("Ready"),
-							tsk.Status = TaskStatus.Ready
-						("Running"),
-							tsk.Status = TaskStatus.Running
-						("Queued"),
-							tsk.Status = TaskStatus.Queued
-						(),
-							throw new ApplicationException("Unrecognized TaskStatus " + linevalue )
-						endusing
-					end
-					("Logon Mode:"),
-					begin
-						using linevalue select
-						("Interactive only"),
-							tsk.LogonMode = TaskLogonMode.InteractiveOnly
-						("Interactive/Background"),
-							tsk.LogonMode = TaskLogonMode.InteractiveOrBackground
-						(""),
-							throw new ApplicationException("Unrecognized TaskLogonMode " + linevalue )
-						endusing
-					end
-					("Last Run Time:"),
-						tsk.LastRunTime = stringToDateAndTime(linevalue)
-					("Last Result:"),
-						tsk.LastResult = %integer(linevalue,4)
-					("Author:"),
-						tsk.Author = linevalue
-					("Task To Run:"),
-						tsk.TaskToRun = linevalue
-					("Start In:"),
-						tsk.StartIn = linevalue
-					("Comment:"),
-						tsk.Comment = linevalue
-					("Scheduled Task State:"),
-					begin
-						using linevalue select
-						("Enabled"),
-							tsk.State = TaskState.Enabled
-						("Disabled"),
-							tsk.State = TaskState.Disabled
-						(""),
-							throw new ApplicationException("Unrecognized TaskState " + linevalue )
-						endusing
-					end
-					("Idle Time:"),
-						tsk.IdleTime = linevalue
-					("Power Management:"),
-					begin
-						using ((a)linevalue) select
-						("No Start On Batteries"),
-							tsk.PowerManagement = TaskPowerMode.NoStartOnBattery
-						("Stop On Battery Mode "),
-							tsk.PowerManagement = TaskPowerMode.StopOnBattery
-						("Stop On Battery Mode, No Start On Batteries"),
-							tsk.PowerManagement = TaskPowerMode.StopOnBatteryNoStartOnBattery
-						(""),
-							tsk.PowerManagement = TaskPowerMode.None
-						(),
-							throw new ApplicationException("Unrecognized TaskPowerMode " + linevalue )
-						endusing
-					end
-					("Run As User:"),
-						tsk.RunAsUser = linevalue
-					("Delete Task If Not Rescheduled:"),
-						tsk.DeleteIfNotRescheduled = linevalue
-					("Stop Task If Runs X Hours and X Mins:"),
-						tsk.StopIfRunsTooLong = linevalue
-					("Schedule:"),
-						tsk.Schedule = linevalue
-					("Schedule Type:"),
-						tsk.ScheduleType = linevalue
-					("Start Time:"),
-						tsk.StartTime = linevalue
-					("Start Date:"),
-						tsk.StartDate = linevalue
-					("End Date:"),
-						tsk.EndDate = linevalue
-					("Days:"),
-						tsk.Days = linevalue
-					("Months:"),
-						tsk.Months = linevalue
-					("Repeat: Every:"),
-						tsk.RepeatEvery = linevalue
-					("Repeat: Until: Time:"),
-						tsk.RepeatUntilTime = linevalue
-					("Repeat: Until: Duration:"),
-						tsk.RepeatUntilDuration = linevalue
-					("Repeat: Stop If Still Running:"),
-						tsk.RepeatStopIfStillRunning = linevalue
-					endusing
+					if (tmpch&&%chopen(tmpch))
+						close tmpch
 				end
+				endtry
 			end
-		eof,
-			;;Add the final task to the collection
-			call addTask
-			close ch
-			mreturn tasks
-			
-		addTask,
-
-			if ((status != TaskStatus.All) && (tsk.Status != status))
-				return
-
-			tasks.Add(tsk)
-
-			return			
-
 		endmethod
 		
-		private static method stringToDateAndTime, string
-			required in stringDateTime, a
-			endparams
-			record 
-				pos1,			int
-				pos2,			int
-				group outDate,	a
-					year, 		a4
-					month, 		a2
-					day, 		a2
-					hour,		a2
-					min,		a2
-					sec,		a2
-				endgroup
-			endrecord
-		proc
-			if (!stringDateTime || stringDateTime=="N/A")
-				mreturn ""
-			
-			;1/1/2013 4:51:20 PM
-			;10/19/2013 4:51:20 PM
-			pos1  = %instr(1,stringDateTime,"/")
-			month = %string( ^d(stringDateTime(1:pos1-1)),"XX")
-			pos2  = %instr(pos1+1,stringDateTime,"/")
-			day   = %string(^d(stringDateTime(pos1+1,pos2-1)),"XX")
-			pos1  = %instr(pos2+1,stringDateTime," ")
-			year  = stringDateTime(pos2+1,pos1-1)
-			pos2  = %instr(pos1+1,stringDateTime,":")
-			hour  = %string(^d(stringDateTime(pos1+1,pos2-1)),"XX")
-			pos1  = %instr(pos2+1,stringDateTime,":")
-			min   = %string(^d(stringDateTime(pos2+1,pos1-1)),"XX")
-			pos2  = %instr(pos1+1,stringDateTime," ")
-			sec   = %string(^d(stringDateTime(pos1+1,pos2-1)),"XX")
-			if (stringDateTime(pos2+1:2)=="PM")
-				hour = %string(^d(hour)+12,"XX")
-			mreturn outDate
-		endmethod
 
 	endclass
 	
 endnamespace
-		
-;;*****************************************************************************
-;;
-;; Title:       TaskInfo.dbl
-;;
-;; Type:        Class
-;;
-;; Description: Exposes information about a scheduled task.
-;;
-;; Date:        24th September 2014
-;;
-;; Author:      Steve Ives, Synergex Professional Services Group
-;;              http://www.synergex.com
-;;
-;;*****************************************************************************
-;;
-;; Copyright (c) 2014, Synergex International, Inc.
-;; All rights reserved.
-;;
-;; Redistribution and use in source and binary forms, with or without
-;; modification, are permitted provided that the following conditions are met:
-;;
-;; * Redistributions of source code must retain the above copyright notice,
-;;   this list of conditions and the following disclaimer.
-;;
-;; * Redistributions in binary form must reproduce the above copyright notice,
-;;   this list of conditions and the following disclaimer in the documentation
-;;   and/or other materials provided with the distribution.
-;;
-;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-;; POSSIBILITY OF SUCH DAMAGE.
-;;
-;;*****************************************************************************
 
-namespace SynPSG.Windows
-		
-	public enum TaskStatus
-		All
-		Disabled
-		Ready
-		Running
-		Queued
-	endenum
-		
-	public enum TaskLogonMode
-		InteractiveOnly
-		InteractiveOrBackground
-	endenum
-		
-	public enum TaskState
-		Disabled
-		Enabled
-	endenum
-		
-	public enum TaskPowerMode	
-		None
-		NoStartOnBattery
-		StopOnBatteryNoStartOnBattery
-		StopOnBattery
-	endenum
-	
-	public class TaskInfo
-		
-		public Folder, string
-		
-		public HostName, string
-		public TaskName, string
-		public NextRunTime, string
-		public Status, TaskStatus
-		public LogonMode, TaskLogonMode
-		public LastRunTime, string
-		public LastResult, int
-		public Author, string
-		public TaskToRun, string
-		public StartIn, string
-		public Comment, string
-		public State, TaskState
-		public IdleTime, string
-		public PowerManagement, TaskPowerMode
-		public RunAsUser, string
-		public DeleteIfNotRescheduled, string
-		public StopIfRunsTooLong, string
-		public Schedule, string
-		public ScheduleType, string
-		public StartTime, string
-		public StartDate, string
-		public EndDate, string
-		public Days, string
-		public Months, string
-		public RepeatEvery, string
-		public RepeatUntilTime, string
-		public RepeatUntilDuration, string
-		public RepeatStopIfStillRunning, string
-		
-	endclass
-
-endnamespace

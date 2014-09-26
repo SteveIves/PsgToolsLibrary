@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       FtpClientExample.dbl
+;; Title:       FtpClientSendTextFile.dbl
 ;;
 ;; Type:        Program
 ;;
-;; Description: An example of using FTPClient
+;; Description: An example of sending a text file with FTPClient
 ;;
 ;; Date:        September 2014
 ;;
@@ -43,21 +43,16 @@
 import SynPSG
 import SynPSG.System.Net.Sockets
 
-main FtpClientExample
+main FtpClientSendTextFile
 
 	record
 		ftpClient, @FtpClient
 	endrecord
 
-	.define FILE_NAME     "bridge.jpg"
-	.define NEW_FILE_NAME "bridge_new.jpg"
-
 proc
 
-    open(1,i,"TT:")
+	open(1,i,"TT:")
 
-	xcall delet(FILE_NAME)
-	
 	;Create an instance of the FTP client
     ftpClient = new ftpclient("ftp.synergexpsg.com",21,FtpConnectMode.Passive)
 
@@ -67,20 +62,20 @@ proc
 		writes(1,ftpClient.ErrorMessage)
 	else
 	begin
-		;Receive a binary file from the server
-		writes(1,"Downloading "+FILE_NAME+" from server...")
-		if (!ftpClient.Download(FILE_NAME,FILE_NAME,FtpTransferType.Binary)) then 
+		;;Create a text file
+		open(2,o:s,"textfile.txt")
+		writes(2,"This is a text file!")
+		close 2
+
+		;Upload file to server
+		writes(1,'Uploading textfile.txt to server...')
+		if (!ftpClient.Upload("textfile.txt"))
 			writes(1,ftpClient.ErrorMessage)
-		else
-		begin
-			;Send the binary file back to the server
-			writes(1,"Uploading "+FILE_NAME+" to server as "+NEW_FILE_NAME+"...")
-			if (!ftpClient.Upload(FILE_NAME,FILE_NAME,FtpTransferType.Binary))
-				writes(1,ftpClient.ErrorMessage)
-		end
 
 		writes(1,'Disconnecting...')
 		ftpClient.Disconnect()
 	end
 	
 endmain
+
+
