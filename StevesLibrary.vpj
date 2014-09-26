@@ -163,6 +163,7 @@
 			<F N="src/MonthShortNameToNumber.dbl"/>
 			<F N="src/System/Net/NetworkCredential.dbl"/>
 			<F N="src/System/Net/Sockets/NetworkStream.dbl"/>
+			<F N="src/Windows/ScheduledTask.dbl"/>
 			<F N="src/System/Security/SecureString.dbl"/>
 			<F N="src/System/Net/Mail/SmtpClient.dbl"/>
 			<F N="src/System/Net/Sockets/Socket.dbl"/>
