@@ -167,6 +167,7 @@
 			<F N="src/TestPrograms/FtpClientTest.dbl"/>
 			<F N="src/TestPrograms/ScheduledTask.dbl"/>
 			<F N="src/TestPrograms/ScheduledTaskControl.dbl"/>
+			<F N="src/TestPrograms/TestKeys.dbl"/>
 			<F N="src/TestPrograms/WinDirTest.dbl"/>
 		</Folder>
 		<Folder
