@@ -1,0 +1,36 @@
+import SynPSG
+import SynPSG.System
+import SynPSG.System.IO
+import SynPSG.System.Net
+import SynPSG.System.Net.Sockets
+import SynPSG.System.Net.Mime
+
+main FtpClientTest
+
+	record
+		myFTP   ,@FtpClient
+		tmpStr  ,@string
+		tmpArray,[#]string
+	endrecord
+
+proc
+    open(1,o,"TT:")
+
+    myFtp = new ftpclient("ftp1.freebsd.org",21,FtpConnectMode.Passive)
+    myFtp.Connect()
+
+    myFtp.ChangeDirectory("/pub/FreeBSD/")
+    myFtp.LocalDirectory = "c:\test"
+    myFtp.GetFile("README.TXT", "fromLondonReadme.txt",FtpTransferType.Ascii)
+
+;    myFtp = new ftpclient("psg.synergex.com",21,FtpConnectMode.Active)
+;    myFtp.Connect("Tod Phillips","wehr7T34")
+
+;    myFtp.ChangeDirectory("/pub/FreeBSD/")
+;    myFtp.LocalDirectory = "c:\test"
+;    myFtp.GetFile("test.xml", "test.xml",FtpTransferType.Ascii)
+
+    myFtp.Disconnect()
+
+endmain
+

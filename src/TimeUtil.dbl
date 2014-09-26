@@ -1,0 +1,59 @@
+;;******************************************************************************
+;;
+;; Copyright    © 2009 Synergex International Corporation.  All rights reserved.
+;;
+;; WARNING:     All content constituting or related to this code ("Code") is the
+;;              property of Synergex International Corporation ("Synergex") and
+;;              is protected by U.S. and international copyright laws.
+;;              If you were given this Code by a Synergex employee then you may
+;;              use and modify it freely for use within your applications.
+;;
+;;              However, you may use the Code only for your personal use.
+;;              Any other use, unless otherwise authorized in writing by
+;;              Synergex is strictly prohibited.  You may not under any
+;;              circumstances distribute this Code, or any modified version
+;;              or part of this Code, to any third party without first
+;;              obtaining written permission to do so from Synergex.
+;;              In using this Code you accept that it is provided as is,
+;;              and without support or warranty of any kind.
+;;
+;;              Neither Synergex nor the author accept any responsibility
+;;              for any losses or damages of any nature which may arise
+;;              from the use of this Code.  This header information must
+;;              remain unaltered in the Code at all times.  Possession
+;;              of this Code, or any modified version or part of this Code,
+;;              indicates your acceptance of these terms.
+;;
+;;******************************************************************************
+namespace SynPSG
+
+    public class TimeUtil
+
+        ;; return the offset for current timezone to UMT timezone
+        public static method getUMTOffset   ,int
+            endparams
+        record wrkVars
+            minsOffset  ,i4
+            UMToffset   ,i4
+            hours       ,i4
+        proc
+            minsOffset = %timezone()
+            if(minsOffset < 0) then
+            begin
+                minsOffset = -minsOffset
+                hours = %trunc(minsOffset / 60)
+                UMToffset = (hours * 100) + (minsOffset - (hours * 60))
+                UMToffset = -UMToffset
+            end
+            else
+            begin 
+                hours = %trunc(minsOffset / 60)
+                UMToffset = (hours * 100) + (minsOffset - (hours * 60))
+            end
+            mreturn UMToffset
+        endmethod
+
+    endclass
+
+endnamespace
+
