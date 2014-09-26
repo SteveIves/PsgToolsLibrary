@@ -133,6 +133,7 @@
 			<F N="src/System/Net/Mail/Attachment.dbl"/>
 			<F N="src/System/Net/Mail/AttachmentBase.dbl"/>
 			<F N="src/System/Net/Mail/AttachmentCollection.dbl"/>
+			<F N="src/Windows/ClipBoard.dbl"/>
 			<F N="src/System/Net/Mime/ContentDisposition.dbl"/>
 			<F N="src/System/Net/Mime/ContentType.dbl"/>
 			<F N="src/System/Convert.dbl"/>
