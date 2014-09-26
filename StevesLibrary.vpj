@@ -181,6 +181,7 @@
 			<F N="src/System/Net/Sockets/TcpListener.dbl"/>
 			<F N="src/TimeUtil.dbl"/>
 			<F N="src/System/Uri.dbl"/>
+			<F N="src/Windows/WinDir.dbl"/>
 		</Folder>
 		<Folder
 			Name="Header Files"
