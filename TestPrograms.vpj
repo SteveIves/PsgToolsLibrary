@@ -644,6 +644,7 @@
 	</Config>
 	<Macro>
 		<ExecMacro CmdLine="syn_set ROOT=%wp"/>
+		<ExecMacro CmdLine="syn_set STDLIBINC=%(ROOT)src\Includes"/>
 		<ExecMacro CmdLine="syn_set OBJ=%(ROOT)obj"/>
 		<ExecMacro CmdLine="syn_set EXE=%(ROOT)exe"/>
 		<ExecMacro CmdLine="syn_set SYNEXPDIR=%(ROOT)hdr"/>

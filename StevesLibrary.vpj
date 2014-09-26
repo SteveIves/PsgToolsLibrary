@@ -164,6 +164,7 @@
 			<F N="src/MonthShortNameToNumber.dbl"/>
 			<F N="src/System/Net/NetworkCredential.dbl"/>
 			<F N="src/System/Net/Sockets/NetworkStream.dbl"/>
+			<F N="src/Windows/RegistryApi.dbl"/>
 			<F N="src/Windows/ScheduledTask.dbl"/>
 			<F N="src/System/Security/SecureString.dbl"/>
 			<F N="src/System/Net/Mail/SmtpClient.dbl"/>
@@ -187,8 +188,9 @@
 		<Folder
 			Name="Header Files"
 			Filters="*.def;*.dbh">
-			<F N="src/smtpmail.def"/>
-			<F N="src/timezone.def"/>
+			<F N="src/Includes/RegistryApi.def"/>
+			<F N="src/Includes/smtpmail.def"/>
+			<F N="src/Includes/timezone.def"/>
 		</Folder>
 		<Folder
 			Name="Other Files"
@@ -558,6 +560,7 @@
 	</Config>
 	<Macro>
 		<ExecMacro CmdLine="syn_set ROOT=%wp"/>
+		<ExecMacro CmdLine="syn_set STDLIBINC=%(ROOT)src\Includes"/>
 		<ExecMacro CmdLine="syn_set OBJ=%(ROOT)obj"/>
 		<ExecMacro CmdLine="syn_set EXE=%(ROOT)exe"/>
 		<ExecMacro CmdLine="syn_set SYNEXPDIR=%(ROOT)hdr"/>
