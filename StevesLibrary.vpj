@@ -137,12 +137,14 @@
 			<F N="src/System/Net/Mime/ContentDisposition.dbl"/>
 			<F N="src/System/Net/Mime/ContentType.dbl"/>
 			<F N="src/System/Convert.dbl"/>
+			<F N="src/CopyHandle.dbl"/>
 			<F N="src/System/CredentialCache.dbl"/>
 			<F N="src/System/Datetime.dbl"/>
 			<F N="src/VmsCompatibility/DBL$SETKRF.DBL"/>
 			<F N="src/System/Net/DNS.dbl"/>
 			<F N="src/ExpandLogicalInFileSpec.dbl"/>
 			<F N="src/System/IO/FileStream.dbl"/>
+			<F N="src/FileToHandle.dbl"/>
 			<F N="src/FtpClient.dbl"/>
 			<F N="src/System/Net/IPEndPoint.dbl"/>
 			<F N="src/System/Net/IPHostEntry.dbl"/>
@@ -185,6 +187,10 @@
 			<F N="src/TimeUtil.dbl"/>
 			<F N="src/System/Uri.dbl"/>
 			<F N="src/Windows/WinDir.dbl"/>
+			<F N="src/Windows/WinFileCopy.dbl"/>
+			<F N="src/Windows/WinSysPath.dbl"/>
+			<F N="src/Windows/WinTempDir.dbl"/>
+			<F N="src/Windows/WinTempFile.dbl"/>
 		</Folder>
 		<Folder
 			Name="Header Files"
@@ -192,6 +198,7 @@
 			<F N="src/Includes/RegistryApi.def"/>
 			<F N="src/Includes/smtpmail.def"/>
 			<F N="src/Includes/timezone.def"/>
+			<F N="src/Includes/WinError.def"/>
 		</Folder>
 		<Folder
 			Name="Other Files"
