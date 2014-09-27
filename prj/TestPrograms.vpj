@@ -4,7 +4,7 @@
 	VendorName="SlickEdit"
 	TemplateName="Synergy/DE Application"
 	Customized="1"
-	WorkingDir=".">
+	WorkingDir="../src/TestPrograms/">
 	<Config
 		Name="Debug32"
 		OutputFile=""
@@ -163,23 +163,23 @@
 		<Folder
 			Name="Source Files"
 			Filters="*.dbl;*.tpl;*.dbc">
-			<F N="src/TestPrograms/ArrayListOfDecimal.dbl"/>
-			<F N="src/TestPrograms/ClipBoardTest.dbl"/>
-			<F N="src/TestPrograms/CopyHandleTest.dbl"/>
-			<F N="src/TestPrograms/FileDialogTests.dbl"/>
-			<F N="src/TestPrograms/FtpClientReceiveTextFile.dbl"/>
-			<F N="src/TestPrograms/FtpClientSendTextFile.dbl"/>
-			<F N="src/TestPrograms/FtpClientTest.dbl"/>
-			<F N="src/TestPrograms/FtpReceiveMultipleFiles.dbl"/>
-			<F N="src/TestPrograms/FtpSendMultipleFiles.dbl"/>
-			<F N="src/TestPrograms/ScheduledTask.dbl"/>
-			<F N="src/TestPrograms/ScheduledTaskCreate.dbl"/>
-			<F N="src/TestPrograms/ScheduledTaskRemove.dbl"/>
-			<F N="src/TestPrograms/SelectExample.dbl"/>
-			<F N="src/TestPrograms/SparseSelect.dbl"/>
-			<F N="src/TestPrograms/WinDirTest.dbl"/>
-			<F N="src/TestPrograms/WindowsService.dbl"/>
-			<F N="src/TestPrograms/WinPathTest.dbl"/>
+			<F N="../src/TestPrograms/ArrayListOfDecimal.dbl"/>
+			<F N="../src/TestPrograms/ClipBoardTest.dbl"/>
+			<F N="../src/TestPrograms/CopyHandleTest.dbl"/>
+			<F N="../src/TestPrograms/FileDialogTests.dbl"/>
+			<F N="../src/TestPrograms/FtpClientReceiveTextFile.dbl"/>
+			<F N="../src/TestPrograms/FtpClientSendTextFile.dbl"/>
+			<F N="../src/TestPrograms/FtpClientTest.dbl"/>
+			<F N="../src/TestPrograms/FtpReceiveMultipleFiles.dbl"/>
+			<F N="../src/TestPrograms/FtpSendMultipleFiles.dbl"/>
+			<F N="../src/TestPrograms/ScheduledTask.dbl"/>
+			<F N="../src/TestPrograms/ScheduledTaskCreate.dbl"/>
+			<F N="../src/TestPrograms/ScheduledTaskRemove.dbl"/>
+			<F N="../src/TestPrograms/SelectExample.dbl"/>
+			<F N="../src/TestPrograms/SparseSelect.dbl"/>
+			<F N="../src/TestPrograms/WinDirTest.dbl"/>
+			<F N="../src/TestPrograms/WindowsService.dbl"/>
+			<F N="../src/TestPrograms/WinPathTest.dbl"/>
 		</Folder>
 		<Folder
 			Name="Header Files"
