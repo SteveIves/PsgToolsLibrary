@@ -209,6 +209,7 @@
 			<F N="src/Windows/WinLogout.dbl"/>
 			<F N="src/Windows/WinMem.dbl"/>
 			<F N="src/Windows/WinNode.dbl"/>
+			<F N="src/Windows/WinOpenSaveFileDialogs.dbl"/>
 			<F N="src/Windows/WinPath.dbl"/>
 			<F N="src/Windows/WinSetTime.dbl"/>
 			<F N="src/Windows/WinSound.dbl"/>

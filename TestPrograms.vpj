@@ -176,6 +176,7 @@
 			<F N="src/TestPrograms/ScheduledTaskRemove.dbl"/>
 			<F N="src/TestPrograms/SelectExample.dbl"/>
 			<F N="src/TestPrograms/SparseSelect.dbl"/>
+			<F N="src/TestPrograms/TestFileDialogs.dbl"/>
 			<F N="src/TestPrograms/WinDirTest.dbl"/>
 			<F N="src/TestPrograms/WindowsService.dbl"/>
 		</Folder>
