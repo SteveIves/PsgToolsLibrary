@@ -38,34 +38,34 @@
 ;****************************************************************************
 ;
 
-.function WinTempDir
+namespace SynPSG.Windows
 
-;Argument list
+	function WinTempDir, string
+		endparams
 
-;End of argument list
+		.align
+		stack record
+			dll_handle		,i4
+			len				,i4
+			rtnlen			,i4
+			path			,a256
+			rtnpath			,string
+		endrecord
 
-.align
-stack record
-	dll_handle		,i4
-	len				,i4
-	rtnlen			,i4
-	path			,a256
-	rtnpath			,a255
+	proc
 
-.proc
+		onerror error
 
-	onerror error
+		dll_handle = %dll_open("kernel32.dll")
+		if (rtnlen = %dll_call(dll_handle,DLL_TYPE_WINAPI,"GetTempPathA",len=256,path))
+			rtnpath = path(1:rtnlen)
+		dll_handle = %dll_close(dll_handle)
 
-	dll_handle = %dll_open("kernel32.dll")
-	len=256
-	rtnlen = %dll_call(dll_handle,DLL_TYPE_WINAPI,"GetTempPathA",len,path)
-	if (rtnlen)
-		rtnpath = path(1:rtnlen)
-	dll_handle = %dll_close(dll_handle)
+	error,
+		
+		freturn rtnpath
 
-Error,
+	endfunction
 
-	freturn %atrim(rtnpath)
-
-.end
+endnamespace
 

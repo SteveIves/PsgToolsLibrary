@@ -19,61 +19,62 @@
 ;****************************************************************************
 ;
 
-.function WinFileCopy, ^VAL
+namespace SynPSG.Windows
 
-;Argument list
+	function WinFileCopy, boolean
+		a_from		,a		;Source file name
+		a_to		,a		;Target file name
+		a_over		,n		;Overwrite if file exists> (TRUE = YES)
+		a_confirm	,n		;Confirm actions (TRUE=YES)
+		endparams
 
-	a_from		,a		;Source file name
-	a_to		,a		;Target file name
-	a_over		,n		;Overwrite if file exists> (TRUE = YES)
-	a_confirm	,n		;Confirm actions (TRUE=YES)
+		.include "WND:windows.def"
 
-;End of argument list
+		.align
+		stack record
+			status		,boolean
+			dll     	,i4
+			from		,a256
+			to			,a256
+			over		,i4
+		endrecord
 
-.include "WND:windows.def"
+	proc
 
-.align
-stack record
-	status		,i4	
-	dll     	,i4
-	from		,a256
-	to			,a256
-	over		,i4
+		status = true
 
-.proc
+		xcall w_proc(WP_HOURGLASS_ON)
 
-	status = 0
+		dll = %dll_open("kernel32.dll")
 
-	xcall w_proc(WP_HOURGLASS_ON)
+		xcall fill(%char(0),from)
+		from(1:%trim(a_from)) = a_from
 
-	dll = %dll_open("kernel32.dll")
+		xcall fill(%char(0),to)
+		to(1:%trim(a_to)) = a_to
 
-	xcall fill(%char(0),from)
-	from(1:%trim(a_from)) = a_from
+		over=1			;Don't overwrite existing files
+		if (^passed(a_over).and.a_over)
+			clear over	;Overwrite existing file
 
-	xcall fill(%char(0),to)
-	to(1:%trim(a_to)) = a_to
+		if (.not.%dll_call(dll,DLL_TYPE_WINAPI,"CopyFileA",^addr(from),^addr(to),over))
+			status = false
 
-	over=1			;Don't overwrite existing files
-	if (^passed(a_over).and.a_over)
-		clear over	;Overwrite existing file
+		if (^passed(a_confirm).and.a_confirm)
+		begin
+			if (!status) then
+				xcall info("Failed to copy " + %atrim(a_from) + " to " + %atrim(a_to) + "!")
+			else
+				xcall info("Copied " + %atrim(a_from) + " to " + %atrim(a_to))
+		end
 
-	if (.not.%dll_call(dll,DLL_TYPE_WINAPI,"CopyFileA",^addr(from),^addr(to),over))
-		status = 1
+		xcall dll_close(dll)
+		
+		xcall w_proc(WP_HOURGLASS_OFF)
 
-	if (^passed(a_confirm).and.a_confirm)
-	begin
-		if (status) then
-			xcall info("Failed to copy " + %atrim(a_from) + " to " + %atrim(a_to) + "!")
-		else
-			xcall info("Copied " + %atrim(a_from) + " to " + %atrim(a_to))
-	end
+		freturn status
 
-	xcall dll_close(dll)
-	
-	xcall w_proc(WP_HOURGLASS_OFF)
-
-	freturn (status)
-
-.end
+	endfunction
+		
+endnamespace
 

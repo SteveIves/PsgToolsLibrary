@@ -1,21 +1,19 @@
 ;;*****************************************************************************
 ;;
-;; Title:		WinPath.dbl
+;; Title:       WinOpenFileDialog.dbl
 ;;
 ;; Type:        Function
 ;;
-;; Description:	Return the path of the Windows directory
+;; Description: Displays an "Open File" dialog.
 ;;
-;; Date:		10th June 1999
+;; Date:        29th Ocrober 2007
 ;;
-;; Platforms:	32-bit Microsoft Windows platforms only.
-
 ;; Author:      Steve Ives, Synergex Professional Services Group
 ;;              http://www.synergex.com
 ;;
 ;;*****************************************************************************
 ;;
-;; Copyright (c) 1999, Synergex International, Inc.
+;; Copyright (c) 2007, Synergex International, Inc.
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -44,43 +42,28 @@
 
 namespace SynPSG.Windows
 
-	function WinPath, string
+	function WinOpenFileDialog, ^val
+		optional in  title,		string
+		optional in  filters,	string
+		required out filename,	a
 		endparams
 
-		.define MAX_PATH	260
+		.define D_DEFINES_ONLY          ;;Make syre you use D_DEFINES_ONLY like this
+		.include "WND:tools.def"        ;;otherwise you'll wind up with 4NB of toolkit
+		.undefine D_DEFINES_ONLY        ;;global data in your app!!!
 
-		.align
-		stack record
-			status,			i4			;Return status from DLL call
-			dll_handle,		i4			;DLL handle
-			len,			i4			;Max length of path
-			path,			a MAX_PATH	;Return buffer from DLL call
-			return_path,	string		;Synergy return value
+		record 
+			status		,int
 		endrecord
-
+		
 	proc
 
-		onerror Error
+		if (!(status=%synmsw_getfilename(filename,title,filters,,,D_OFN_CENTER)))
+			filename=""
 
-		dll_handle = %dll_open("kernel32")
-
-		xcall fill(%char(0),path)
-		len = MAX_PATH
-
-		status = %dll_call(dll_handle,DLL_TYPE_WINAPI,"GetWindowsDirectoryA",path,len)
-
-		if (status.ne.0) then
-			return_path = path(1:%instr(1,path,%char(0))-1) + "\"
-		else
-			return_path = "\"
-
-		dll_handle = %dll_close(dll_handle)
-
-	Error,
-		
-		freturn return_path
+		freturn status
 
 	endfunction
-
+	
 endnamespace
 

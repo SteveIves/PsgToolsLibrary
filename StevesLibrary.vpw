@@ -3,6 +3,8 @@
 	<Projects>
 		<Project File="StevesLibrary.vpj"/>
 		<Project File="TestPrograms.vpj"/>
-		<Project File="UtilityPrograms.vpj"/>
+		<Project File="prj/UtilityPrograms.vpj"/>
+		<Project File="prj/SynPSG.VmsCompatibility.vpj"/>
+		<Project File="prj/SynPSG.Windows.vpj"/>
 	</Projects>
 </Workspace>

@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       WinRemoveAppCaption.dbl
+;; Title:       WinSaveFileDialog.dbl
 ;;
-;; Type:        Subroutine
+;; Type:        Function
 ;;
-;; Description: Remove the caption from the Synergy container window.
+;; Description: Displays a "Save As" dialog.
 ;;
 ;; Date:        29th Ocrober 2007
 ;;
@@ -40,44 +40,30 @@
 ;;
 ;;*****************************************************************************
 
-function WinOpenFileDialog, ^val
-	optional in title	,string
-	optional in filters	,string
-	required out filename	,a
-	endparams
+namespace SynPSG.Windows
 
-	.define D_DEFINES_ONLY          ;;Make syre you use D_DEFINES_ONLY like this
-	.include "WND:tools.def"        ;;otherwise you'll wind up with 4NB of toolkit
-	.undefine D_DEFINES_ONLY        ;;global data in your app!!!
+	function WinSaveFileDialog,	^val
+		optional in title,		string
+		optional in filters,	string
+		required out filename,	a
+		endparams
 
-	record 
-		status		,int
-	endrecord
-	
-proc
-	if (!(status=%synmsw_getfilename(filename,title,filters,,,D_OFN_CENTER)))
-		filename=""
-	freturn status
-endfunction
+		.define D_DEFINES_ONLY          ;;Make syre you use D_DEFINES_ONLY like this
+		.include "WND:tools.def"        ;;otherwise you'll wind up with 4NB of toolkit
+		.undefine D_DEFINES_ONLY        ;;global data in your app!!!
 
-function WinSaveFileDialog		,^val
-	optional in title	,string
-	optional in filters	,string
-	required out filename	,a
-	endparams
+		record 
+			status,	int
+		endrecord
+		
+	proc
 
-	.define D_DEFINES_ONLY          ;;Make syre you use D_DEFINES_ONLY like this
-	.include "WND:tools.def"        ;;otherwise you'll wind up with 4NB of toolkit
-	.undefine D_DEFINES_ONLY        ;;global data in your app!!!
+		if (!(status=%synmsw_getfilename(filename,title,filters,,,D_OFN_CENTER|D_OFN_SAVEAS)))
+			filename=""
 
-	record 
-		status		,int
-	endrecord
-	
-proc
-	if (!(status=%synmsw_getfilename(filename,title,filters,,,D_OFN_CENTER|D_OFN_SAVEAS)))
-		filename=""
-	freturn status
-endfunction
+		freturn status
 
+	endfunction
+
+endnamespace
 

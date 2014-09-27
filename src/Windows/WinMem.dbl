@@ -19,82 +19,77 @@
 ;****************************************************************************
 ;
 
-.function WinMem, ^VAL
+namespace SynPSG.Windows
 
-	;Argument list			;All arguments are optional
-							;When used, pass i4 variables 
+	function WinMem, boolean
+		optional out a_memoryload		,n		;% memory used
+		optional out a_totalphys		,n		;Tolal physical memory (bytes)
+		optional out a_availphys		,n		;Physical memory free (bytes)
+		optional out a_totalpagefile	,n		;Total page file (bytes)
+		optional out a_availpagefile	,n		;Page file free (bytes)
+		optional out a_totalvirtual		,n		;Total virtual memory (bytes)
+		optional out a_availvirtual		,n		;Virtual memory free (bytes)
+		endparams
 
-    a_memoryload	,n		;% memory used
-    a_totalphys		,n		;Tolal physical memory (bytes)
-    a_availphys		,n		;Physical memory free (bytes)
-    a_totalpagefile	,n		;Total page file (bytes)
-    a_availpagefile	,n		;Page file free (bytes)
-    a_totalvirtual	,n		;Total virtual memory (bytes)
-    a_availvirtual	,n		;Virtual memory free (bytes)
+		.align
+		stack record
+			handle			,i4
+			status 			,boolean
+		endrecord
 
-	;End of argument list
+		stack record memorystatus
+			length    		,i4
+			memoryload    	,i4
+			totalphys    	,i4
+			availphys   	,i4
+			totalpagefile   ,i4
+			availpagefile   ,i4
+			totalvirtual    ,i4
+			availvirtual    ,i4
+		endrecord
 
-	;Return status
-	;
-	;	1	Success
-	;	0	Failure
-	;
+	proc
 
-.align
-stack record
-	handle			,i4
-	status 			,i4
+		.ifndef D_GUI
+		freturn false
+		.endc
 
-stack record memorystatus
-    length    		,i4
-    memoryload    	,i4
-    totalphys    	,i4
-    availphys   	,i4
-    totalpagefile   ,i4
-    availpagefile   ,i4
-    totalvirtual    ,i4
-    availvirtual    ,i4
+		onerror Error
 
-.proc
+		status = true
+		length = 32
+		
+		handle = %dll_open("kernel32.dll")
+		xcall dll_call(handle,DLL_TYPE_WINAPI,"GlobalMemoryStatus", ^addr(memorystatus))
+		xcall dll_close(handle)
 
-	.ifndef D_GUI
-	freturn 0
-	.endc
+		if (^passed(a_memoryload))
+			a_memoryload = memoryload
 
-	onerror Error
+		if (^passed(a_totalphys))
+			a_totalphys = totalphys
 
-	status = 1
-	length = 32
-	
-	handle = %dll_open("kernel32.dll")
-	xcall dll_call(handle,DLL_TYPE_WINAPI,"GlobalMemoryStatus", ^addr(memorystatus))
-	xcall dll_close(handle)
+		if (^passed(a_availphys))
+			a_availphys = availphys
 
-	if (^passed(a_memoryload))
-		a_memoryload = memoryload
+		if (^passed(a_totalpagefile))
+			a_totalpagefile = totalpagefile
 
-	if (^passed(a_totalphys))
-		a_totalphys = totalphys
+		if (^passed(a_availpagefile))
+			a_availpagefile = availpagefile
 
-	if (^passed(a_availphys))
-		a_availphys = availphys
+		if (^passed(a_totalvirtual))
+			a_totalvirtual = totalvirtual
 
-	if (^passed(a_totalpagefile))
-		a_totalpagefile = totalpagefile
+		if (^passed(a_availvirtual))
+			a_availvirtual = availvirtual
 
-	if (^passed(a_availpagefile))
-		a_availpagefile = availpagefile
+		if (0)
+	Error,  status = false
 
-	if (^passed(a_totalvirtual))
-		a_totalvirtual = totalvirtual
+		freturn status
 
-	if (^passed(a_availvirtual))
-		a_availvirtual = availvirtual
-
-	if (0)
-Error,  clear status
-
-	freturn status
-
-.end
+	endfunction
+		
+endnamespace
 

@@ -19,27 +19,30 @@
 ;****************************************************************************
 ;
 
-.function WinNode
+namespace SynPSG.Windows
 
-;Argument list
+	function WinNode, string
+		endparams
 
-;End of argument list
+		.define MAXLENGTH ,31
 
-.define MAXLENGTH ,31
+		.align
+		stack record
+			dll     ,i4
+			len     ,i4
+			name    ,a MAXLENGTH + 1
+		endrecord
 
-.align
-stack record
-	dll     ,i4
-	len     ,i4
-	name    ,a MAXLENGTH + 1
+	proc
+		
+		len = ^size(name)
+		dll = %dll_open("kernel32")
+		xcall dll_call(dll,DLL_TYPE_WINAPI,"GetComputerNameA", ^addr(name), ^addr(len))
+		xcall dll_close(dll)
 
-.proc
-	
-	len = ^size(name)
-	dll = %dll_open("kernel32")
-	xcall dll_call(dll,DLL_TYPE_WINAPI,"GetComputerNameA", ^addr(name), ^addr(len))
-	xcall dll_close(dll)
+		freturn name(1:len)
 
-	freturn name(1:len)
+	endfunction
 
-.end
+endnamespace
+

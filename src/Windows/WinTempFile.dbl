@@ -10,23 +10,23 @@
 ;
 ;		The filename will be of the form:
 ;
-;			path\preuuuu.TMP
+;			path\preuuuu.tmp
 ;
 ;		The following table describes the filename syntax:
 ;
 ;		Component	Meaning
 ;		---------	------- 
 ;		path		Path specified by the a_path argument, or
-;				current directory if a_path is not passed.
+;					current directory if a_path is not passed.
 ;
-;		pre		First three letters of the a_prefix argument,
-;				or TMP if a_prefix is not passed
+;		pre			First three letters of the a_prefix argument,
+;					or TMP if a_prefix is not passed
 ;
 ;		uuuu		A hexadecimal value derived from the system
-;				time, and incremented until a unique file
-;				name is generated.
+;					time, and incremented until a unique file
+;					name is generated.
 ;
-; Platforms:	32-bit Microsoft Windows platforms only.
+; Platforms:		32-bit Microsoft Windows platforms only.
 ;
 ;****************************************************************************
 ;
@@ -37,64 +37,64 @@
 ;****************************************************************************
 ;
 
-.function WinTempFile
+namespace SynPSG.Windows
 
-;Argument list
+	function WinTempFile, string
+		a_path			,a		;(Optional) Path for temporary file
+		a_prefix		,a		;(Optional) file name prefix for temporary file
+		endparams
 
-	a_path			,a		;(Optional) Path for temporary file
-	a_prefix		,a		;(Optional) file name prefix for temporary file
+		.align
+		stack record
+			dll_handle		,i4		;Handle of kernel32.dll
+			unique			,i4
+			status			,i4
+			path			,a256
+			prefix			,a4
+			file			,a256	
+		endrecord
 
-;End of argument list
+	.proc
 
-.align
-stack record
-	dll_handle		,i4		;Handle of kernel32.dll
-	unique			,i4
-	status			,i4
-	path			,a256
-	prefix			,a4
-	file			,a256	
+		onerror error
+		
+		;Open kernel32.dll
+		dll_handle = %dll_open("kernel32.dll")
 
-.proc
+		;Setup argument 1 - path (null terminated string)
+		xcall fill(%char(0),path)
+		if (^passed(a_path) && a_path) then
+			path(1:%trim(a_path)) = a_path
+		else
+			path(1:1)="."
+		
+		;Setup argument 2 - file prefix (null terminated string)
+		xcall fill(%char(0),prefix)
+		if (^passed(a_prefix) && a_prefix && (%trim(a_prefix)==3)) then
+			prefix(1:3) = a_prefix
+		else
+			prefix(1:3)="tmp"
 
-	onerror error
+		;Setup argument 3 - unique number
+		unique = 0
+		
+		;Setup argument 4 - returned file name (null terminated string)
+		xcall fill(%char(0),file)
 
-	
-	;Open kernel32.dll
-	dll_handle = %dll_open("kernel32.dll")
+		;Make the call
+		status = %dll_call(dll_handle,DLL_TYPE_WINAPI,"GetTempFileNameA",path,prefix,unique,file)
 
-	;Setup argument 1 - path (null terminated string)
-	xcall fill(%char(0),path)
-	if (^passed(a_path) .and. a_path) then
-		path(1:%trim(a_path)) = a_path
-	else
-		path(1:1)="."
-	
-	;Setup argument 2 - file prefix (null terminated string)
-	xcall fill(%char(0),prefix)
-	if (^passed(a_prefix) && a_prefix && (%trim(a_prefix)==3)) then
-		prefix(1:3) = a_prefix
-	else
-		prefix(1:3)="TMP"
+		;If the call failed, clear out the return data
+		if (!status)
+			clear file
 
-	;Setup argument 3 - unique number
-	unique=0
-	
-	;Setup argument 4 - returned file name (null terminated string)
-	xcall fill(%char(0),file)
+		;Close the DLL
+		dll_handle = %dll_close(dll_handle)
 
-	;Make the call
-	status = %dll_call(dll_handle,DLL_TYPE_WINAPI,"GetTempFileNameA",path,prefix,unique,file)
+	Error,
 
-	;If the call failed, clear out the return data
-	if (.not.status)
-		clear file
+		freturn %atrim(file)
 
-	;Close the DLL
-	dll_handle = %dll_close(dll_handle)
+	endfunction
 
-Error,
-
-	freturn %atrim(file)
-
-.end
+endnamespace

@@ -43,97 +43,101 @@
 
 import System.Collections
 
-function WinDir, boolean
+namespace SymPSG.Windows
 
-    required in  searchSpec		,a			;;Search spec
-    required out matchingFiles  ,@ArrayList ;;Template names
-    endparams
+	function WinDir, boolean
 
-    stack record
-        dll         			,D_ADDR ;;DLL Handle
-		sh						,i4     ;;Search handle
-		pos						,i4
-		folder					,string
-		spec					,a260   ;;Search spec
-    endrecord
+		required in  searchSpec		,a			;;Search spec
+		required out matchingFiles  ,@ArrayList ;;Template names
+		endparams
 
-    stack record WIN32_FIND_DATA
-        FileAttributes      	,i4     ;;File attribute bit flags
-        CreationTimeLow     	,i4     ;; Low-order 32 bits of file creation time (UTC format)
-        CreationTimeHigh    	,i4     ;;High-order 32 bits of file creation time (UTC format)
-        LastAccessTimeLow   	,i4     ;; Low-order 32 bits of last access time (UTC format)
-        LastAccessTimeHigh  	,i4     ;;High-order 32 bits of last access time (UTC format)
-        LastWriteTimeLow    	,i4     ;; Low-order 32 bits of last write time (UTC format)
-        LastWriteTimeHigh   	,i4     ;;High-order 32 bits of last write time (UTC format)
-        FileSizeHigh        	,i4     ;;High-order 32 bits of file size (bytes)
-        FileSizeLow         	,i4     ;; Low-order 32 bits of file size (bytes)
-        Reserved0           	,i4     ;;
-        Reserved1           	,i4     ;;
-        FileName            	,a260   ;;Name of file (null-terminated string)
-        AlternateFileName   	,a14    ;;8.3 file name (null-terminated string
-    endrecord
+		stack record
+			dll         			,D_ADDR ;;DLL Handle
+			sh						,i4     ;;Search handle
+			pos						,i4
+			folder					,string
+			spec					,a260   ;;Search spec
+		endrecord
 
-    .define INVALID_HANDLE_VALUE		-1
-    .define FILE_ATTRIBUTE_READONLY     %x(1)
-    .define FILE_ATTRIBUTE_HIDDEN       %x(2)
-    .define FILE_ATTRIBUTE_SYSTEM       %x(4)
-    .define FILE_ATTRIBUTE_DIRECTORY    %x(10)
-    .define FILE_ATTRIBUTE_ARCHIVE      %x(20)
-    .define FILE_ATTRIBUTE_NORMAL       %x(80)
-    .define FILE_ATTRIBUTE_TEMPORARY    %x(100)
-    .define FILE_ATTRIBUTE_COMPRESSED   %x(800)
-    .define FILE_ATTRIBUTE_OFFLINE      %x(1000)
+		stack record WIN32_FIND_DATA
+			FileAttributes      	,i4     ;;File attribute bit flags
+			CreationTimeLow     	,i4     ;; Low-order 32 bits of file creation time (UTC format)
+			CreationTimeHigh    	,i4     ;;High-order 32 bits of file creation time (UTC format)
+			LastAccessTimeLow   	,i4     ;; Low-order 32 bits of last access time (UTC format)
+			LastAccessTimeHigh  	,i4     ;;High-order 32 bits of last access time (UTC format)
+			LastWriteTimeLow    	,i4     ;; Low-order 32 bits of last write time (UTC format)
+			LastWriteTimeHigh   	,i4     ;;High-order 32 bits of last write time (UTC format)
+			FileSizeHigh        	,i4     ;;High-order 32 bits of file size (bytes)
+			FileSizeLow         	,i4     ;; Low-order 32 bits of file size (bytes)
+			Reserved0           	,i4     ;;
+			Reserved1           	,i4     ;;
+			FileName            	,a260   ;;Name of file (null-terminated string)
+			AlternateFileName   	,a14    ;;8.3 file name (null-terminated string
+		endrecord
 
-proc
+		.define INVALID_HANDLE_VALUE		-1
+		.define FILE_ATTRIBUTE_READONLY     %x(1)
+		.define FILE_ATTRIBUTE_HIDDEN       %x(2)
+		.define FILE_ATTRIBUTE_SYSTEM       %x(4)
+		.define FILE_ATTRIBUTE_DIRECTORY    %x(10)
+		.define FILE_ATTRIBUTE_ARCHIVE      %x(20)
+		.define FILE_ATTRIBUTE_NORMAL       %x(80)
+		.define FILE_ATTRIBUTE_TEMPORARY    %x(100)
+		.define FILE_ATTRIBUTE_COMPRESSED   %x(800)
+		.define FILE_ATTRIBUTE_OFFLINE      %x(1000)
 
-    dll = %dll_open("kernel32.dll")
+	proc
 
-	matchingFiles = new ArrayList()
-	xcall fill(char(0),spec)
+		dll = %dll_open("kernel32.dll")
 
-    if (pos = %instr(1,searchSpec,":")) then
-    begin
-		data logical, string
-		data trans, a256
-		data file, string
-		logical = searchSpec(1:pos-1)
-		file = searchSpec(pos+1,%trim(searchSpec))
-		xcall getlog(logical,trans,pos)
-		if (trans(%trim(trans):1)!="\") then
-			folder = %atrim(trans) + "\"
-		else
-			folder = %atrim(trans)
-		file = folder + file
-		spec(1:file.length) = file
-	end
-	else
-		spec(1:%trim(searchSpec))=searchSpec
+		matchingFiles = new ArrayList()
+		xcall fill(char(0),spec)
 
-    ;;Look for the first file
-    sh = %dll_call(dll,DLL_TYPE_WINAPI,"FindFirstFileA",^addr(spec),^addr(WIN32_FIND_DATA))
-
-    if (sh != INVALID_HANDLE_VALUE)
-    begin
-        ;;First file not a directory?
-        if (!(FileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-            matchingFiles.Add(folder + (String)FileName(1:(instr(1,FileName,char(0))-1)))
-
-        ;;Continue the search
-		while (%dll_call(dll,DLL_TYPE_WINAPI,"FindNextFileA",sh,^addr(WIN32_FIND_DATA)))
+		if (pos = %instr(1,searchSpec,":")) then
 		begin
-			;;Found another file, check it's not a directory
+			data logical, string
+			data trans, a256
+			data file, string
+			logical = searchSpec(1:pos-1)
+			file = searchSpec(pos+1,%trim(searchSpec))
+			xcall getlog(logical,trans,pos)
+			if (trans(%trim(trans):1)!="\") then
+				folder = %atrim(trans) + "\"
+			else
+				folder = %atrim(trans)
+			file = folder + file
+			spec(1:file.length) = file
+		end
+		else
+			spec(1:%trim(searchSpec))=searchSpec
+
+		;;Look for the first file
+		sh = %dll_call(dll,DLL_TYPE_WINAPI,"FindFirstFileA",^addr(spec),^addr(WIN32_FIND_DATA))
+
+		if (sh != INVALID_HANDLE_VALUE)
+		begin
+			;;First file not a directory?
 			if (!(FileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-				matchingFiles.Add(folder + (String)FileName(1:(%instr(1,FileName,%char(0))-1)))
+				matchingFiles.Add(folder + (String)FileName(1:(instr(1,FileName,char(0))-1)))
+
+			;;Continue the search
+			while (%dll_call(dll,DLL_TYPE_WINAPI,"FindNextFileA",sh,^addr(WIN32_FIND_DATA)))
+			begin
+				;;Found another file, check it's not a directory
+				if (!(FileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+					matchingFiles.Add(folder + (String)FileName(1:(%instr(1,FileName,%char(0))-1)))
+			end
+
+			;;Close the search handle
+			dll_call(dll,DLL_TYPE_WINAPI,"FindClose",sh)
 		end
 
-        ;;Close the search handle
-        dll_call(dll,DLL_TYPE_WINAPI,"FindClose",sh)
-    end
+		;;Close the DLL
+		dll = dll_close(dll)
 
-	;;Close the DLL
-    dll = dll_close(dll)
+		freturn (matchingFiles.Count > 0)
 
-    freturn (matchingFiles.Count > 0)
-
-endfunction
+	endfunction
+	
+endnamespace
 

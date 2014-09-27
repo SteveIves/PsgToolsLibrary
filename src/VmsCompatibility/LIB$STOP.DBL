@@ -1,12 +1,17 @@
 
-subroutine lib$stop
-        required in condition, i
-        endparams
-proc
+namespace SynPSG.VmsCompatibility
 
-        if (condition) then
-                stop D_EXIT_FAILURE
-        else
-                stop D_EXIT_SUCCESS
+	subroutine lib$stop
+		required in condition, i
+		endparams
+	proc
 
-endsubroutine
+		if (condition) then
+			stop D_EXIT_FAILURE
+		else
+			stop D_EXIT_SUCCESS
+
+	endsubroutine
+
+endnamespace
+

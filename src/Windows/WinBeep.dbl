@@ -19,43 +19,43 @@
 ;****************************************************************************
 ;
 
-.subroutine WinBeep
+namespace SynPSG.Windows
 
-;Argument list
+	subroutine WinBeep
+		a_duration		,n
+		a_frequency		,n
+		endparams
 
-	a_duration		,n
-	a_frequency		,n
+		.align LONG
+		stack record
+			handle			,i4
+			return_val 		,i4
+			duration 		,i4		;Duration in milliseconds
+			frequency 		,i4		;Frequency in Hertz
 
-;End of argument list
+	proc
 
-.align LONG
-stack record
-	handle			,i4
-	return_val 		,i4
-	duration 		,i4		;Duration in milliseconds
-	frequency 		,i4		;Frequency in Hertz
+		if ^passed(a_duration) then
+			duration = a_duration
+		else
+			duration = 10
 
-.proc
+		if ^passed(a_frequency) then
+			frequency = a_frequency
+		else
+			frequency = 1000
 
-	if ^passed(a_duration) then
-		duration = a_duration
-	else
-		duration = 10
+		onerror ($ERR_DLLOPNERR) NotFound
+		
+		handle = %dll_open("kernel32.dll")
+		return_val = %dll_call(handle,DLL_TYPE_WINAPI,"Beep", frequency, duration)
+		xcall dll_close(handle)
 
-	if ^passed(a_frequency) then
-		frequency = a_frequency
-	else
-		frequency = 1000
+	NotFound,
+		
+		xreturn
 
-	onerror ($ERR_DLLOPNERR) NotFound
-	
-	handle = %dll_open("kernel32.dll")
-	return_val = %dll_call(handle,DLL_TYPE_WINAPI,"Beep", frequency, duration)
-	xcall dll_close(handle)
-
-NotFound,
-	
-	xreturn
-
-.end
+	endsubroutine
+		
+endnamespace
 

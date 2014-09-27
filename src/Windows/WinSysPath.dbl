@@ -1,60 +1,86 @@
-;****************************************************************************
-;
-; Title:		WinSysPath.dbl
-;
-; Author:		Steve Ives (Synergex Professional Services Group)
-;
-; Date:			9th June 1999
-;
-; Description:	Return the poath of the Windows system directory
-;
-; Platforms:	32-bit Microsoft Windows platforms only.
-;
-;****************************************************************************
-;
-; This code is supplied as seen and without warranty or support, and is used
-; at your own risk. Neither the author or Synergex accept any responsability
-; for any loss or damage which may result from the use of this code.
-;
-;****************************************************************************
-;
+;;*****************************************************************************
+;;
+;; Title:		WinSysPath.dbl
+;;
+;; Type:        Function
+;;
+;; Description:	Return the path of the Windows\System directory
+;;
+;; Date:		9th June 1999
+;;
+;; Platforms:	32-bit Microsoft Windows platforms only.
 
-.function WinSysPath
+;; Author:      Steve Ives, Synergex Professional Services Group
+;;              http://www.synergex.com
+;;
+;;*****************************************************************************
+;;
+;; Copyright (c) 1999, Synergex International, Inc.
+;; All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;*****************************************************************************
 
-;Argument list
+namespace SynPSG.Windows
 
-;End of argument list
+	function WinSysPath, string
+		endparams
 
-.define MAX_PATH	260
+		.define MAX_PATH	260
 
-.align
-stack record
-	dll_handle		,i4			;DLL handle
-	status			,i4			;Return status from DLL call
-	len				,i4			;Max length of path
-	path			,a MAX_PATH	;Return buffer from DLL call
-	return_path		,a MAX_PATH	;Synergy return value
+		.align
+		stack record
+			dll_handle		,i4			;DLL handle
+			status			,i4			;Return status from DLL call
+			len				,i4			;Max length of path
+			path			,a MAX_PATH	;Return buffer from DLL call
+			return_path		,string		;Synergy return value
+		endrecord
 
-.proc
+	.proc
 
-	onerror Error
+		onerror Error
 
-	dll_handle = %dll_open("kernel32.dll")
+		dll_handle = %dll_open("kernel32.dll")
 
-	xcall fill(%char(0),path)
-	len = MAX_PATH
+		xcall fill(%char(0),path)
+		len = MAX_PATH
 
-	status = %dll_call(dll_handle,DLL_TYPE_WINAPI,"GetSystemDirectoryA",path,len)
+		status = %dll_call(dll_handle,DLL_TYPE_WINAPI,"GetSystemDirectoryA",path,len)
 
-	if (status.ne.0) then
-		return_path = path(1:%instr(1,path,%char(0))-1)
-	else
-		return_path = ""
+		if (status.ne.0) then
+			return_path = path(1:%instr(1,path,%char(0))-1) + "\"
+		else
+			return_path = "\"
 
-	dll_handle = %dll_close(dll_handle)
+		dll_handle = %dll_close(dll_handle)
 
-Error,
+	Error,
+		
+		freturn return_path
+
+	endfunction
 	
-	freturn %atrim(return_path)
+endnamespace
 
-.end

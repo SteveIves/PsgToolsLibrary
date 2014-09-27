@@ -1,0 +1,31 @@
+
+main FileDialogTests
+
+record 
+        filename        ,a256
+        filters         ,string
+endrecord
+        
+proc
+        open(1,o,"tt:")                 ;;You won't need this
+        xcall w_init(1,1,5,24,80)       ;;You won't need this
+        
+        filters = "Text Files (*.txt)"+%char(0)+"*.txt"+%char(0)+"All Files (*.*)"+%char(0)+"*.*"+%char(0)
+	
+	if (%WinOpenFileDialog("Pick a file",filters,filename)) then
+		writes(1,%atrim(filename))      
+	else
+		writes(1,"No file selected")
+	
+	if (%WinSaveFileDialog("Select file to save",filters,filename)) then
+		writes(1,%atrim(filename))      
+	else
+		writes(1,"No file selected")
+
+        xcall w_exit                    ;;You won't need this
+        close 1                         ;;You won't need this
+        stop                            ;;You won't need this
+                
+endmain
+
+

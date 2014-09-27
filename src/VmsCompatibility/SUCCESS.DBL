@@ -1,8 +1,12 @@
 
-function success		,i
-        required in expression	,n
-        endparams
-proc
-        freturn (expression.band.1)
-endfunction
+namespace SynPSG.VmsCompatibility
+
+	function success		,i
+			required in expression	,n
+			endparams
+	proc
+			freturn (expression.band.1)
+	endfunction
+
+endnamespace
 
