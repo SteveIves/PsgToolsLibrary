@@ -86,7 +86,7 @@
 				Value="dblink -d -l EXE:%rn.elb OBJ:%rn.dbo"/>
 			<SynSetting
 				Name="proto_clear_dbh"
-				Value="1"/>
+				Value="4"/>
 			<SynSetting
 				Name="build_prototype"
 				Value="1"/>
@@ -101,7 +101,7 @@
 				Value="%rn.dbo"/>
 			<SynSetting
 				Name="proto_namespace_sequence"
-				Value="namespace1.namespace2.namespace3"/>
+				Value="SynPSG.System"/>
 			<SynSetting
 				Name="gen_batch"
 				Value="0"/>
@@ -248,7 +248,7 @@
 				Value="dblink -d -l EXE:%rn.elb OBJ:%rn.dbo"/>
 			<SynSetting
 				Name="proto_clear_dbh"
-				Value="1"/>
+				Value="4"/>
 			<SynSetting
 				Name="build_prototype"
 				Value="1"/>
@@ -263,7 +263,7 @@
 				Value="%rn.dbo"/>
 			<SynSetting
 				Name="proto_namespace_sequence"
-				Value="namespace1.namespace2.namespace3"/>
+				Value="SynPSG.System"/>
 			<SynSetting
 				Name="gen_batch"
 				Value="0"/>
@@ -368,7 +368,7 @@
 				Value="dblink -l EXE:%rn.elb OBJ:%rn.dbo"/>
 			<SynSetting
 				Name="proto_clear_dbh"
-				Value="1"/>
+				Value="4"/>
 			<SynSetting
 				Name="build_prototype"
 				Value="1"/>
@@ -383,7 +383,7 @@
 				Value="%rn.dbo"/>
 			<SynSetting
 				Name="proto_namespace_sequence"
-				Value="namespace1.namespace2.namespace3"/>
+				Value="SynPSG.System"/>
 			<SynSetting
 				Name="gen_batch"
 				Value="0"/>
@@ -488,7 +488,7 @@
 				Value="dblink -l EXE:%rn.elb OBJ:%rn.dbo"/>
 			<SynSetting
 				Name="proto_clear_dbh"
-				Value="1"/>
+				Value="4"/>
 			<SynSetting
 				Name="build_prototype"
 				Value="1"/>
@@ -503,7 +503,7 @@
 				Value="%rn.dbo"/>
 			<SynSetting
 				Name="proto_namespace_sequence"
-				Value="namespace1.namespace2.namespace3"/>
+				Value="SynPSG.System"/>
 			<SynSetting
 				Name="gen_batch"
 				Value="0"/>
