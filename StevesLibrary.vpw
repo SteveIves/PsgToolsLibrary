@@ -3,5 +3,6 @@
 	<Projects>
 		<Project File="StevesLibrary.vpj"/>
 		<Project File="TestPrograms.vpj"/>
+		<Project File="UtilityPrograms.vpj"/>
 	</Projects>
 </Workspace>
