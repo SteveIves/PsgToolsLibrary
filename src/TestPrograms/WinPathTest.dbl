@@ -1,0 +1,14 @@
+
+import SynPSG.Windows
+
+main WinPathTest
+	
+proc
+	open(1,i,"tt:")
+	writes(1,"Windows path        : " + %WinPath)
+	writes(1,"Windows system path : " + %WinSysPath)
+	writes(1,"Windows temp path   : " + %WinTempDir)
+	writes(1,"Temp file name      : " + %WinTempFile)
+	close 1
+	stop
+endmain
