@@ -11,22 +11,24 @@ namespace SynPSG.Windows
 	.include "DBLDIR:windows.def"
 	.include "DBLDIR:apmisc.def"
 
-	;
-	; Description:	Function to return the handle of a Synergy window
-	;
-	;
-	; Return value:	The handle of the window (trappable error if non-existent)
-	;
-	; Note:	This routine exists merely for completeness.
-	;
+	;;; <summary>
+	;;; Return the handle of a Synergy window
+	;;; </summary>
+	;;; <param name="a_wndid">ID of the window, or WID_APP/WID_CONTAINER</param>
+	;;; <returns>The handle of the window (trappable error if non-existent)</returns>
 	function get_window_handle	,^val, reentrant
-		a_wndid		,n	;ID of the window, or WID_APP/WID_CONTAINER
+		required in a_wndid, n
 		endparams
 	proc
-		onerror catch
-		freturn %w_info(WIF_HWND, a_wndid)
-	catch,
-		xcall exite(%ernum)
+		try 
+		begin
+			freturn %w_info(WIF_HWND, a_wndid)
+		end
+		catch (ex)
+		begin
+			xcall exite(%ernum)
+		end
+		endtry
 	endfunction
 
 	;.function get_list_wndid	,^val, reentrant
@@ -414,23 +416,26 @@ namespace SynPSG.Windows
 		endrecord
 
 	proc
-		onerror catch
-
-		if ((hndl = %bu_info(a_wndid)) .and.		;We have buttons
-		&   (ndx = %bu_find(a_wndid, a_button, TRUE)))	;We found this one
+		try 
 		begin
-				user32 = %dll_open("user32")		;Find the handle
-			hbtn = %dll_call(user32, DLL_TYPE_WINAPI,
-			&	    "FindWindowExA", %w_info(WIF_HWND, a_wndid),
-			&	    %integer(0), "BUTTON", %atrim(D_BUTTON_INFO(hndl, ndx, text)))
-			xcall dll_close(user32)
-			freturn hbtn
+			if ((hndl = %bu_info(a_wndid)) .and.		;We have buttons
+			&   (ndx = %bu_find(a_wndid, a_button, TRUE)))	;We found this one
+			begin
+					user32 = %dll_open("user32")		;Find the handle
+				hbtn = %dll_call(user32, DLL_TYPE_WINAPI,
+				&	    "FindWindowExA", %w_info(WIF_HWND, a_wndid),
+				&	    %integer(0), "BUTTON", %atrim(D_BUTTON_INFO(hndl, ndx, text)))
+				xcall dll_close(user32)
+				freturn hbtn
+			end
 		end
+		catch (ex)
+		begin
+			xcall exite(%ernum)
+		end
+		endtry
 
 		freturn 0		;No buttons, or didn't find it
-
-	catch,
-		xcall exite(%ernum)
 
 	endfunction
 
