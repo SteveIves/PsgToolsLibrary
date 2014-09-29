@@ -41,6 +41,7 @@
 ;;*****************************************************************************
 
 import SynPSG
+import SynPSG.Windows
 import SynPSG.System.Net.Sockets
 
 main FtpClientExample
@@ -60,6 +61,7 @@ proc
 	
 	;Create an instance of the FTP client
     ftpClient = new ftpclient("ftp.synergexpsg.com",21,FtpConnectMode.Passive)
+	ftpClient.LocalDirectory = %WinTempDir
 
 	;Connect to the remote server
 	writes(1,'Connecting ...')
@@ -68,14 +70,14 @@ proc
 	else
 	begin
 		;Receive a binary file from the server
-		writes(1,"Downloading "+FILE_NAME+" from server...")
-		if (!ftpClient.Download(FILE_NAME,FILE_NAME,FtpTransferType.Binary)) then 
+		writes(1,"Downloading bridge.jpg from server...")
+		if (!ftpClient.Download("bridge.jpg","bridge.jpg",FtpTransferType.Binary)) then 
 			writes(1,ftpClient.ErrorMessage)
 		else
 		begin
 			;Send the binary file back to the server
-			writes(1,"Uploading "+FILE_NAME+" to server as "+NEW_FILE_NAME+"...")
-			if (!ftpClient.Upload(FILE_NAME,FILE_NAME,FtpTransferType.Binary))
+			writes(1,"Uploading bridge.jpg to server as bridge_new.jpg...")
+			if (!ftpClient.Upload("bridge.jpg","bridge_new.jpg",FtpTransferType.Binary))
 				writes(1,ftpClient.ErrorMessage)
 		end
 

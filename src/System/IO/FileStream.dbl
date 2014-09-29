@@ -60,61 +60,71 @@ namespace SynPSG.System.IO
         proc
             if (path.Length==0)
                 throw new ArgumentException("A path parameter is required.")
-            using mode select
-            (FileMode.Append),
-            begin
-                open(pChan=%syn_freechn,a,path) [$ERR_FNF=nf,$ERR_PROTEC=pf,ERR=er]
-                mCanRead = %false
-                mCanSeek = %false
-                mCanWrite = %true
-            end
-            (FileMode.Create),
-            begin
-                open(pChan=%syn_freechn,o,path) [$ERR_FNF=nf,$ERR_PROTEC=pf,ERR=er]
-                mCanRead = %false
-                mCanSeek = %false
-                mCanWrite = %true
-            end
-            (FileMode.CreateNew),
-            begin
-                open(pChan=%syn_freechn,o,path) [$ERR_FNF=nf,$ERR_PROTEC=pf,ERR=er]
-                mCanRead = %false
-                mCanSeek = %false
-                mCanWrite = %true
-            end
-            (FileMode.Open),
-            begin
-                open(pChan=%syn_freechn,i,path) [$ERR_FNF=nf,$ERR_PROTEC=pf,ERR=er]
-                mCanRead = %true
-                mCanSeek = %true
-                mCanWrite = %true
-            end
-            (FileMode.Truncate),
-            begin
-                open(pChan=%syn_freechn,o,path) [$ERR_FNF=nf,$ERR_PROTEC=pf,ERR=er]
-                mCanRead = %false
-                mCanSeek = %false
-                mCanWrite = %true
-            end
-            endusing
 
-            if (0)
-            nf, throw new ApplicationException("File not found or invalid path name.")
-            if (0)
-            begin
-            pf, throw new ApplicationException("IO protection violation.")
-                if (pChan)
-                    close pChan
-                clear pChan
-            end
-            if (0)
-            begin
-            er, throw new ApplicationException("IO exception.")
-                if (pChan)
-                    close pChan
-                clear pChan
-            end
-
+			try 
+			begin
+				using mode select
+				(FileMode.Append),
+				begin
+					open(pChan=0,a,path)
+					mCanRead = %false
+					mCanSeek = %false
+					mCanWrite = %true
+				end
+				(FileMode.Create),
+				begin
+					open(pChan=0,o,path)
+					mCanRead = %false
+					mCanSeek = %false
+					mCanWrite = %true
+				end
+				(FileMode.CreateNew),
+				begin
+					open(pChan=0,o,path)
+					mCanRead = %false
+					mCanSeek = %false
+					mCanWrite = %true
+				end
+				(FileMode.Open),
+				begin
+					open(pChan=0,i,path)
+					mCanRead = %true
+					mCanSeek = %true
+					mCanWrite = %true
+				end
+				(FileMode.Truncate),
+				begin
+					open(pChan=0,o,path)
+					mCanRead = %false
+					mCanSeek = %false
+					mCanWrite = %true
+				end
+				endusing
+			end
+			catch (ex, @NoFileFoundException)
+			begin
+				throw new ApplicationException("File not found or invalid path name.")
+			end
+			catch (ex, @ProtectionViolationException)
+			begin
+				if (pChan)
+				begin
+					close pChan
+					clear pChan
+				end
+				throw new ApplicationException("IO protection violation.")
+			end
+			catch (ex, @Exception)
+			begin
+				if (pChan)
+				begin
+					close pChan
+					clear pChan
+				end
+				throw new ApplicationException("IO exception: " + ex.Message + ". Attempting to open file " + path)
+			end
+			endtry
+			
             mName = path
             mFileMode = mode
             mPosition = 1

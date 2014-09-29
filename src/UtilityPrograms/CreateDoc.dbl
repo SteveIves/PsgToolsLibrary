@@ -262,7 +262,7 @@ decodeCommandLine,
 
                 try
                 begin
-                    open(chIN=%syn_freechn(), I, srcFilename)
+                    open(chIN=0, I, srcFilename)
                     close chIN
                 end
                 catch(excp)
@@ -304,7 +304,7 @@ decodeCommandLine,
                     try
                     begin
                         data chIN   ,i4
-                        open(chIN=%syn_freechn(), I, srcFilename)
+                        open(chIN=0, I, srcFilename)
                         close chIN
                     end
                     catch(excp)
@@ -326,7 +326,7 @@ decodeCommandLine,
                     try
                     begin
                         data chIN   ,i4
-                        open(chIN=%syn_freechn(), I, xmlFilename)
+                        open(chIN=0, I, xmlFilename)
                         close chIN
                     end
                     catch(excp)
@@ -365,7 +365,7 @@ decodeCommandLine,
             try
             begin
                 data chIN ,i4
-                open(chIN=%syn_freechn(), I, xmlFilename)
+                open(chIN=0, I, xmlFilename)
                 close chIN
                 if(srcFilename)
                 begin
@@ -391,7 +391,7 @@ decodeCommandLine,
             try
             begin
                 data chIN ,i4
-                open(chIN=%syn_freechn(), I, outFilename)
+                open(chIN=0, I, outFilename)
                 close chIN
                 reThrow = true
                 throw new applicationException("Output file "+%atrim(outFilename)+" already exists")
@@ -453,8 +453,7 @@ function openTT         ,i
 		chTT            ,i4
 	endrecord
 proc
-    chTT = %syn_freechn()
-    open(chTT, O, 'TT:')
+    open(chTT=0, O, 'TT:')
     writes(chTT, "createDoc Version "+D_VERSION)
     writes(chTT, "")
     freturn chTT
@@ -801,8 +800,7 @@ proc
     begin
         if(ch > 0 && ch <= 1024 && %chopen(ch))
             purge ch
-        ch = %syn_freechn()
-        open(ch, O, aText(1:textLen), TEMPFILE)
+        open(ch=0, O, aText(1:textLen), TEMPFILE)
     end
     (D_OUT_CLOSE),
     begin
@@ -1988,7 +1986,7 @@ subroutine debugLog
 
 proc
 
-    open(chan=%syn_freechn(), A, 'debug.log')
+    open(chan=0, A, 'debug.log')
     writes(chan, aText)
     close chan
     xreturn

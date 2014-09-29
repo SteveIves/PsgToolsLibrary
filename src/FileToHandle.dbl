@@ -46,7 +46,7 @@ namespace SynPSG
 		clear ^i(ivars), avars
 
 		;Open input file
-		open(ch=%syn_freechn,u,a_file) [$ERR_FNF=nf,$ERR_PROTEC=pf,ERR=err]
+		open(ch=0,u,a_file) [$ERR_FNF=nf,$ERR_PROTEC=pf,ERR=err]
 
 		;Error checking for file open
 		if (0)

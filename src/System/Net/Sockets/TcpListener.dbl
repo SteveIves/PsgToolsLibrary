@@ -186,7 +186,7 @@ namespace SynPSG.System.Net.Sockets
         waitAbit,
                 sleep 0.2
             end
-            open(chan=%syn_freechn(), A, 'tcplistener.log') [$ERR_FINUSE=waitAbit, ERR=openErr]
+            open(chan=0, A, 'tcplistener.log') [$ERR_FINUSE=waitAbit, ERR=openErr]
             writes(chan, aText)
             close chan
         openErr,

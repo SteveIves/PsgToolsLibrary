@@ -71,6 +71,7 @@ namespace SynPSG
         public TransferType     ,FtpTransferType
         public RemoteDirectory  ,string
         public RemoteDirListing ,@ArrayList
+
         private mByte           ,byte
         private mChLog          ,integer
         private mCtrlContinues  ,boolean
@@ -890,9 +891,9 @@ namespace SynPSG
         proc
             if (!mChLog)
                 if (LogFile == "TT:") then
-                    open(mChLog = %syn_freechn, O, LogFile)
+                    open(mChLog=0, O, LogFile)
                 else
-                    open(mChLog = %syn_freechn, O:S, LogFile)
+                    open(mChLog=0, O:S, LogFile)
             writes(mChLog, logLine)
         endmethod
 

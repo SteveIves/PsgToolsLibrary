@@ -42,7 +42,7 @@ main CopyHandleTest
 
 proc
 
-    open(tt=syn_freechn(),i,"tt:")
+    open(tt=0,i,"tt:")
 
     ;Load the contents of a file into a dynamic memory handle
     error = FileToHandle(D_INFILE,OriginalHandle)
