@@ -41,7 +41,7 @@
 ;;
 ;;*****************************************************************************
 
-namespace CodeGen.Engine
+namespace SynPSG.Windows
 
     ;;; <summary>
     ;;; All of the WIN32 API routines which communicate with the

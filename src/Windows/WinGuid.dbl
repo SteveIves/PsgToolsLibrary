@@ -21,38 +21,43 @@
 ;
 ;****************************************************************************
 
-.function guid_create   ;,a
+namespace SynPSG.Windows
 
-stack record ivars
-    dll             ,i4
-    sts             ,i4
-    guid            ,a16
+	function guid_create, string
 
-;Possible return values from UuidCreate
-.define RPC_S_OK                0           ;Success
-.define RPC_S_UUID_LOCAL_ONLY   1824        ;The UUID is guaranteed to be unique
-                                            ;to this computer only.
-.define RPC_S_UUID_NO_ADDRESS   1739        ;Cannot get Ethernet or token-ring
-                                            ;hardware address for this computer.
-.proc
+		stack record ivars
+			dll             ,i4
+			sts             ,i4
+			guid            ,a16
+		endrecord
 
-    clear ^i(ivars)
+		;Possible return values from UuidCreate
+		.define RPC_S_OK                0           ;Success
+		.define RPC_S_UUID_LOCAL_ONLY   1824        ;The UUID is guaranteed to be unique
+													;to this computer only.
+		.define RPC_S_UUID_NO_ADDRESS   1739        ;Cannot get Ethernet or token-ring
+													;hardware address for this computer.
+	proc
 
-    onerror err
-    dll = %dll_open("rpcrt4.dll")
-    sts = %dll_call(dll,DLL_TYPE_WINAPI,"UuidCreate",guid)
+		clear ^i(ivars)
 
-    if (sts!=RPC_S_OK)
-err,    clear ^i(guid)
+		onerror err
+		dll = %dll_open("rpcrt4.dll")
+		sts = %dll_call(dll,DLL_TYPE_WINAPI,"UuidCreate",guid)
 
-    onerror ignore
-    dll = %dll_close(dll)
+		if (sts!=RPC_S_OK)
+	err,    clear ^i(guid)
 
-ignore,
+		onerror ignore
+		dll = %dll_close(dll)
 
-    freturn guid
+	ignore,
 
-.end
+		freturn guid
+
+	endfunction
+
+endnamespace
 
 ;****************************************************************************
 ;
@@ -79,33 +84,38 @@ ignore,
 ;
 ;****************************************************************************
 
-.function guid_decode   ;,a
+namespace SynPSG.Windows
 
-    group guid      ,a  ;16     Passed GUID in binary format
-        byte        ,[16]i1
-    endgroup
+	function guid_decode, string
+		group guid      ,a  ;16     Passed GUID in binary format
+			byte        ,[16]i1
+		endgroup
+		endparams
+		
+		stack record
+			c               ,i4
+			tmpi2           ,i2
+			tmpguid         ,a32
+			   tmpguid_byte ,[16]a2 @tmpguid
+			aguid           ,a36
+		endrecord
+		
+	proc
 
-stack record
-    c               ,i4
-    tmpi2           ,i2
-    tmpguid         ,a32
-       tmpguid_byte ,[16]a2 @tmpguid
-    aguid           ,a36
+		for c from 1 thru 16
+			tmpguid_byte[c] = %hex(%unsigned(byte[c]),1)
 
-.proc
+		aguid = tmpguid(1:8)
+		&       + "-" + tmpguid(9:4)
+		&       + "-" + tmpguid(13:4)
+		&       + "-" + tmpguid(17:4)
+		&       + "-" + tmpguid(21:12)
 
-    for c from 1 thru 16
-        tmpguid_byte[c] = %hex(%unsigned(byte[c]),1)
+		freturn aguid
 
-    aguid = tmpguid(1:8)
-    &       + "-" + tmpguid(9:4)
-    &       + "-" + tmpguid(13:4)
-    &       + "-" + tmpguid(17:4)
-    &       + "-" + tmpguid(21:12)
+	endfunction
 
-    freturn aguid
-
-.end
+endnamespace
 
 ;****************************************************************************
 ;
@@ -128,24 +138,29 @@ stack record
 ;
 ;****************************************************************************
 
-.function guid_encode   ;,a
+namespace SynPSG.Windows
 
-    aguid           ,a  ;36     Passed GUID in registry format (with hyphens)
+	function guid_encode, string
+		aguid, a36     ;Passed GUID in registry format (with hyphens)
+		endparams
+		
+		stack record
+			c               ,i4
+			tmpguid         ,a32        ;GUID in string format (no hyphens)
+			guid            ,a16        ;Returned GUID in binary format
+		endrecord
 
-stack record
-    c               ,i4
-    tmpguid         ,a32        ;GUID in string format (no hyphens)
-    guid            ,a16        ;Returned GUID in binary format
+	proc
 
-.proc
+		tmpguid = aguid - "-" - "-" - "-" - "-"
 
-    tmpguid = aguid - "-" - "-" - "-" - "-"
+		for c from 1 thru 16
+			guid(c:1) = %char(^x(tmpguid((C*2)-1:2)))
 
-    for c from 1 thru 16
-        guid(c:1) = %char(^x(tmpguid((C*2)-1:2)))
+		freturn guid
 
-    freturn guid
+	endfunction
 
-.end
+endnamespace
 
 .endc

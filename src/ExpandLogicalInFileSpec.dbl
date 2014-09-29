@@ -1,5 +1,4 @@
 
-
 namespace SynPSG
 
 	function ExpandLogicalInFileSpec, string
@@ -22,7 +21,9 @@ namespace SynPSG
 		path = %atrim(tempa)
 		if (path(%trim(path):1)!="\")
 			path = %atrim(path) + "\"
+
 		freturn path + file
+
 	endfunction
 
 endnamespace

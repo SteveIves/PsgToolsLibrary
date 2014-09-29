@@ -34,16 +34,12 @@
 ;;
 ;;***********************************************************************************
 
-import SynPSG.System
-import SynPSG.System.IO
-import SynPSG.System.Net.Mail
-import SynPSG.System.Net.Mime
-import SynPSG.System.Net.Sockets
 import System.Collections
 
 namespace SynPSG.System.Net.Mail
 
     class AttachmentCollection
+
         private mAttachmentCollection   ,@ArrayList
 
         ;;********************************************************************

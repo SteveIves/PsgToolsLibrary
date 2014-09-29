@@ -1,5 +1,6 @@
 
 namespace SynPSG.VmsCompatibility
+
 	function sys$asctim			,^val
 		length				,i
 		stringDate			,a

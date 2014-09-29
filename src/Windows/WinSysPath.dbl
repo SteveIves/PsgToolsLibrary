@@ -58,7 +58,7 @@ namespace SynPSG.Windows
 			return_path		,string		;Synergy return value
 		endrecord
 
-	.proc
+	proc
 
 		onerror Error
 

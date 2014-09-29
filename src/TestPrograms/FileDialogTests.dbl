@@ -1,4 +1,6 @@
 
+import SynPSG.Windows
+
 main FileDialogTests
 
 record 

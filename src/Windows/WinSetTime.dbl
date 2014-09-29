@@ -17,7 +17,7 @@
 ; for any loss or damage which may result from the use of this code.
 ;
 ;****************************************************************************
-;
+
 namespace SynPSG.Windows
 
 	function WinSetTime, ^VAL

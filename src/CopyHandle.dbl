@@ -43,7 +43,7 @@ namespace SynPSG
 	subroutine CopyHandle
 
 		required in  a_handle_in	,i4		;Handle to copy
-		required out a_handle_out	,i4      ;New handle
+		required out a_handle_out	,i4		;New handle
 		endparams
 
 		.define D_MAXSIZE   65535   ;If we need to copy the data in "chunks" then this

@@ -45,12 +45,7 @@
 ;;***************************************************************************
 
 namespace SynPSG
-    ;;--------------------------------------------------------------------
-    ;;public class enumerations
-    ;;--------------------------------------------------------------------
 
-    ;;;<summary>
-    ;;;</summary>
     public enum StringSplitOptions
         None
         RemoveEmptyEntries
@@ -58,7 +53,6 @@ namespace SynPSG
 
     public class StringUtil
 
-    ;;--------------------------------------------------------------------
         ;;;<summary>
         ;;;</summary>
         ;;;<param name=inString></param>
@@ -118,8 +112,6 @@ namespace SynPSG
             mreturn splitArray
         endmethod
 
-    ;;--------------------------------------------------------------------
-
         ;;;<summary>
         ;;;</summary>
         ;;;<param name=inString></param>
@@ -132,8 +124,6 @@ namespace SynPSG
         proc
             mreturn Split(inString, separator, StringSplitOptions.None)
         endmethod
-
-    ;;--------------------------------------------------------------------
 
         ;;;<summary>
         ;;;</summary>
@@ -167,8 +157,6 @@ namespace SynPSG
             mreturn newString
         endmethod
 
-    ;;--------------------------------------------------------------------
-
         ;;;<summary>
         ;;;</summary>
         ;;;<param name=inString></param>
@@ -190,8 +178,6 @@ namespace SynPSG
             mreturn ^m(hdl)
         endmethod
 
-    ;;--------------------------------------------------------------------
-
         ;;;<summary>
         ;;;</summary>
         ;;;<param name=inString></param>
@@ -212,8 +198,6 @@ namespace SynPSG
             locase ^m(hdl)
             mreturn ^m(hdl)
         endmethod
-
-    ;;--------------------------------------------------------------------
 
         ;;;<summary>
         ;;;</summary>
@@ -460,8 +444,6 @@ namespace SynPSG
             return
 
         endmethod
-
-    ;;--------------------------------------------------------------------
 
         private static method CustomDateFormat  ,string
             req in  aParamType                  ,a
@@ -1513,8 +1495,6 @@ namespace SynPSG
             mreturn timeZoneString
         endmethod
 
-    ;;--------------------------------------------------------------------
-
         private static method isDate    ,boolean
             req in  aDate               ,n
             endparams
@@ -1557,7 +1537,6 @@ namespace SynPSG
             mreturn true
         endmethod
 
-    ;;--------------------------------------------------------------------
         private static method LongDatePattern   ,a
             req in  aDate                       ,n
             endparams
@@ -1573,7 +1552,7 @@ namespace SynPSG
             mreturn DayNames(myDate) + ', '
             &   + MonthNames(mon) + DateSeperator() + %string(day) + DateSeperator() + %string(year, 'XXXX')
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method ShortDatePattern  ,a
             req in  aDate                       ,n
             endparams
@@ -1588,7 +1567,7 @@ namespace SynPSG
             myDate = aDate
             mreturn %string(mon) + DateSeperator() + %string(day) + DateSeperator() + %string(year, 'XXXX')
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method LongTimePattern   ,a
             req in  aTime                       ,n
             endparams
@@ -1605,7 +1584,7 @@ namespace SynPSG
                 mreturn %string(hh-12) + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX') + ' ' + PMDesignator()
             mreturn %string(hh) + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX') + ' ' + AMDesignator()
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method ShortTimePattern  ,a
             req in  aTime                       ,n
             endparams
@@ -1620,7 +1599,7 @@ namespace SynPSG
             myTime = aTime
             mreturn %string(hh, 'XX') + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX')
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method MonthDayPattern   ,a
             req in  aDate                       ,n
             endparams
@@ -1635,7 +1614,7 @@ namespace SynPSG
             myDate = aDate
             mreturn MonthNames(mon) + ' ' + %string(day, 'XX')
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method RFA1123Pattern    ,a
             req in  group aDateTime             ,a
                         group myDate    ,d
@@ -1655,15 +1634,15 @@ namespace SynPSG
             endrecord
         proc
             offset = %timezone(timeZoneString, daylightSaving)
-.ifdef D_GUI
+			.ifdef D_GUI
             windowsTimezoneToShort(timeZoneString, daylightSaving)
-.endc ;D_GUI
+			.endc ;D_GUI
             mreturn AbbreviatedDayNames(myDate) + ', '
             &   + %string(day, 'XX') + ' ' + AbbreviatedMonthNames(mon) + ' ' + %string(year, 'XXXX') + ' '
             &   + %string(hh, 'XX') + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX') + ' '
             &   + %atrim(timeZoneString)
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method SortableDateTimePattern   ,a
             req in  group aDateTime                     ,a
                         year        ,d4
@@ -1696,7 +1675,7 @@ namespace SynPSG
             &   + %string(hh, 'XX') + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX')
             &   + MilitaryTimeZone(%timezone())
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method UniversalFullDateTimePattern  ,a
             req in  group aDateTime                         ,a
                         group myDate    ,d
@@ -1718,7 +1697,7 @@ namespace SynPSG
             &   + MonthNames(mon) + DateSeperator() + %string(day) + DateSeperator() + %string(year, 'XXXX') + ' '
             &   + %string(hh) + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX') + ' ' + AMDesignator()
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method YearMonthPattern  ,a
             req in  aDate                       ,n
             endparams
@@ -1733,7 +1712,7 @@ namespace SynPSG
             myDate = aDate
             mreturn MonthNames(mon) + ' ' + %string(year, 'XXXX')
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method MonthNames    ,a
             req in  aMonth                  ,n
             endparams
@@ -1748,7 +1727,7 @@ namespace SynPSG
                 mreturn ' '
             mreturn %atrim(longMonth(aMonth))
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method AbbreviatedMonthNames ,a
             req in  aMonth                          ,n
             endparams
@@ -1761,7 +1740,7 @@ namespace SynPSG
                 mreturn ' '
             mreturn %atrim(shortMonth(aMonth))
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method DayNames  ,a
             req in  aDate               ,n
             endparams
@@ -1781,7 +1760,7 @@ namespace SynPSG
             myDate = aDate
             mreturn %atrim(longDow(%wkday(myDate)))
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method AbbreviatedDayNames   ,a
             req in  aDate                           ,n
             endparams
@@ -1800,31 +1779,31 @@ namespace SynPSG
             myDate = aDate
             mreturn %atrim(shortDow(%wkday(myDate)))
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method DateSeperator  ,a
             endparams
         proc
             mreturn '/'
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method TimeSeperator  ,a
             endparams
         proc
             mreturn ':'
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method AMDesignator   ,a
             endparams
         proc
             mreturn 'AM'
         endmethod
-    ;;--------------------------------------------------------------------
+
         private static method PMDesignator   ,a
             endparams
         proc
             mreturn 'PM'
         endmethod
-    ;;--------------------------------------------------------------------
+
 
     endclass
 

@@ -9,35 +9,30 @@
 ; Date:			28th September 2005
 ;
 ;=============================================================================
-;
-.function CanadianProvince ;,a
 
-	a_province_code	,a
+namespace SynPSG
 
-stack record
-	retval			,a21
-
-.proc
-
-	clear retval
-
-	using a_province_code select
-	("AB"), retval = "Alberta"
-	("BC"), retval = "British Columbia"
-	("MB"), retval = "Manitoba"
-	("NB"), retval = "New Brunswick"
-	("NF"), retval = "Newfoundland"
-	("NT"), retval = "Northwest Territories"
-	("NS"), retval = "Nova Scotia"
-	("NU"), retval = "Nunavut"
-	("ON"), retval = "Ontario"
-	("PE"), retval = "Prince Edward Island"
-	("QC"), retval = "Quebec"
-	("SK"), retval = "Saskatchewan"
-	("YT"), retval = "Yukon"
-	endusing
-
-	freturn %atrim(retval)
-
-.end
+	function CanadianProvince, string
+		provinceCode, string
+		endparams
+	proc
+		using provinceCode select
+		("AB"), freturn "Alberta"
+		("BC"), freturn "British Columbia"
+		("MB"), freturn "Manitoba"
+		("NB"), freturn "New Brunswick"
+		("NF"), freturn "Newfoundland"
+		("NT"), freturn "Northwest Territories"
+		("NS"), freturn "Nova Scotia"
+		("NU"), freturn "Nunavut"
+		("ON"), freturn "Ontario"
+		("PE"), freturn "Prince Edward Island"
+		("QC"), freturn "Quebec"
+		("SK"), freturn "Saskatchewan"
+		("YT"), freturn "Yukon"
+		(),		freturn ""
+		endusing
+	endfunction
+		
+endnamespace
 

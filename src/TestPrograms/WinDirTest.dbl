@@ -1,4 +1,5 @@
 
+import SynPSG.Windows
 import System.collections
 
 main test

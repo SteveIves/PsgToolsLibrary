@@ -58,68 +58,69 @@
 ;DEALLOCATION OF THE STATIC DYNAMIC MEMORY ALLOCATED BY THIS ROUTINE IS THE
 ;RESPONSIBILITY OF THE CALLING ROUTINE.
 ;
-.function HttpQueryString, ^VAL
+namespace SynPSG
 
-	;Required parameters
-	a_name			,[*]a	;Array of field names (required, in)
-	a_value			,[*]a	;Array of field values (required, in)
+	function HttpQueryString, ^VAL
 
-	;Optional parameters
-	a_retlen		,n		;Length od query string (optional, out)
+		;Required parameters
+		a_name			,[*]a	;Array of field names (required, in)
+		a_value			,[*]a	;Array of field values (required, in)
 
-	;End of parameters
+		;Optional parameters
+		a_retlen		,n		;Length od query string (optional, out)
 
-stack record
-	elements		,i4		;Number of elements in passed arrays
-	values			,i4		;Number of values processed into output string
-	count			,i4		;Loop counter
-	mh				,i4		;Memory handle
-	ms				,i4		;Max size of memory handle
+		;End of parameters
 
-external function
-	UrlEncode		,a
+		stack record
+			elements		,i4		;Number of elements in passed arrays
+			values			,i4		;Number of values processed into output string
+			count			,i4		;Loop counter
+			mh				,i4		;Memory handle
+			ms				,i4		;Max size of memory handle
 
-.proc
+	proc
 
-	elements = ^size(a_name[]) / ^size(a_name)
-	clear values
+		elements = ^size(a_name[]) / ^size(a_name)
+		clear values
 
-	;Figure out the maximum possible size of the return data. This is the
-	;maximum length of the name of a variable, plus the maximum size of the
-	;value of a variable multiplied by three to allow for the possibility that
-	;every character may need to be replaced with it's escaped (%NN format)
-	;value, plus two for the equals sign and ampersand, multiplied by the
-	;maximum number of variables.
+		;Figure out the maximum possible size of the return data. This is the
+		;maximum length of the name of a variable, plus the maximum size of the
+		;value of a variable multiplied by three to allow for the possibility that
+		;every character may need to be replaced with it's escaped (%NN format)
+		;value, plus two for the equals sign and ampersand, multiplied by the
+		;maximum number of variables.
 
-	ms = (elements * (^size(a_name) + (^size(a_value) * 3) + 2))
+		ms = (elements * (^size(a_name) + (^size(a_value) * 3) + 2))
 
-	;Allocate dynamic memory
-	mh = %mem_proc(DM_ALLOC+DM_STATIC+DM_BLANK,ms)
+		;Allocate dynamic memory
+		mh = %mem_proc(DM_ALLOC+DM_STATIC+DM_BLANK,ms)
 
-	for count from 1 thru elements
-	begin
-		if a_name[count]
+		for count from 1 thru elements
 		begin
-			
-			if (values)
-				^m(mh) = %atrim(^m(mh)) + "&"
-			
-			^m(mh) = %atrim(^m(mh)) + %atrim(a_name[count]) + "="
-			
-			if (a_value[count])
-				^m(mh) = %atrim(^m(mh)) + %UrlEncode(a_value[count])
-			
-			values+=1
+			if a_name[count]
+			begin
+				
+				if (values)
+					^m(mh) = %atrim(^m(mh)) + "&"
+				
+				^m(mh) = %atrim(^m(mh)) + %atrim(a_name[count]) + "="
+				
+				if (a_value[count])
+					^m(mh) = %atrim(^m(mh)) + %UrlEncode(a_value[count])
+				
+				values+=1
+			end
 		end
-	end
 
-	;Trim the allocated memory back down to the size of the actual data
-	mh = %mem_proc(DM_RESIZ,ms=%trim(^m(mh)),mh)
+		;Trim the allocated memory back down to the size of the actual data
+		mh = %mem_proc(DM_RESIZ,ms=%trim(^m(mh)),mh)
 
-	if ^passed(a_retlen)
-		a_retlen=ms
+		if ^passed(a_retlen)
+			a_retlen=ms
 
-	freturn mh
+		freturn mh
 
-.end
+	endfunction
+		
+endnamespace
 

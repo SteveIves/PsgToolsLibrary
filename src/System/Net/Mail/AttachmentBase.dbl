@@ -34,13 +34,11 @@
 ;;              indicates your acceptance of these terms.
 ;;
 ;;***********************************************************************************
-import SynPSG.System
-import SynPSG.System.IO
-import SynPSG.System.Net.Mime
-import SynPSG.System.Net.Sockets
 
 namespace SynPSG.System.Net.Mail
+
     public abstract class AttachmentBase
+
         private mFileName       ,string
         private mContentId      ,string
         private mContentIdCount ,integer

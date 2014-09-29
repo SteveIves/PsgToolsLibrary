@@ -33,8 +33,6 @@
 ;;              indicates your acceptance of these terms.
 ;;
 ;;***********************************************************************************
-import SynPSG.System.Net
-import SynPSG.System.Net.Sockets
 
 ;;.define TCPLISTENER_LOGGING
 

@@ -10,64 +10,67 @@
 ;
 ;=============================================================================
 ;
-.function FormatDate ;,a
 
-	optional in a_date		,n		;Date to format
-									;	YYYYMMDD	->	MM/DD/YYYY
-									;	YYMMDD		->	MM/DD/YY
-									;	YYPP		->  PP/YY
+namespace SynPSG
 
-	optional in a_seperator	,a		;Seperator character (default /)
+	function FormatDate, string
+		optional in a_date		,n		;Date to format
+										;	YYYYMMDD	->	MM/DD/YYYY
+										;	YYMMDD		->	MM/DD/YY
+										;	YYPP		->  PP/YY
+		optional in a_seperator	,a		;Seperator character (default /)
+		optional in a_european	,n		;European formatting (DD/DD/YYYY or DD/MM/YY)
+		endparams
 
-	optional in a_european	,n		;European formatting (DD/DD/YYYY or DD/MM/YY)
+		stack record
+			retval		,a10
+			sepchr		,a1
+		endrecord
 
-stack record
-	retval		,a10
-	sepchr		,a1
+	proc
 
-.proc
+		clear retval
 
-	clear retval
+		sepchr = "/"
+		if (^passed(a_seperator).and.a_seperator)
+			sepchr = a_seperator
 
-	sepchr = "/"
-	if (^passed(a_seperator).and.a_seperator)
-		sepchr = a_seperator
+		if (a_date)
+		begin
+			using ^size(a_date) select
+			(4), call format4
+			(6), call format6
+			(8), call format8
+			endusing
+		end
 
-	if (a_date)
-	begin
-		using ^size(a_date) select
-		(4), call format4
-		(6), call format6
-		(8), call format8
-		endusing
-	end
+		freturn %atrim(retval)
 
-	freturn %atrim(retval)
+	format4,
 
-format4,
+		retval=^a(a_date(3:2))+sepchr+^a(a_date(1:2))
 
-	retval=^a(a_date(3:2))+sepchr+^a(a_date(1:2))
+		return
 
-	return
+	format6,
 
-format6,
+		if (^passed(a_european)&&(a_european)) then
+			retval=^a(a_date(5:2))+sepchr+^a(a_date(3:2))+sepchr+^a(a_date(1:2))
+		else
+			retval=^a(a_date(3:2))+sepchr+^a(a_date(5:2))+sepchr+^a(a_date(1:2))
 
-	if (^passed(a_european)&&(a_european)) then
-		retval=^a(a_date(5:2))+sepchr+^a(a_date(3:2))+sepchr+^a(a_date(1:2))
-	else
-		retval=^a(a_date(3:2))+sepchr+^a(a_date(5:2))+sepchr+^a(a_date(1:2))
+		return
 
-	return
+	format8,
 
-format8,
+		if (^passed(a_european)&&(a_european)) then
+			retval=^a(a_date(7:2))+sepchr+^a(a_date(5:2))+sepchr+^a(a_date(1:4))
+		else
+			retval=^a(a_date(5:2))+sepchr+^a(a_date(7:2))+sepchr+^a(a_date(1:4))
 
-	if (^passed(a_european)&&(a_european)) then
-		retval=^a(a_date(7:2))+sepchr+^a(a_date(5:2))+sepchr+^a(a_date(1:4))
-	else
-		retval=^a(a_date(5:2))+sepchr+^a(a_date(7:2))+sepchr+^a(a_date(1:4))
+		return
 
-	return
+	endfunction
 
-.end
-
+endnamespace
 

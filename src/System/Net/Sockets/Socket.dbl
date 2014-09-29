@@ -33,7 +33,6 @@
 ;;              indicates your acceptance of these terms.
 ;;
 ;;***********************************************************************************
-import SynPSG.System.Net
 
 .include "DBLDIR:synsock.def"
 
