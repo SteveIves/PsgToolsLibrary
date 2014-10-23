@@ -1,13 +1,12 @@
 ;;*****************************************************************************
 ;;
-;; Title:       ScheduledTaskRemove.dbl
+;; Title:       ScheduledTasksSummary.dbl
 ;;
 ;; Type:        Program
 ;;
-;; Description: A program that demonstrates how to remove a Windows Scheduled
-;;              task.
+;; Description: Displays a summary of current scheduled tasks
 ;;
-;; Date:        23rd September 2014
+;; Date:        16th October 2014
 ;;
 ;; Author:      Steve Ives, Synergex Professional Services Group
 ;;              http://www.synergex.com
@@ -41,23 +40,25 @@
 ;;
 ;;*****************************************************************************
 
+import System.Collections
 import SynPSG.Windows
 
-main ScheduledTaskRemove
+main ScheduledTasksSummary
 	record
 		tt,				i4
-		task,			@ScheduledTask
+		tasks,			@ArrayList
+		task,			@TaskInfo
 		errorMessage, 	string
 	endrecord
 proc
 	open(tt=0,i,'tt:')
 
-	task = new ScheduledTask("\Synergy Tasks\Synergy Task 1")
-	
-	if (task.Delete(errorMessage)) then
-		writes(tt,"Task removed.")
-	else
-		writes(tt,"ERROR: Failed to remove task! Error was " + errorMessage)
+	tasks = ScheduledTask.GetTasks(TaskStatus.All)
+
+	foreach task in tasks
+	begin
+		writes(tt,task.Name)
+	end
 	
 	close tt
 	stop
