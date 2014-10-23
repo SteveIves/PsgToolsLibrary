@@ -183,6 +183,7 @@
 			<F N="../src/VmsCompatibility/STR$TRIM.DBL"/>
 			<F N="../src/System/IO/Stream.dbl"/>
 			<F N="../src/StringUtil.dbl"/>
+			<F N="../src/SubversionAPI.dbl"/>
 			<F N="../src/VmsCompatibility/SUCCESS.DBL"/>
 			<F N="../src/System/SynDatetime.dbl"/>
 			<F N="../src/VmsCompatibility/SYS$ASCTIM.DBL"/>

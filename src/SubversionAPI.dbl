@@ -1,0 +1,69 @@
+
+namespace SynPSG.SubversionAPI
+
+	public class RepositoryInfo
+
+		public Path,			string
+		public URL,			string
+		public RelativeURL,		string
+		public Root,			string
+		public UUID,			string
+		Public Revision,		int
+		public NodeKind,		string
+		Public LastChangedAuthor,	string
+		Public LastChangedRevision,	int
+		public LastChangedDate,		string
+		
+		public method RepositoryInfo
+			required in url,	string
+			required in user,	string
+			required in password,	string
+			endparams
+			record
+				ch,		int
+				buffer,		a256
+			endrecord
+		proc
+			open(ch=0,i,"|svn info --username " + user.Trim() + " --password " + password.Trim() + " --non-interactive --trust-server-cert " + url.Trim())
+			;Path: FlexCon
+			;URL: http://sivesw8x64:8080/svn/FlexCon
+			;Relative URL: ^/
+			;Repository Root: http://sivesw8x64:8080/svn/FlexCon
+			;Repository UUID: 33807f0c-819f-1542-b365-92cdf49528d8
+			;Revision: 59
+			;Node Kind: directory
+			;Last Changed Author: stevei
+			;Last Changed Rev: 59
+			;Last Changed Date: 2014-03-10 17:40:45 -0400 (Mon, 10 Mar 2014)
+			repeat
+			begin
+				reads(ch,buffer,eof)
+				using buffer select
+				("Path: "),
+					this.Path =  %atrim(buffer - "Path: ")
+				("URL: "),
+					this.URL =  %atrim(buffer - "URL: ")
+				("Relative URL: "),
+					this.RelativeURL =  %atrim(buffer - "Relative URL: ")
+				("Repository Root: "),
+					this.URL =  %atrim(buffer - "URL: ")
+				("Repository Root: "),
+					this.Root =  %atrim(buffer - "Repository Root: ")
+				("Repository UUID: "),
+					this.UUID =  %atrim(buffer - "Repository UUID: ")
+				("Revision: "),
+					this.Revision =  %integer(%atrim(buffer - "Revision: "))
+				("Node Kind: "),
+					this.NodeKind =  %atrim(buffer - "Node Kind: ")
+				("Last Changed Author: "),
+					this.LastChangedAuthor =  %atrim(buffer - "Last Changed Author: ")
+				("Last Changed Rev: "),
+					this.LastChangedRevision =  %atrim(buffer - "Last Changed Rev: ")
+				("Last Changed Date: "),
+					this.LastChangedDate =  %atrim(buffer - "Last Changed Date: ")
+				endusing
+			end
+		eof,	close ch
+		endmethod
+	endclass
+endnamespace
