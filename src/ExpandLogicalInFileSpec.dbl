@@ -1,8 +1,8 @@
 
 namespace SynPSG
 
-	function ExpandLogicalInFileSpec, string
-		required inout fileSpec, String
+	function ExpandLogicalInFileSpec,	string
+		required in fileSpec,		string
 		endparams
 		stack record 
 			colon,			int

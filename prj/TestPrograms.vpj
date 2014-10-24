@@ -166,6 +166,7 @@
 			<F N="../src/TestPrograms/ArrayListOfDecimal.dbl"/>
 			<F N="../src/TestPrograms/ClipBoardTest.dbl"/>
 			<F N="../src/TestPrograms/CopyHandleTest.dbl"/>
+			<F N="../src/TestPrograms/DirectoryTests.dbl"/>
 			<F N="../src/TestPrograms/FileDialogTests.dbl"/>
 			<F N="../src/TestPrograms/FtpClientReceiveTextFile.dbl"/>
 			<F N="../src/TestPrograms/FtpClientSendTextFile.dbl"/>

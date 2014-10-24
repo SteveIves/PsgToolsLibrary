@@ -142,8 +142,11 @@
 			<F N="../src/System/CredentialCache.dbl"/>
 			<F N="../src/System/Datetime.dbl"/>
 			<F N="../src/VmsCompatibility/DBL$SETKRF.DBL"/>
+			<F N="../src/System/IO/Directory.dbl"/>
 			<F N="../src/System/Net/DNS.dbl"/>
+			<F N="../src/System/Environment.dbl"/>
 			<F N="../src/ExpandLogicalInFileSpec.dbl"/>
+			<F N="../src/System/IO/File.dbl"/>
 			<F N="../src/System/IO/FileStream.dbl"/>
 			<F N="../src/FileToHandle.dbl"/>
 			<F N="../src/FormatDate.dbl"/>
@@ -176,6 +179,7 @@
 			<F N="../src/System/Net/NetworkCredential.dbl"/>
 			<F N="../src/System/Net/Sockets/NetworkStream.dbl"/>
 			<F N="../src/System/Security/SecureString.dbl"/>
+			<F N="../src/SevenZipAPI.dbl"/>
 			<F N="../src/System/Net/Mail/SmtpClient.dbl"/>
 			<F N="../src/System/Net/Sockets/Socket.dbl"/>
 			<F N="../src/System/Net/Sockets/SocketException.dbl"/>

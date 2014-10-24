@@ -1,6 +1,164 @@
+;;**********************************************************************
+;;
+;; Title:       SubversionAPI.dbl
+;;
+;; Type:        API
+;;
+;; Description: Wraps some of the sunctionality of svn.exe (Subversion)
+;;
+;; Author:      Steve Ives, Synergex Professional Services Group
+;;
+;; Copyright    © 2014 Synergex International Corporation.  All rights reserved.
+;;
+;; WARNING:     All content constituting or related to this code ("Code") is the
+;;              property of Synergex International Corporation ("Synergex") and
+;;              is protected by U.S. and international copyright laws.
+;;              If you were given this Code by a Synergex employee then you may
+;;              use and modify it freely for use within your applications.
+;;
+;;              However, you may use the Code only for your personal use.
+;;              Any other use, unless otherwise authorized in writing by
+;;              Synergex is strictly prohibited.  You may not under any
+;;              circumstances distribute this Code, or any modified version
+;;              or part of this Code, to any third party without first
+;;              obtaining written permission to do so from Synergex.
+;;              In using this Code you accept that it is provided as is,
+;;              and without support or warranty of any kind.
+;;
+;;              Neither Synergex nor the author accept any responsibility
+;;              for any losses or damages of any nature which may arise
+;;              from the use of this Code.  This header information must
+;;              remain unaltered in the Code at all times.  Possession
+;;              of this Code, or any modified version or part of this Code,
+;;              indicates your acceptance of these terms.
+;;
+;;***********************************************************************************
+
+import System.Collections
 
 namespace SynPSG.SubversionAPI
 
+	public class Subversion
+		
+		private url, 		string
+		private uid, 		string
+		private pwd, 		string
+		private mMessages, 	@ArrayList
+		
+		public method Subversion
+			required in repoUrl, string
+			required in username, string
+			required in password, string
+			endparams
+			record 
+				ch,	int
+				buffer,	a64
+			endrecord
+		proc
+			;;Save the repo data
+			url = repoUrl.Trim()
+			uid = username.Trim()
+			pwd = password.Trim()
+
+			mMessages = new ArrayList()
+			
+			;;Make sure we find an svn.exe in PATH
+			open(ch=0,i,"|svn help")
+			repeat
+			begin
+				reads(ch,buffer,eof)
+				if (buffer=="'svn' is not recognized as an internal or external command")
+				begin
+					close ch
+					throw new ApplicationException("svn.exe was not found in your PATH!")
+				end
+			end
+		eof,	close ch
+		endmethod
+
+		
+		public method GetRepositoryInfo,	@RepositoryInfo
+			endparams
+			record
+				ch,			int
+				buffer,			a256
+				info,			@RepositoryInfo
+			endrecord
+		proc
+			mMessages.Clear()
+			open(ch=0,i,"|svn info --username " + uid + " --password " + pwd + " --non-interactive --trust-server-cert " + url)
+			;Path: FlexCon
+			;URL: http://sivesw8x64:8080/svn/FlexCon
+			;Relative URL: ^/
+			;Repository Root: http://sivesw8x64:8080/svn/FlexCon
+			;Repository UUID: 33807f0c-819f-1542-b365-92cdf49528d8
+			;Revision: 59
+			;Node Kind: directory
+			;Last Changed Author: stevei
+			;Last Changed Rev: 59
+			;Last Changed Date: 2014-03-10 17:40:45 -0400 (Mon, 10 Mar 2014)
+			info = new RepositoryInfo()
+			repeat
+			begin
+				reads(ch,buffer,eof)
+				using buffer select
+				("Path: "),
+					info.Path =  %atrim(buffer - "Path: ")
+				("URL: "),
+					info.URL =  %atrim(buffer - "URL: ")
+				("Relative URL: "),
+					info.RelativeURL =  %atrim(buffer - "Relative URL: ")
+				("Repository Root: "),
+					info.URL =  %atrim(buffer - "URL: ")
+				("Repository Root: "),
+					info.Root =  %atrim(buffer - "Repository Root: ")
+				("Repository UUID: "),
+					info.UUID =  %atrim(buffer - "Repository UUID: ")
+				("Revision: "),
+					info.Revision =  %integer(%atrim(buffer - "Revision: "))
+				("Node Kind: "),
+					info.NodeKind =  %atrim(buffer - "Node Kind: ")
+				("Last Changed Author: "),
+					info.LastChangedAuthor =  %atrim(buffer - "Last Changed Author: ")
+				("Last Changed Rev: "),
+					info.LastChangedRevision =  %atrim(buffer - "Last Changed Rev: ")
+				("Last Changed Date: "),
+					info.LastChangedDate =  %atrim(buffer - "Last Changed Date: ")
+				endusing
+			end
+		eof,	close ch
+			mreturn info
+		endmethod
+		
+		public method ExportRevision, boolean
+			required in revision, 	int
+			required in folder, 	string
+			endparams
+			record 
+				ok, 		boolean
+				command, 	string
+				ch,		int
+				buffer,		a256
+			endrecord
+		proc
+			ok = true
+			mMessages.Clear()
+			command = "|svn export -q -r " + %string(revision) + " --username " + uid + " --password " + pwd + " --non-interactive --trust-server-cert " + url + " " + folder.Trim()
+			open(ch=0,i,command)
+			repeat
+			begin
+				reads(ch,buffer,eof)
+				if (!buffer)
+					exitloop
+				mMessages.Add((string)%atrim(buffer))
+				ok = false
+			end
+		eof,	close ch
+			mreturn ok
+		endmethod
+		
+	endclass
+	
 	public class RepositoryInfo
 
 		public Path,			string
@@ -14,56 +172,9 @@ namespace SynPSG.SubversionAPI
 		Public LastChangedRevision,	int
 		public LastChangedDate,		string
 		
-		public method RepositoryInfo
-			required in url,	string
-			required in user,	string
-			required in password,	string
-			endparams
-			record
-				ch,		int
-				buffer,		a256
-			endrecord
-		proc
-			open(ch=0,i,"|svn info --username " + user.Trim() + " --password " + password.Trim() + " --non-interactive --trust-server-cert " + url.Trim())
-			;Path: FlexCon
-			;URL: http://sivesw8x64:8080/svn/FlexCon
-			;Relative URL: ^/
-			;Repository Root: http://sivesw8x64:8080/svn/FlexCon
-			;Repository UUID: 33807f0c-819f-1542-b365-92cdf49528d8
-			;Revision: 59
-			;Node Kind: directory
-			;Last Changed Author: stevei
-			;Last Changed Rev: 59
-			;Last Changed Date: 2014-03-10 17:40:45 -0400 (Mon, 10 Mar 2014)
-			repeat
-			begin
-				reads(ch,buffer,eof)
-				using buffer select
-				("Path: "),
-					this.Path =  %atrim(buffer - "Path: ")
-				("URL: "),
-					this.URL =  %atrim(buffer - "URL: ")
-				("Relative URL: "),
-					this.RelativeURL =  %atrim(buffer - "Relative URL: ")
-				("Repository Root: "),
-					this.URL =  %atrim(buffer - "URL: ")
-				("Repository Root: "),
-					this.Root =  %atrim(buffer - "Repository Root: ")
-				("Repository UUID: "),
-					this.UUID =  %atrim(buffer - "Repository UUID: ")
-				("Revision: "),
-					this.Revision =  %integer(%atrim(buffer - "Revision: "))
-				("Node Kind: "),
-					this.NodeKind =  %atrim(buffer - "Node Kind: ")
-				("Last Changed Author: "),
-					this.LastChangedAuthor =  %atrim(buffer - "Last Changed Author: ")
-				("Last Changed Rev: "),
-					this.LastChangedRevision =  %atrim(buffer - "Last Changed Rev: ")
-				("Last Changed Date: "),
-					this.LastChangedDate =  %atrim(buffer - "Last Changed Date: ")
-				endusing
-			end
-		eof,	close ch
-		endmethod
 	endclass
+
 endnamespace
+
+
+
