@@ -144,7 +144,7 @@
 			<F N="../src/SynPSG.IsoCountry.dbl"/>
 			<F N="../src/SynPSG.MonthNumberToShortName.dbl"/>
 			<F N="../src/SynPSG.MonthShortNameToNumber.dbl"/>
-			<F N="../src/SynPSG.SevenZipAPI.SevenZipAPI.dbl"/>
+			<F N="../src/SynPSG.SevenZipAPI.dbl"/>
 			<F N="../src/SynPSG.StringUtil.dbl"/>
 			<F N="../src/SynPSG.SubversionAPI.dbl"/>
 			<F N="../src/SynPSG.System.Convert.dbl"/>
