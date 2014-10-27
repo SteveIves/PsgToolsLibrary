@@ -1,4 +1,5 @@
 
+import System.Collections
 import SynPSG.Windows
 import SynPSG.System.IO
 
@@ -7,40 +8,47 @@ main DirectoryTests
 proc
 	open(1,i,"tt:")
 
-	if (Directory.Exists("D:\Temp\DeleteMe"))
-		Directory.Delete("D:\Temp\DeleteMe",true)
+;	if (Directory.Exists("D:\Temp\DeleteMe"))
+;		Directory.Delete("D:\Temp\DeleteMe",true)
+;
+;	writes(1,"Checking if folder D:\Temp")
+;	if (Directory.Exists("D:\Temp")) then
+;	begin
+;		writes(1,"D:\Temp does exist")
+;		writes(1,"Creating folder D:\Temp\Blobby")
+;		if (Directory.CreateDirectory("D:\Temp\Blobby")) then
+;		begin
+;			writes(1,"Created folder D:\Temp\Blobby")
+;			writes(1,"Deleting folder D:\Temp\Blobby")
+;			if (Directory.Delete("D:\Temp\Blobby")) then
+;				writes(1,"Deleted folder D:\Temp\Blobby")
+;			else
+;				writes(1,"Failed to delete folder D:\Temp\Blobby!")
+;		end
+;		else
+;			writes(1,"Failed to create folder D:\Temp\Blobby!")
+;	end
+;	else
+;		writes(1,"D:\Temp does not exist!")
+;
+;	begin
+;		data logFile, string, %WinTempFile(%WinTempDir(),"FIL")
+;		data file, string
+;		open(2,o,logFile)
+;		foreach file in (Directory.GetFiles("D:\Dev\StevesLibrary","*",SearchOption.AllDirectories))
+;		begin
+;			writes(1,file)
+;			writes(2,file)
+;		end
+;		writes(1,"Results also saved to " + logFile)
+;		close 2
+;	end
 	
-	writes(1,"Checking if folder D:\Temp")
-	if (Directory.Exists("D:\Temp")) then
 	begin
-		writes(1,"D:\Temp does exist")
-		writes(1,"Creating folder D:\Temp\Blobby")
-		if (Directory.CreateDirectory("D:\Temp\Blobby")) then
-		begin
-			writes(1,"Created folder D:\Temp\Blobby")
-			writes(1,"Deleting folder D:\Temp\Blobby")
-			if (Directory.Delete("D:\Temp\Blobby")) then
-				writes(1,"Deleted folder D:\Temp\Blobby")
-			else
-				writes(1,"Failed to delete folder D:\Temp\Blobby!")
-		end
-		else
-			writes(1,"Failed to create folder D:\Temp\Blobby!")
-	end
-	else
-		writes(1,"D:\Temp does not exist!")
-
-	begin
-		data logFile, string, %WinTempFile(%WinTempDir(),"FIL")
-		data file, string
-		open(2,o,logFile)
-		foreach file in (Directory.GetFiles("D:\Dev\StevesLibrary","*",SearchOption.AllDirectories))
-		begin
+		data dir, string
+		foreach file in (Directory.EnumerateDirectories("D:\temp"))
 			writes(1,file)
-			writes(2,file)
-		end
-		writes(1,"Results also saved to " + logFile)
-		close 2
+		
 	end
 	
 	close 1

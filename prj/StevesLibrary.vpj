@@ -181,6 +181,30 @@
 			<F N="../src/SynPSG.TimeUtil.dbl"/>
 			<F N="../src/SynPSG.UrlEncode.dbl"/>
 			<F N="../src/SynPSG.UsState.dbl"/>
+			<F N="../src/SynPSG.Windows.WinAppNoReSize.dbl"/>
+			<F N="../src/SynPSG.Windows.WinAppOneInstance.dbl"/>
+			<F N="../src/SynPSG.Windows.WinBeep.dbl"/>
+			<F N="../src/SynPSG.Windows.WinButtonAnywhere.dbl"/>
+			<F N="../src/SynPSG.Windows.WinClipBoard.dbl"/>
+			<F N="../src/SynPSG.Windows.WinDir.dbl"/>
+			<F N="../src/SynPSG.Windows.WinFileCopy.dbl"/>
+			<F N="../src/SynPSG.Windows.WinFileTime.dbl"/>
+			<F N="../src/SynPSG.Windows.WinGetWindowHandle.dbl"/>
+			<F N="../src/SynPSG.Windows.WinGuid.dbl"/>
+			<F N="../src/SynPSG.Windows.WinLogout.dbl"/>
+			<F N="../src/SynPSG.Windows.WinMem.dbl"/>
+			<F N="../src/SynPSG.Windows.WinNode.dbl"/>
+			<F N="../src/SynPSG.Windows.WinOpenFileDialog.dbl"/>
+			<F N="../src/SynPSG.Windows.WinPath.dbl"/>
+			<F N="../src/SynPSG.Windows.WinRegistryApi.dbl"/>
+			<F N="../src/SynPSG.Windows.WinRemoveAppCaption.dbl"/>
+			<F N="../src/SynPSG.Windows.WinSaveFileDialog.dbl"/>
+			<F N="../src/SynPSG.Windows.WinScheduledTask.dbl"/>
+			<F N="../src/SynPSG.Windows.WinSetTime.dbl"/>
+			<F N="../src/SynPSG.Windows.WinSound.dbl"/>
+			<F N="../src/SynPSG.Windows.WinSysPath.dbl"/>
+			<F N="../src/SynPSG.Windows.WinTempDir.dbl"/>
+			<F N="../src/SynPSG.Windows.WinTempFile.dbl"/>
 		</Folder>
 		<Folder
 			Name="Header Files"
