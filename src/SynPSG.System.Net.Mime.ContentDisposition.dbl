@@ -36,6 +36,7 @@
 import SynPSG.System
 
 namespace SynPSG.System.Net.Mime
+
     public class ContentDisposition
         mDispositionType   ,string
         mCreationDate      ,@SynDatetime

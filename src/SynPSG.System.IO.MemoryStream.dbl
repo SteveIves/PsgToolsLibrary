@@ -36,6 +36,7 @@
 import SynPSG.System.IO
 
 namespace SynPSG.System.IO
+
     public class MemoryStream extends Stream
         mHandle         ,D_HANDLE
         mCanRead        ,boolean

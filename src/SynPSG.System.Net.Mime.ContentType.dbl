@@ -36,6 +36,7 @@
 import SynPSG.System
 
 namespace SynPSG.System.Net.Mime
+
     public enum TransferEncoding
          Base64
          QuotedPrintable

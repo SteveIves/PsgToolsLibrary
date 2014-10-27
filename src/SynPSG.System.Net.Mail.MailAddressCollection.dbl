@@ -40,7 +40,7 @@ import SynPSG.System.Net.Mime
 import SynPSG.System.Net.Sockets
 import System.Collections
 
-namespace SynPSG.System.Net.mail
+namespace SynPSG.System.Net.Mail
 
     class MailAddressCollection
         private mAddressCollection  ,@ArrayList

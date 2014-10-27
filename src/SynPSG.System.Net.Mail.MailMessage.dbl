@@ -40,6 +40,7 @@ import SynPSG.System.Net.Sockets
 import SynPSG.System.Net.Mime
 
 namespace SynPSG.System.Net.Mail
+
     public enum MailPriority
         High
         Low

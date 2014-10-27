@@ -36,6 +36,7 @@
 import SynPSG.System.IO
 
 namespace SynPSG.System.IO
+
     public class FileStream extends Stream
         mFileMode      ,FileMode
         mName          ,string
