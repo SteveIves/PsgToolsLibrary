@@ -1,0 +1,42 @@
+
+import SynPSG.SevenZipAPI
+import SynPSG.System.IO
+
+main SevenTestZip
+	record 
+		zip, @SevenZip
+	endrecord
+proc
+	open(1,o,"tt:")
+	zip = new SevenZip()
+	
+	if (File.Exists("D:\Temp\StevesLibrary.zip"))
+	begin
+		writes(1,"Deleting D:\Temp\StevesLibrary.zip")
+		File.Delete("D:\Temp\StevesLibrary.zip")
+	end
+	
+	if (Directory.Exists("D:\Temp\StevesLibrary"))
+	begin
+		writes(1,"Deleting D:\Temp\StevesLibrary\...")
+		Directory.Delete("D:\Temp\StevesLibrary",true)
+	end
+
+	writes(1,"Zipping D:\Dev\StevesLibrary\* to D:\Temp\StevesLibrary.zip ...")
+	if (zip.CompressFolder("D:\Dev\StevesLibrary\*","D:\Temp\StevesLibrary.zip",true)) then
+	begin
+		writes(1,"Folder zipped, extracting again...")
+		if (zip.ExtractToFolder("D:\Temp\StevesLibrary.zip","D:\Temp\StevesLibrary",OverwriteMode.Always)) then 
+			writes(1,"Folder extracted")
+		else
+			writes(1,"ERROR: Failed tom extract")
+	end
+	else
+		writes(1,"ERROR: Failed to create ZIP")
+	
+	
+	
+	clear zip
+	close 1
+	stop
+endmain

@@ -38,6 +38,13 @@ import SynPSG.System.IO
 
 namespace SynPSG.SevenZipAPI
 
+	public enum OverwriteMode
+		Always
+		Never
+		RenameNewFile
+		RenameExistingFile
+	endenum
+
 	public class SevenZip
 		
 		private exePath, string
@@ -84,6 +91,72 @@ namespace SynPSG.SevenZipAPI
 			mreturn ok
 		endmethod
 		
+		;;; <summary>
+		;;; Extracts all files from a zip file to a folder without overwriting any existing files.
+		;;; </summary>
+		;;; <param name="zipFile">Zip file to extract.</param>
+		;;; <param name="folder">Folder to extract to.</param>
+		;;; <returns></returns>
+		public method ExtractToFolder,	boolean
+			required in zipFile,	string
+			required in folder,	string
+			endparams
+			record 
+				ok,		boolean
+				command,	string
+				ch,		int
+				buffer,		a256
+			endrecord
+		proc
+			mreturn this.ExtractToFolder(zipFile,folder,OverwriteMode.Never)
+		endmethod
+		
+		public method ExtractToFolder,	boolean
+			required in zipFile,	string
+			required in folder,	string
+			required in mode,	OverWriteMode
+			endparams
+			record 
+				ok,		boolean
+				command,	string
+				ch,		int
+				buffer,		a256
+			endrecord
+		proc
+			ok = false
+			command = '|"' + exePath + '" e "' + zipFile + '" -o"' + folder + '" -y'
+			
+			using mode select
+			(OverwriteMode.Always),
+				command = command + ' -aoa'
+			(OverwriteMode.Never),
+				command = command + ' -aos'
+			(OverwriteMode.RenameNewFile),
+				command = command + ' -aou'
+			(OverwriteMode.RenameExistingFile),
+				command = command + ' -aot'
+			endusing
+
+			command = command + ""
+			
+			open(ch,i,command)
+			repeat
+			begin
+				reads(ch,buffer,eof)
+				if (buffer=="Everything is Ok") then
+				begin
+					ok = true
+					exitloop
+				end
+				else if (buffer=="Error:")
+				begin
+					exitloop
+				end
+			end
+		eof,	close ch
+			mreturn ok
+		endmethod
+
 	endclass
 
 endnamespace
