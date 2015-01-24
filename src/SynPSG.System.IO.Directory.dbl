@@ -36,6 +36,8 @@
 
 import System.Collections
 
+.array 0
+
 namespace SynPSG.System.IO
 
 .ifdef D_GUI
@@ -53,7 +55,7 @@ namespace SynPSG.System.IO
 		;;; if you need to create nested folders then you must call the method
 		;;; several times.
 		;;; </summary>
-		;;; <param name="path">Path to directory to create</param>
+		;;; <param name="path">The directory to create. </param>
 		;;; <returns>True if directory is created, false if not.</returns>
 		public static method CreateDirectory, boolean
 			required in path, string
@@ -74,25 +76,29 @@ namespace SynPSG.System.IO
 		endmethod
 
 		;;; <summary>
-		;;; Deletes an empty folder.
+		;;; Deletes an empty directory from a specified path.
 		;;; </summary>
-		;;; <param name="path">Path to folder to delete</param>
+		;;; <param name="path">The name of the empty directory to remove. This directory must be writable and empty.</param>
 		;;; <returns>True if folder deleted, false if not.</returns>
-		public static method Delete, boolean
+		public static method Delete, void
 			required in path, string
 			endparams
 			stack record
-				ok	,boolean
 				dll	,D_ADDR ;;DLL Handle
+				errnum	,i4	;;Error number
 				folder	,a260   ;;Null terminated folder spec
 			endrecord
 		proc
 			dll = %dll_open("kernel32.dll")
 			xcall fill(char(0),folder)
 			folder(1,path.Trim().Length) = path.Trim()
-			ok = %dll_call(dll,DLL_TYPE_WINAPI,"RemoveDirectoryA",^addr(folder))
-			dll = dll_close(dll)
-			mreturn ok
+			if (%dll_call(dll,DLL_TYPE_WINAPI,"RemoveDirectoryA",^addr(folder))) then 
+				dll = %dll_close(dll)
+			else
+			begin
+				errnum = %dll_call(dll,DLL_TYPE_WINAPI,"GetLastError")
+				dll = %dll_close(dll)
+			end
 		endmethod
 		
 		;;; <summary>
@@ -103,54 +109,46 @@ namespace SynPSG.System.IO
 		;;; <param name="path">Path of the directory to delete.</param>
 		;;; <param name="recursive">Recirsively delete all files and sub directories?</param>
 		;;; <returns>Returns true if the folder was deleted, otherwise false.</returns>
-		public static method Delete, boolean
+		public static method Delete, void
 			required in path, string
 			required in recursive, boolean
 			endparams
 			stack record
-				ok	,boolean
 				files	,@ArrayList
 				folders	,@ArrayList
 			endrecord
 		proc
-			ok = true
 			if (!recursive) then
-				ok = Directory.Delete(path)
+				Directory.Delete(path)
 			else
 			begin
 				data item, string
 
 				;;Get all the files and sub directories in and below the folder
 				folders = new ArrayList()
-				files = Directory.GetFiles(path,"*",SearchOption.AllDirectories,folders)
+				files = Directory.EnumerateFiles(path,"*",SearchOption.AllDirectories,folders)
 
 				;;Delete all files an and below the directory
 				foreach item in files
-					if (!File.Delete(item))
-						ok = false
+					File.Delete(item)
 
 				;;Delete all sub-directories from the directory
 				while (folders.Count>0)
 				begin
-					if (!Directory.Delete((string)folders[folders.Count-1]))
-						ok = false
+					Directory.Delete((string)folders[folders.Count-1])
 					folders.RemoveAt(folders.Count-1)
 				end
 				
 				;;Delete the directory
-				if (ok)
-					ok = Directory.Delete(path)
+				Directory.Delete(path)
 			end
-			
-			mreturn ok
-
 		endmethod
 		
 		;;; <summary>
 		;;; Returns an enumerable collection of directory names in a specified path.
 		;;; </summary>
 		;;; <param name="path">The relative or absolute path to the directory to search. This string is not case-sensitive.</param>
-		;;; <returns>An enumerable collection of the full names (including paths) for the directories in the directory specified by path.</returns>
+		;;; <returns></returns>
 		public static method EnumerateDirectories, @ArrayList
 			required in path, string
 			endparams
@@ -162,88 +160,64 @@ namespace SynPSG.System.IO
 		;;; Returns an enumerable collection of directory names that match a search pattern in a specified path.
 		;;; </summary>
 		;;; <param name="path">The relative or absolute path to the directory to search. This string is not case-sensitive.</param>
-		;;; <param name="searchPattern">The search string to match against the names of directories in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+		;;; <param name="searchPattern">Returns an enumerable collection of directory names that match a search pattern in a specified path.</param>
 		;;; <returns>An enumerable collection of the full names (including paths) for the directories in the directory specified by path and that match the specified search pattern.</returns>
 		public static method EnumerateDirectories, @ArrayList
 			required in path, string
 			required in searchPattern, string
 			endparams
 		proc
-			mreturn Directory.GetFiles(path,searchPattern,SearchOption.TopDirectoryOnly)
+			mreturn Directory.EnumerateDirectories(path,searchPattern,SearchOption.TopDirectoryOnly)
 		endmethod
 		
 		;;; <summary>
 		;;; Returns an enumerable collection of directory names that match a search pattern in a specified path, and optionally searches subdirectories.
 		;;; </summary>
 		;;; <param name="path">The relative or absolute path to the directory to search. This string is not case-sensitive.</param>
-		;;; <param name="searchPattern">The search string to match against the names of directories in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+		;;; <param name="searchPattern">Returns an enumerable collection of directory names that match a search pattern in a specified path.</param>
 		;;; <param name="searchOption">One of the enumeration values that specifies whether the search operation should include only the current directory or should include all subdirectories.</param>
-		;;; <returns></returns>
+		;;; <returns>An enumerable collection of the full names (including paths) for the directories in the directory specified by path and that match the specified search pattern and option.</returns>
 		public static method EnumerateDirectories, @ArrayList
 			required in path, string
 			required in searchPattern, string
 			required in searchOption, SearchOption
 			endparams
 			record 
-				files,          @ArrayList
 				directories,    @ArrayList
+				files,          @ArrayList
 			endrecord
 		proc
-			files = Directory.GetFiles(path,searchPattern,searchOption,directories)
+			directories = new ArrayList()
+			files = Directory.EnumerateFiles(path,searchPattern,searchOption,directories)
 			mreturn directories
 		endmethod
-
-		;;; <summary>
-		;;; Determines of a folder exists.
-		;;; </summary>
-		;;; <param name="path">Path of folder to check.</param>
-		;;; <returns>True if the folder exists, false if not.</returns>
-		public static method Exists, boolean
-			required in path, string
-			endparams
-			stack record
-				dll		,D_ADDR ;;DLL Handle
-				folder		,a260   ;;Null terminated folder spec
-				attributes	,i4
-			endrecord
-			.define INVALID_FILE_ATTRIBUTES		-1
-			.define FILE_ATTRIBUTE_DIRECTORY	%x(10)
-		proc
-			dll = %dll_open("kernel32.dll")
-			xcall fill(char(0),folder)
-			folder(1,path.Trim().Length) = path.Trim()
-			attributes = %dll_call(dll,DLL_TYPE_WINAPI,"GetFileAttributesA",^addr(folder))
-			dll = dll_close(dll)
-			if (attributes == INVALID_FILE_ATTRIBUTES)
-				mreturn false
-			mreturn (attributes & FILE_ATTRIBUTE_DIRECTORY)
-		endmethod
 		
-		public static method GetFiles,		@ArrayList
+		public static method EnumerateFiles,	@ArrayList
 			required in path,		string
 			endparams
 		proc
-			mreturn Directory.GetFiles(path,"*",SearchOption.TopDirectoryOnly,^null)
+			mreturn Directory.EnumerateFiles(path,"*",SearchOption.TopDirectoryOnly,^null)
 		endmethod
-
-		public static method GetFiles, 		@ArrayList
+		
+		public static method EnumerateFiles, 		@ArrayList
 			required in path,		string
 			required in searchPattern,	string
 			endparams
 		proc
-			mreturn Directory.GetFiles(path,searchPattern,SearchOption.TopDirectoryOnly,^null)
+			mreturn Directory.EnumerateFiles(path,searchPattern,SearchOption.TopDirectoryOnly,^null)
 		endmethod
 		
-		public static method GetFiles,		@ArrayList
+		public static method EnumerateFiles,	@ArrayList
 			required in path,		string
 			required in srchPattern,	string
 			required in search,		SearchOption
 			endparams
 		proc
-			mreturn Directory.GetFiles(path,srchPattern,search,^null)
+			mreturn Directory.EnumerateFiles(path,srchPattern,search,^null)
 		endmethod
 		
-		private static method GetFiles,		@ArrayList
+		
+		private static method EnumerateFiles,	@ArrayList
 			required in path,		string
 			required in srchPattern,	string
 			required in search,		SearchOption
@@ -316,14 +290,17 @@ namespace SynPSG.System.IO
 					;;First file not a directory, and processing sub directories?
 					if (FileAttributes & FILE_ATTRIBUTE_DIRECTORY) then 
 					begin
-						if ((search==SearchOption.AllDirectories)&&(FileName(1:1)!="."))
+						if (FileName(1:1)!=".")
 						begin
-							data newFolder, string, folder+FileName(1:%instr(1,FileName,%char(0))-1)+"\"
-							if (insertSubDirAt==folders.Count) then
-								folders.Add(newFolder)
-							else
-								folders.Insert(insertSubDirAt,newFolder)
-							insertSubDirAt += 1
+							data newFolder, string, folder+FileName(1:%instr(1,FileName,%char(0))-1)
+							if (search==SearchOption.AllDirectories)
+							begin
+								if (insertSubDirAt==folders.Count) then
+									folders.Add(newFolder+"\")
+								else
+									folders.Insert(insertSubDirAt,newFolder+"\")
+								insertSubDirAt += 1
+							end
 							if (subfolders!=^null)
 								subfolders.Add(newFolder)
 						end
@@ -334,17 +311,20 @@ namespace SynPSG.System.IO
 					;;Continue the search
 					while (%dll_call(dll,DLL_TYPE_WINAPI,"FindNextFileA",sh,^addr(WIN32_FIND_DATA)))
 					begin
-						;;Next file not a directory, and processing sub directories?
+						;;Next file is a directory and processing sub directories?
 						if (FileAttributes & FILE_ATTRIBUTE_DIRECTORY) then 
 						begin
-							if ((search==SearchOption.AllDirectories)&&(FileName(1:1)!="."))
+							if (FileName(1:1)!=".")
 							begin
-								data newFolder, string, folder+FileName(1:%instr(1,FileName,%char(0))-1)+"\"
-								if (insertSubDirAt==folders.Count) then
-									folders.Add(newFolder)
-								else
-									folders.Insert(insertSubDirAt,newFolder)
-								insertSubDirAt += 1
+								data newFolder, string, folder+FileName(1:%instr(1,FileName,%char(0))-1)
+								if (search==SearchOption.AllDirectories)
+								begin
+									if (insertSubDirAt==folders.Count) then
+										folders.Add(newFolder+"\")
+									else
+										folders.Insert(insertSubDirAt,newFolder+"\")
+									insertSubDirAt += 1
+								end
 								if (subfolders!=^null)
 									subfolders.Add(newFolder)
 							end
@@ -365,6 +345,137 @@ namespace SynPSG.System.IO
 
 			mreturn matchingFiles
 
+		endmethod
+
+		;;; <summary>
+		;;;Determines whether the given path refers to an existing directory on disk.
+		;;; </summary>
+		;;; <param name="path">The path to test. </param>
+		;;; <returns>true if path refers to an existing directory; false if the directory does not exist or an error occurs when trying to determine if the specified file exists.</returns>
+		public static method Exists, boolean
+			required in path, string
+			endparams
+			stack record
+				dll		,D_ADDR ;;DLL Handle
+				folder		,a260   ;;Null terminated folder spec
+				attributes	,i4
+			endrecord
+			.define INVALID_FILE_ATTRIBUTES		-1
+			.define FILE_ATTRIBUTE_DIRECTORY	%x(10)
+		proc
+			dll = %dll_open("kernel32.dll")
+			xcall fill(char(0),folder)
+			folder(1,path.Trim().Length) = path.Trim()
+			attributes = %dll_call(dll,DLL_TYPE_WINAPI,"GetFileAttributesA",^addr(folder))
+			dll = dll_close(dll)
+			if (attributes == INVALID_FILE_ATTRIBUTES)
+				mreturn false
+			mreturn (attributes & FILE_ATTRIBUTE_DIRECTORY)
+		endmethod
+		
+		;;; <summary>
+		;;; Returns the names of files (including their paths) in the specified directory.
+		;;; </summary>
+		;;; <param name="path">The relative or absolute path to the directory to search. This string is not case-sensitive.</param>
+		;;; <returns>An array of the full names (including paths) for the files in the specified directory, or an empty array if no files are found.</returns>
+		public static method GetFiles,		[#]string
+			required in path,		string
+			endparams
+		proc
+			mreturn Directory.GetFiles(path,"*",SearchOption.TopDirectoryOnly)
+		endmethod
+		
+		;;; <summary>
+		;;; Returns the names of files (including their paths) that match the specified search pattern in the specified directory.
+		;;; </summary>
+		;;; <param name="path">The relative or absolute path to the directory to search. This string is not case-sensitive.</param>
+		;;; <param name="searchPattern">The search string to match against the names of files in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+		;;; <returns>An array of the full names (including paths) for the files in the specified directory that match the specified search pattern, or an empty array if no files are found.</returns>
+		public static method GetFiles, 		[#]string
+			required in path,		string
+			required in searchPattern,	string
+			endparams
+		proc
+			mreturn Directory.GetFiles(path,searchPattern,SearchOption.TopDirectoryOnly)
+		endmethod
+		
+		;;; <summary>
+		;;; Returns the names of files (including their paths) that match the specified search pattern in the specified directory, using a value to determine whether to search subdirectories.
+		;;; </summary>
+		;;; <param name="path">The relative or absolute path to the directory to search. This string is not case-sensitive.</param>
+		;;; <param name="srchPattern">The search string to match against the names of files in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+		;;; <param name="search">One of the enumeration values that specifies whether the search operation should include all subdirectories or only the current directory. </param>
+		;;; <returns>An array of the full names (including paths) for the files in the specified directory that match the specified search pattern and option, or an empty array if no files are found.</returns>
+		public static method GetFiles,		[#]string
+			required in path,		string
+			required in srchPattern,	string
+			required in search,		SearchOption
+			endparams
+			record 
+				files,          @ArrayList
+				file,		string
+				filearray,	[#]string
+				ix,		int
+			endrecord
+		proc
+			files = Directory.EnumerateFiles(path,srchPattern,search,^null)
+			filearray = new string[files.Count]
+			for ix from 0 thru files.Count-1
+				filearray[ix] = (string)files[ix]
+			mreturn filearray
+		endmethod
+		
+		;;; <summary>
+		;;; Returns the names of subdirectories (including their paths) in the specified directory.
+		;;; </summary>
+		;;; <param name="path">The relative or absolute path to the directory to search. This string is not case-sensitive.</param>
+		;;; <returns>An array of the full names (including paths) of subdirectories in the specified path, or an empty array if no directories are found.</returns>
+		public static method GetDirectories, [#]string
+			required in path, string
+			endparams
+		proc
+			mreturn Directory.GetDirectories(path,"*",SearchOption.TopDirectoryOnly)
+		endmethod
+		
+		;;; <summary>
+		;;; Returns the names of subdirectories (including their paths) that match the specified search pattern in the specified directory.
+		;;; </summary>
+		;;; <param name="path">The relative or absolute path to the directory to search. This string is not case-sensitive.</param>
+		;;; <param name="searchPattern">The search string to match against the names of subdirectories in path. This parameter can contain a combination of valid literal and wildcard characters (see Remarks), but doesn't support regular expressions.</param>
+		;;; <returns>An array of the full names (including paths) of the subdirectories that match the search pattern in the specified directory, or an empty array if no directories are found.</returns>
+		public static method GetDirectories, [#]string
+			required in path, string
+			required in searchPattern, string
+			endparams
+		proc
+			mreturn Directory.GetDirectories(path,searchPattern,SearchOption.TopDirectoryOnly)
+		endmethod
+		
+		;;; <summary>
+		;;; Returns the names of the subdirectories (including their paths) that match the specified search pattern in the specified directory, and optionally searches subdirectories.
+		;;; </summary>
+		;;; <param name="path">The relative or absolute path to the directory to search. This string is not case-sensitive.</param>
+		;;; <param name="searchPattern">The search string to match against the names of subdirectories in path. This parameter can contain a combination of valid literal and wildcard characters (see Remarks), but doesn't support regular expressions.</param>
+		;;; <param name="searchOption">One of the enumeration values that specifies whether the search operation should include all subdirectories or only the current directory. </param>
+		;;; <returns>An array of the full names (including paths) of the subdirectories that match the specified criteria, or an empty array if no directories are found.</returns>
+		public static method GetDirectories, [#]string
+			required in path, string
+			required in searchPattern, string
+			required in searchOption, SearchOption
+			endparams
+			record 
+				directories,    @ArrayList
+				files,          @ArrayList
+				dir,		string
+				dirarray,	[#]string
+				ix,		int
+			endrecord
+		proc
+			directories = Directory.EnumerateDirectories(path,searchPattern,searchOption)
+			dirarray = new string[directories.Count]
+			for ix from 0 thru directories.Count-1
+				dirarray[ix] = (string)directories[ix]
+			mreturn dirarray
 		endmethod
 		
 	endclass

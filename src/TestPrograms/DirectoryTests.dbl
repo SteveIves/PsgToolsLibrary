@@ -43,12 +43,12 @@ proc
 ;		writes(1,"Results also saved to " + logFile)
 ;		close 2
 ;	end
-	
+;	
 	begin
-		data dir, string
-		foreach file in (Directory.EnumerateDirectories("D:\temp"))
+		data files, @ArrayList, Directory.EnumerateDirectories("D:\temp","c*",SearchOption.AllDirectories)
+		data file, string
+		foreach file in files
 			writes(1,file)
-		
 	end
 	
 	close 1
