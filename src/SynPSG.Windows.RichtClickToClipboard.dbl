@@ -1,0 +1,181 @@
+;;*****************************************************************************
+;;
+;; Title:       RightClickToClipboard
+;;
+;; Type:        UI Toolkit Window Events Method
+;;
+;; Description: Traps right-click events on a window and, if there is a word
+;;              underneath the point where the cursor was clicked, copies that
+;;              word to the Windows clipboard.
+;;
+;; Author:	Steve Ives, Synergex Professional Services Group
+;;              http://www.synergex.com
+;;
+;; Date:        18th March 2015
+;;
+;;*****************************************************************************
+;;
+;; Copyright (c) 2012, Synergex International, Inc.
+;; All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;*****************************************************************************
+
+import SynPsg.Windows
+
+function RightClickToClipboard	,^val
+	reserved1		,a
+	reserved2		,a
+	^val(window_id) 	,i
+	^val(event)		,i
+	^val(cell_col)		,i
+	^val(cell_row)		,i
+	^val(pixel_col)		,i
+	^val(pixel_row)		,i
+	^val(click_info)	,i
+    endparams
+
+    .include "WND:tools.def"
+    .include "WND:windows.def"
+    
+    record
+	rows	,i4
+	cols	,i4
+	rowdata	,a256
+	mh	,D_ADDR
+   endrecord
+
+    structure achar
+		,a1
+    endstructure
+proc
+	if (click_info & D_AREA_CLIENT) then
+	  begin
+	    
+	    data bell, boolean, false
+	    data infoMessage, string, ""
+	    
+	    ;;Get the dimensions of the window
+	    rows = %w_info(WIF_ROWS,window_id)
+	    cols = %w_info(WIF_COLS,window_id)
+	    
+	    ;;Allocate a buffer to store all the data from the window
+	    mh = %mem_proc(DM_ALLOC,rows*cols)
+
+	    ;;Get the data from the window
+	    xcall w_info(WI_XFR, window_id, WIX_DGET, ^m(mh))
+
+	    ;;Get the data for the row that was clicked
+	    rowdata = ^m(achar(((cell_row-1)*cols)+1:cols),mh)
+	    mh = %mem_proc(DM_FREE,mh)
+	    
+	    if ((click_info & D_KEY_CONTROL) && (click_info & D_KEY_SHIFT)) then
+	      begin
+		;;Ctrl + + Shift + RightClick
+		infoMessage = "Ctrl+Shift+RightClick"
+		bell = true
+	      end
+	    else if (click_info & D_KEY_CONTROL) then
+	      begin
+		;;Ctrl + RightClick
+		infoMessage = "Ctrl+RightClick"
+		bell = true
+	      end
+	    else if (click_info & D_KEY_SHIFT) then
+	      begin
+		;;Shift + RightClick
+		infoMessage = "Shift+RightClick"
+		bell = true
+	      end
+	    else
+	      begin
+		;;RightClick - copy word
+		;;Make sure there was data under the cursor (A-Z, a-z, 0-9)
+		using (%decml(rowdata(cell_col:1))) select
+		(48 thru 57, 65 thru 90, 97 thru 122),
+		  begin
+		    ;;Look for the start of a word, or beginning of line
+		    data pos, i4
+		    data startPos, i4, 1
+		    data endPos, int,  cols
+		    data clipboard, @Clipboard
+
+		    for pos from cell_col-1 thru 1 by -1
+		      begin
+			using %decml(rowdata(pos:1)) select
+			(48 thru 57, 65 thru 90, 97 thru 122),
+			    nop
+			(),
+			begin
+			  startPos = pos+1
+			  exitloop
+			end
+			endusing
+		      end
+		    ;;Look for the end of the word
+		    for pos from cell_col+1 thru cols
+		      begin
+			using %decml(rowdata(pos:1)) select
+			(48 thru 57, 65 thru 90, 97 thru 122),
+			    nop
+			(),
+			begin
+			  endPos = pos-1
+			  exitloop
+			end
+			endusing
+		      end
+
+		    clipboard = new Clipboard()
+		    clipboard.Copy(rowdata(startPos,endPos))
+		    clear clipboard
+
+		    infoMessage = "Copied '" + rowdata(startPos,endPos) + "' to the clipboard"
+		    bell = true
+
+		  end
+		endusing
+		
+		;TODO: Comment these two lines out if you don't want to "beep" on copy
+		if (bell)
+		  begin
+		    xcall w_disp(window_id,WD_BELL)
+		    xcall w_updt
+		  end
+		
+		;TODO: Comment this out if you don't want to display a message in the info line
+		if (infoMessage.Length > 0)
+		  begin
+		    xcall e_sect(infoMessage,D_INFO,D_CLEAR,D_LEFT)
+		    xcall u_update
+		  end
+		
+	      end
+	    freturn false
+	  end
+	else
+	  freturn true
+
+endfunction
+
