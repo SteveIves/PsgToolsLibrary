@@ -1,6 +1,6 @@
 ;;*****************************************************************************
 ;;
-;; Title:       FtpClient.dbc
+;; Title:       FtpClient.dbl
 ;;
 ;; Type:        Class 
 ;;
@@ -496,6 +496,7 @@ namespace SynPSG
                 sendFile        ,@FileStream
                 byteCount       ,integer
                 separator       ,a1
+                fileToSend      ,string
             endrecord
         proc
             mErrorMessage = ""
@@ -523,10 +524,27 @@ namespace SynPSG
             ;;Get the server response
             getResponse(mCtrlStream, mRespCode)
 
-            ;;Load the file into a stream
-            sendFile = new FileStream(mLocalDirectory + mDirSeparator + localFileName, FileMode.Open)
+            ;;Does localFileName translate to a full file spec?
+			if (File.Exists(localFileName)) then
+            begin
+				;;Yes, so use it alone
+                fileToSend = localFileName
+            end
+            else
+            begin
+                ;;No, so try looking in the currently defined local folder
+                fileToSend = mLocalDirectory + mDirSeparator + localFileName
+                if (!File.Exists(fileToSend))
+                begin
+                    mRespCode = 550
+                    mreturn false
+                end
+            end
 
-            ;;Send the data in 32K blocks
+            ;;Load the file into a stream
+            sendFile = new FileStream(fileToSend, FileMode.Open)
+
+            ;;Send the data to the server in 32K blocks
             while (byteCount = sendFile.Read(mDataBlock, 0, ^size(mDataBlock)))
                 mDataStream.Write(mDataBlock, 0, byteCount)
 
