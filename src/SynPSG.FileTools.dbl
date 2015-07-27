@@ -1,15 +1,63 @@
 
-.ifndef OS_VMS
-
 import system
 import synpsg
 import synpsg.system
+.ifdef DBLNET
+import System.IO
+.else
 import synpsg.system.io
+.endc
 
 namespace SynPSG
 
 	public class FileTools
 
+		public static method ExpandLogicalInFileSpec,	string
+			required in fileSpec,			string
+			endparams
+			stack record 
+				colon,				int
+				file,				string
+				path,				string
+				translation,			a256
+				length,				i4
+			endrecord
+		proc
+			;;This routine assumes a file spec like LOGICAL:file.ext
+			;;and returns D:\path\to\file.ext
+
+			if ((colon=%instr(1,fileSpec,":")) && (!%instr(1,fileSpec,"\"))) then
+			begin
+				;;We have a : and no \
+				
+				xcall getlog(fileSpec(1:colon-1),translation,length)
+				path = %atrim(translation)
+
+				;;Looks like we have a logical name, but is it JUST a logical name, or is there also a file name?
+				if (colon==%trim(fileSpec)) then 
+				begin
+					;;Just a logical, just return the translation
+					mreturn path
+				end
+				else
+				begin
+					;;Also a file spec
+					if (path(%trim(path):1)!="\")
+						path = path + "\"
+					file = fileSpec(colon+1,%trim(fileSpec))
+					mreturn path + file
+				end
+			end
+			else
+			begin
+				;;No : or both : and \ 
+				;;Don't mess with it!
+				mreturn fileSpec.Trim()
+			end
+
+		endmethod
+		
+.ifndef OS_VMS
 		public static method UnloadIsamFile, boolean
 			required in  isamFile, string
 			required in  outputFile, string
@@ -28,7 +76,7 @@ namespace SynPSG
 			xcall delet(outputFile)
 
 			;;Define the fconvert command
-			command = '|fconvert -ii -n "' + %expandlogicalinfilespec(isamFile) + '" -ot -f "' + %expandlogicalinfilespec(outputFile) + '"'
+			command = '|fconvert -ii -n "' + ExpandLogicalInFilespec(isamFile) + '" -ot -f "' + ExpandLogicalInFilespec(outputFile) + '"'
 
 			;;Execute the command file with "open pipe"
 			open(pipe=0,i,command)
@@ -55,9 +103,8 @@ namespace SynPSG
 			mreturn ((File.Exists(outputFile)) && (err.Length == 0))
 
 		endmethod
-
+.endc
 	endclass
 	
 endnamespace
 
-.endc

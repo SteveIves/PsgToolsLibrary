@@ -134,7 +134,6 @@
             <F N="../src/SynPSG.CopyHandle.dbl"/>
             <F N="../src/SynPSG.DataServer.dbl"/>
             <F N="../src/SynPSG.DateTimeTools.dbl"/>
-            <F N="../src/SynPSG.ExpandLogicalInFileSpec.dbl"/>
             <F N="../src/SynPSG.FileToHandle.dbl"/>
             <F N="../src/SynPSG.FileTools.dbl"/>
             <F N="../src/SynPSG.FormatDate.dbl"/>
