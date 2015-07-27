@@ -1,0 +1,55 @@
+
+import System
+import SynPSG.System.Net
+import SynPSG.System.Net.Mail
+import SynPSG.System.Security
+
+main
+	record 
+		ok,		boolean
+		msg,		@MailMessage
+		client,		@SmtpClient
+		errorMessage,	string
+	endrecord
+proc
+	ok = true
+	errorMessage = ""
+	
+	open(1,i,"tt:")
+	
+	;;Get the name or IP address of the SMTP server
+	msg = new MailMessage()
+	msg.From = new MailAddress("test@synergexpsg.com")
+	msg.Subject = "Test message sent via authenticated connection."
+	msg.To.Add("steve.ives@synergex.com")
+	msg.Body = "<html><head></head><body><pre>This is the message body.<br>This is also the message body!</pre></body></html>"
+	msg.IsBodyHtml = true
+
+	client = new SmtpClient("mail.synergexpsg.com")
+	client.Credentials = new NetworkCredential("test@synergexpsg.com","p@ssw0rd")
+
+	try
+	begin
+	    client.Send(msg)
+	    writes(1,"Sent")
+	end
+	catch (ex)
+	begin
+		ok = false
+		writes(1,ex.Message)
+	end
+	endtry
+
+	try
+	begin
+		client.Dispose()
+	end
+	catch (ex)
+	begin
+		nop
+	end
+	endtry
+	
+	close 1
+	
+endmain
