@@ -130,7 +130,6 @@
             Name="Source Files"
             Filters="*.dbl;*.tpl;*.dbc">
             <F N="../src/pdfdbl.dbl"/>
-            <F N="../src/SynPSG.calc_wk_no.dbl"/>
             <F N="../src/SynPSG.CanadianProvince.dbl"/>
             <F N="../src/SynPSG.CopyHandle.dbl"/>
             <F N="../src/SynPSG.DataServer.dbl"/>
