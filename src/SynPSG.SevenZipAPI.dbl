@@ -34,7 +34,11 @@
 ;;
 ;;***********************************************************************************
 
+.ifdef DBLNET
+import System.IO
+.else
 import SynPSG.System.IO
+.endc
 
 namespace SynPSG.SevenZipAPI
 
