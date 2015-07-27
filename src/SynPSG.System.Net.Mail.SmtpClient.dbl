@@ -583,7 +583,7 @@ namespace SynPSG.System.Net.Mail
             mNStream.Write(buff,0,buff.Length)
 
             getSmtpLine()
-            checkResponseCode(250)		;;HERE WE'RE GETTING a 503 "Must have sender and recipient first." when authenticating 
+            checkResponseCode(250)
 
             mreturn
         endmethod
@@ -645,12 +645,12 @@ namespace SynPSG.System.Net.Mail
         endmethod
 
         private method checkResponseCode,   void
-            req in Code1                ,integer    ;; expected response
+            req in expectedResponseCode                ,integer    ;; expected response
             endparams
         proc
             mErrMsg = ""
 
-            if (Code1 && mRespCode==Code1)
+            if (expectedResponseCode && mRespCode==expectedResponseCode)
                 mreturn ;; ok - got expected response
 
             using mRespCode select
