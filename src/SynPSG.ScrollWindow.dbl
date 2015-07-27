@@ -1,0 +1,628 @@
+
+.ifdef DBLNET
+import System
+import System.Net
+import System.Net.Mail
+import System.Security
+import SynPSG
+.else
+import System
+import SynPSG.System
+import SynPSG.System.Net
+import SynPSG.System.Net.Mail
+import SynPSG.System.Security
+import SynPSG
+import synpsg.system
+.endc
+
+namespace SynPSG
+
+	public class ScrollWindow
+		
+		.define MAX_SCROLL_WIDTH 		512
+		
+		private mTitle,				string
+		private mWid,				i4
+		private mLid,				i4
+		private mLstCls,			i4
+		
+		private mListRows,			i4,	20
+		private mListRow,			i4,	3
+		
+		private mListCols,			i4,	80
+		private mListCol,			i4,	2
+		
+		private mData,				a MAX_SCROLL_WIDTH
+		private mReq,				i4
+		
+		private mHeaderText,			string
+		private mFooterText,			string
+		
+		private mMaxDataWidth,			int
+		
+		public method ScrollWindow
+			optional in title,		string
+			optional in rows,		i4
+			optional in row,		i4
+			optional in cols,		i4
+			optional in col,		i4
+			optional in headerText,		string
+			optional in footerText,		string
+			optional in disablePrint,	boolean
+			optional in disableEmail,	boolean
+			optional in disableFind, 	boolean
+			optional in disableTop,		boolean
+			optional in disablePgUp,	boolean
+			optional in disablePgDn,	boolean
+			optional in disableBotm,	boolean
+			endparams
+
+			.include "WND:tools.def"
+			.include "WND:windows.def"
+
+			record 
+				bldid,		i4
+				headers,	i4
+				footers,	i4
+			endrecord
+		proc
+			xcall e_enter
+
+			if (^passed(title) && (title.Length>0)) then
+				mTitle = title
+			else
+				mTitle = "Scroller Output"
+			
+			if (^passed(rows) && rows)
+			    mListRows = rows
+		    
+			if (^passed(row) && row)
+			    mListRow = row
+			
+			if (^passed(cols) && cols)
+				mListCols = cols
+			
+			if (^passed(col) && col)
+				mListCol = col
+			
+			if (headers = (^passed(headerText) && (headerText.Length > 0)) ? 1 : 0) then
+				mHeaderText = headerText.Trim()
+			else
+				mHeaderText = ""
+
+			if (footers = (^passed(footerText) && (footerText.Length > 0)) ? 1 : 0) then
+				mFooterText = footerText.Trim()
+			else
+				mFooterText = ""
+			
+			mMaxDataWidth = 0
+			
+			;;Build an input window
+			xcall ib_input(bldid,"",1,MAX_SCROLL_WIDTH)
+			xcall ib_dsp_area(bldid,1,1,1,mListCols)
+			xcall ib_field(bldid,"DATA",D_FLD_TYPE,D_ALPHA,D_FLD_SIZE,MAX_SCROLL_WIDTH,D_FLD_POS,1,1)
+			xcall ib_end(bldid,mWid)
+
+			;;Build a list class
+			xcall l_class(mLstCls,"SCRLST",,,mListRows,headers,,footers)
+
+			;;Create a list
+			xcall l_create(mLid,mWid,mData,,"SCRLST")
+
+			;;Set the list window title
+			xcall l_sect(mLid,mTitle,D_TITLE)
+
+			;;Set the header and footer text
+			if (headers)
+				xcall l_sect(mLid,mHeaderText,D_HEADER)
+			if (footers)
+				xcall l_sect(mLid,mFooterText,D_FOOTER)
+			
+			;;Add a "Print" button
+			if (!^passed(disablePrint) || !disablePrint)
+				xcall l_button(mLid,DSB_ADD,"PRINT",DSB_TEXT,"Print",,,"P")
+			
+			;;Add an "Email" button
+			if (!^passed(disableEmail) || !disableEmail)
+				xcall l_button(mLid,DSB_ADD,"EMAIL",DSB_TEXT,"Email",,,"E")
+			
+			;;Add a "Find" button
+			if (!^passed(disableFind) || !disableFind)
+			begin
+				xcall l_button(mLid,DSB_ADD,"S_FIND",DSB_TEXT,"Find",,,"F")
+				xcall l_button(mLid,DSB_ADD,"S_FINDNEXT",DSB_TEXT,"Find Next",,,"N")
+				xcall l_findspec(mLid,,,,,D_LFND_NOCASE,,,D_LFND_WRAP)
+			end
+			
+			;;Add a "Top" button
+			if (!^passed(disableTop) || !disableTop)
+				xcall l_button(mLid,DSB_ADD,"S_TOP",DSB_TEXT,"Top",,,"T")
+			
+			;;Add a "Page Up" button
+			if (!^passed(disablePgUp) || !disablePgUp)
+				xcall l_button(mLid,DSB_ADD,"S_PGUP",DSB_TEXT,"Page Up",,,"U")
+			
+			;;Add a "Page Dn" button
+			if (!^passed(disablePgDn) || !disablePgDn)
+				xcall l_button(mLid,DSB_ADD,"S_PGDN",DSB_TEXT,"Page Dn",,,"D")
+			
+			;;Add a "Bottom" button
+			if (!^passed(disableBotm) || !disableBotm)
+				xcall l_button(mLid,DSB_ADD,"S_BOTTOM",DSB_TEXT,"Bottom",,,"B")
+
+			;;Add a "Close" button
+			xcall l_button(mLid,DSB_ADD,"CLOSE",DSB_TEXT,"Close",,,"C")
+
+			;;Default to the close button
+			xcall l_buttonset(mLid,DSB_BOTTOM,,DSB_END,"CLOSE")
+			
+			;;Tell Toolkit not to try to load data, we'll do it manually
+			xcall l_process(mLid,mReq=D_LNOP,mData)
+			if (mReq==D_LLOADBOT)
+				xcall l_process(mLid,mReq=D_LEOF,mData)
+
+			XCALL l_remove(mLid)
+
+		endmethod
+		
+		private mImmediateUpdate, boolean, false
+		
+		public property ImmediateUpdate, boolean
+			method get
+			proc
+				mreturn mImmediateUpdate
+			endmethod
+			method set
+			proc
+				mImmediateUpdate = value
+				if (mImmediateUpdate) then 
+					xcall l_place(mLid,mListRow,mListCol)
+				else
+					xcall l_remove(mLid)
+			endmethod
+		endproperty
+		
+		public method Dispose, void
+			endparams
+			.include "WND:tools.def"
+		proc
+			xcall e_exit
+		endmethod
+		
+		public method AddItem, void
+			required in itemData, a
+			endparams
+			.include "WND:tools.def"
+		proc
+			xcall l_process(mLid,mReq=D_LAPPEND,mData)
+			xcall l_process(mLid,mReq=D_LNOP,mData=itemData)
+			xcall i_display(mWid,,mData)
+			
+			if (ImmediateUpdate)
+				xcall u_update
+			
+			if (%trim(itemData) > mMaxDataWidth)
+				mMaxDataWidth = %trim(itemData)
+				
+		endmethod
+		
+		public method GoToBottom, void
+		proc
+			xcall l_process(mLid,mReq=D_LBOTTOM,mData)
+			xcall u_update
+		endmethod
+		
+		public method Restart, void
+		proc
+			xcall l_restart(mLid)
+			xcall l_process(mLid,mReq=D_LNOP,mData)
+			if (mReq==D_LLOADBOT)
+				xcall l_process(mLid,mReq=D_LEOF,mData)
+			xcall u_update
+		endmethod
+		
+		public method Process, string
+			endparams
+			.include "WND:tools.def"
+		proc
+			
+			;;Place the list on the screen
+			xcall l_place(mLid,mListRow,mListCol)
+
+			;;Start at the top of the list
+			;xcall l_queue(mLid,D_LTOP)
+			
+			repeat
+			begin
+				xcall l_select(mLid,mReq=D_LNOP,mData,,,"Find what: ",40)
+				
+				if (g_select) then
+				begin
+					using g_entnam select
+					("PRINT"),
+						printList()
+					("EMAIL"),
+						emailList()
+					("CLOSE"),
+						exitloop
+					endusing				
+				end
+				else
+				begin
+					;;An item was selected, let's close
+					exitloop
+				end
+			end
+			
+			;;Remove the list from the screen
+			if (!mImmediateUpdate)
+				xcall l_remove(mLid)
+			
+			mreturn (string)%atrim(mData)
+			
+		endmethod
+		
+		public method ProcessFromTop, string
+			endparams
+		proc
+			xcall l_queue(mLid,D_LTOP)
+			mreturn this.Process()
+		endmethod
+		
+;		private method printList, void
+;			endparams
+;			record
+;				ch, int
+;				reportFile, string
+;				errorMessage, string
+;				now, a20
+;				tmpTitle, string
+;			endrecord
+;		proc
+;			;;Make a file spec for the print file
+;
+;			now = %datetime()
+;
+;			;;Remove characters that can't be used in file specs
+;			tmpTitle = mTitle
+;			tmpTitle = tmpTitle.Trim().Replace("&","and").Replace("/","-").Replace("\","-").Replace(","," ")
+;			while (tmpTitle.Contains("  "))
+;				tmpTitle = tmpTitle.Replace("  "," ")
+;
+;			reportFile = "SYS$LOGIN:" + %string(^d(now(1:8)),"XXXX-XX-XX ") + tmpTitle + ".txt"
+;
+;			;;Remove the list from the screen
+;			xcall l_remove(mLid)
+;
+;			;;Put up a "Preparing report..." window
+;			begin
+;				data msgWinId, i4
+;				xcall w_proc(WP_CREATE,msgWinId,"",3,21,WP_PLACE,msgWinId,9,32)
+;				xcall w_disp(msgWinId,WD_POS,2,2,"Preparing report...")
+;				xcall w_updt
+;				xcall w_proc(WP_DELETE,msgWinId)
+;			end
+;
+;			;;Open output file
+;			repeat
+;			begin
+;				try
+;				begin
+;					open(ch=0,o:s,reportFile)
+;					exitloop
+;				end
+;				catch (ex, @FileNameException)
+;				begin
+;					reportFile = "SYS$LOGIN:" + %string(^d(now(1:14)),"XXXX-XX-XX XX.XX.XX Temp Print File.rep")
+;				end
+;				endtry
+;			end
+;
+;			;;If the list has a header then output the header text to the print file
+;			if (mHeaderText.Length > 0)
+;			begin
+;				writes(ch,%atrim(mHeaderText))
+;				writes(ch,"")
+;			end
+;
+;			;Go to the top of the list
+;			xcall l_process(mLid,mReq=D_LTOP,mData)
+;
+;			repeat
+;			begin
+;				data atBottom, i4
+;
+;				writes(ch,%atrim(mData))
+;				xcall l_process(mLid,mReq=D_LDOWN,mData)
+;
+;				;;Are we at the end of the list?
+;				xcall l_status(mLid,D_LATBOTTOM,atBottom)
+;				if (atBottom)
+;				begin
+;					writes(ch,%atrim(mData))
+;					exitloop
+;				end
+;			end
+;
+;			;;If the list has a header then output the header text to the print file
+;			if (mFooterText.Length > 0)
+;			begin
+;				writes(ch,"")
+;				writes(ch,%atrim(mFooterText))
+;			end
+;
+;			;;Close the output file
+;			close ch
+;
+;			;;Go back to the top of the list
+;			xcall l_process(mLid,mReq=D_LTOP,mData)
+;
+;			;;Put the list back on the screen
+;			xcall l_place(mLid)
+;
+;			;;Print the file
+;			PrintAPI.PrintFile(mTitle,reportFile,errorMessage,(mListCols > 80))
+;
+;			;;Delete the report file
+;			xcall delet(reportFile)
+;
+;		endmethod
+
+;		private method printList, void
+;			endparams
+;			record
+;				rpt,		@Report
+;				errorMessage,	string
+;			endrecord
+;		proc
+;			rpt = new Report(mTitle)
+;
+;			if (mHeaderText.Length > 0)
+;				rpt.PageHeader.Add(mHeaderText)
+;
+;			if (rpt.Initialize(,mMaxDataWidth,0.5,0.5,0.5,0.5,,,,true,errorMessage)) then
+;			begin
+;				;;Remove the list from the screen
+;				xcall l_remove(mLid)
+;
+;				;;Put up a "Preparing report..." window
+;				begin
+;					data msgWinId, i4
+;					xcall w_proc(WP_CREATE,msgWinId,"",3,21,WP_PLACE,msgWinId,9,32)
+;					xcall w_disp(msgWinId,WD_POS,2,2,"Preparing report...")
+;					xcall w_updt
+;					xcall w_proc(WP_DELETE,msgWinId)
+;				end
+;
+;				;Go to the top of the list
+;				xcall l_process(mLid,mReq=D_LTOP,mData)
+;
+;				rpt.NewPage()
+;
+;				repeat
+;				begin
+;					data atBottom, i4
+;
+;					rpt.PrintText(%atrim(mData))
+;
+;					xcall l_process(mLid,mReq=D_LDOWN,mData)
+;
+;					;;Are we at the end of the list?
+;					xcall l_status(mLid,D_LATBOTTOM,atBottom)
+;					if (atBottom)
+;					begin
+;						rpt.PrintText(%atrim(mData))
+;						exitloop
+;					end
+;				end
+;
+;				;;Go back to the top of the list
+;				xcall l_process(mLid,mReq=D_LTOP,mData)
+;
+;				;;Put the list back on the screen
+;				xcall l_place(mLid)
+;
+;				;;Show the print preview window
+;				rpt.Preview()
+;			end
+;			else
+;				xcall u_msgbox(errorMessage,D_MOK|D_MICONEXCLAM,"Print Failed")
+;
+;		endmethod
+		
+		private method printList, void
+			endparams
+			record 
+				pdf,		@PdfFile
+				errorMessage,	string
+				reportWidth,	int
+				headerLines,	int
+				orientation,	PdfOrientation
+			endrecord
+		proc
+			if (mMaxDataWidth <= 80) then 
+			begin
+				reportWidth = mMaxDataWidth
+				orientation = PdfOrientation.Portrait
+			end
+			else if (mMaxDataWidth <= 150) then 
+			begin
+				reportWidth = mMaxDataWidth
+				orientation = PdfOrientation.Landscape
+			end
+			else
+			begin
+				reportWidth = 150
+				orientation = PdfOrientation.Landscape
+			end
+			
+			if (mHeaderText.Trim().Length == 0) then 
+				headerLines = 2	
+			else
+				headerLines = 3
+			
+			pdf = new PdfFile(orientation,0.25,0.25,0.25,0.25,headerLines,2)
+
+			if (headerLines == 2) then 
+			begin
+				pdf.HeaderText[1] = mTitle
+				pdf.HeaderText[2] = "[LINE]"
+			end
+			else
+			begin
+				pdf.HeaderText[1] = mTitle
+				pdf.HeaderText[2] = mHeaderText
+				pdf.HeaderText[3] = "[LINE]"
+			end
+			pdf.FooterText[1] = "[LINE]"
+			pdf.FooterText[2] = "Created on MM/DD/YYYY at HH:MM, page [PAGE#]"
+			
+			if (pdf.Initialize("SYS$LOGIN:","Scroll Window Data",reportWidth,14)) then 
+			begin
+				;;Remove the list from the screen
+				xcall l_remove(mLid)
+
+				;;Put up a "Preparing report..." window
+				begin
+					data msgWinId, i4
+					xcall w_proc(WP_CREATE,msgWinId,"",3,21,WP_PLACE,msgWinId,9,32)
+					xcall w_disp(msgWinId,WD_POS,2,2,"Preparing report...")
+					xcall w_updt
+					xcall w_proc(WP_DELETE,msgWinId)
+				end
+
+				;Go to the top of the list
+				xcall l_process(mLid,mReq=D_LTOP,mData)
+
+				repeat
+				begin
+					data atBottom, i4
+
+					pdf.PrintText(%atrim(mData),,,,true)
+
+					xcall l_process(mLid,mReq=D_LDOWN,mData)
+
+					;;Are we at the end of the list?
+					xcall l_status(mLid,D_LATBOTTOM,atBottom)
+					if (atBottom)
+					begin
+						pdf.PrintText(%atrim(mData),,,,true)
+						exitloop
+					end
+				end
+
+				;;Go back to the top of the list
+				xcall l_process(mLid,mReq=D_LTOP,mData)
+
+				;;Put the list back on the screen
+				xcall l_place(mLid)
+
+				;;Show the print preview window
+				pdf.Preview()
+			end
+			else
+				xcall u_msgbox(errorMessage,D_MOK|D_MICONEXCLAM,"PDF creation failed. " + pdf.ErrorMessage)
+
+		endmethod
+
+		private method emailList, void
+			endparams
+			record 
+				recipient,	a50
+				body,		string
+				errorMessage,	string
+				smtpHost,	string
+				msg,		@MailMessage
+				client,		@SmtpClient
+			endrecord
+		proc
+			;;Get the name or IP address of the SMTP server
+			smtpHost = Environment.GetEnvironmentVariable("SMTP_SERVER")
+			if (smtpHost==^null)
+			begin
+				UI.ErrorMessage("Can't Send Email","No email server was defined. Set environment variable SMTP_SERVER")
+				mreturn
+			end
+			
+			;;Get the email address to send to
+			xcall u_dialog(recipient,,,D_ON,"Email address to send to:")
+
+			;;If the user didn't enter an email address then we're done
+			if (!recipient)
+				mreturn
+			
+			;;Take the list off the screen
+			xcall l_remove(mLid)
+			xcall u_update
+
+			;Go to the top of the list
+			xcall l_process(mLid,mReq=D_LTOP,mData)
+
+			body = "<html><head></head><body><pre>"
+
+			if (mHeaderText.Length > 0)
+				body = body + %atrim(mHeaderText) + "<br><br>"
+			
+			repeat
+			begin
+				data atBottom, i4
+
+				body = body + %atrim(mData) + "<br>"
+				xcall l_process(mLid,mReq=D_LDOWN,mData)
+
+				;;Are we at the end of the list?
+				xcall l_status(mLid,D_LATBOTTOM,atBottom)
+				if (atBottom)
+				begin
+					body = body + %atrim(mData) + "<br>"
+					exitloop
+				end
+			end
+
+			if (mFooterText.Length > 0)
+				body = body + "<br>" + %atrim(mFooterText) + "<br>"
+
+			body = body + "</pre></body></html>"
+			
+			;;Go back to the top of the list
+			xcall l_process(mLid,mReq=D_LTOP,mData)
+
+			;;Put the list back on the screen
+			xcall l_place(mLid)
+
+			;;Email the data
+			msg = new MailMessage()
+			msg.From = new MailAddress("noreply@vdsc.com")
+			msg.To.Add(%atrim(recipient))
+			msg.Subject = mTitle
+			msg.Body = body
+			msg.IsBodyHtml = true
+
+			client = new SmtpClient(smtpHost)
+
+			try 
+			begin
+			    client.Send(msg)
+			end
+			catch (ex)
+			begin
+			    xcall u_msgbox(ex.Message,D_MCENTER|D_MICONEXCLAM,"Email Failed")
+			end
+			endtry
+			
+			try 
+			begin
+				client.Dispose()
+			end
+			catch (ex)
+			begin
+				nop
+			end
+			endtry
+			
+
+		endmethod
+
+	endclass
+	
+endnamespace

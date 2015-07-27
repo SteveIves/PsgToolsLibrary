@@ -1,4 +1,3 @@
-.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       Socket.dbc
@@ -34,6 +33,8 @@
 ;;              indicates your acceptance of these terms.
 ;;
 ;;***********************************************************************************
+
+.ifndef DBLNET
 
 .include "DBLDIR:synsock.def"
 
@@ -295,4 +296,5 @@ namespace SynPSG.System.Net.Sockets
     endclass
 
 endnamespace
+
 .endc

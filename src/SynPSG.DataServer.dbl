@@ -1,0 +1,37 @@
+
+import System
+import Synpsg.system
+import SynPSG
+
+namespace SynPSG
+
+	public class DataServer
+		
+		public static method PrefetchOn, void
+			required in buffers, n
+			endparams
+			record 
+				sts	,i4
+				bufs	,i4
+			endrecord
+		proc
+			if buffers>= 0 && buffers<=32 then 
+				bufs = buffers
+			else
+				bufs = 8
+			
+			xcall setlog("SCSPREFETCH",%string(bufs),sts)
+		endmethod
+		
+		public static method PrefetchOff, void
+			endparams
+			record 
+				sts	,i4
+			endrecord
+		proc
+			xcall setlog("SCSPREFETCH",,sts)
+		endmethod
+
+	endclass
+	
+endnamespace

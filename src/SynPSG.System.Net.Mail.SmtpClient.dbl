@@ -1,4 +1,3 @@
-.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       SmtpClient.dbc
@@ -51,6 +50,9 @@
 ;;              indicates your acceptance of these terms.
 ;;
 ;;***********************************************************************************
+
+.ifndef DBLNET
+
 import SynPSG.System
 import SynPSG.System.IO
 import SynPSG.System.Net

@@ -1,4 +1,6 @@
+
 .ifndef DBLNET
+
 namespace SynPSG.System.Security
 
     public sealed class SecureString ;;implements IDisposable
@@ -126,4 +128,5 @@ namespace SynPSG.System.Security
     endclass
 
 endnamespace
+
 .endc

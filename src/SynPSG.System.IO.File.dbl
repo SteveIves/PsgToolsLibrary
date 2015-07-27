@@ -1,4 +1,3 @@
-.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       File.dbl
@@ -9,7 +8,7 @@
 ;;
 ;; Author:      Steve Ives, Synergex Professional Services Group
 ;;
-;; Copyright    © 2014 Synergex International Corporation.  All rights reserved.
+;; Copyright    ï¿½ 2014 Synergex International Corporation.  All rights reserved.
 ;;
 ;; WARNING:     All content constituting or related to this code ("Code") is the
 ;;              property of Synergex International Corporation ("Synergex") and
@@ -34,6 +33,12 @@
 ;;              indicates your acceptance of these terms.
 ;;
 ;;***********************************************************************************
+
+.ifndef DBLNET
+
+import System
+import synpsg.system
+import SynPSG
 
 namespace SynPSG.System.IO
 
@@ -78,4 +83,5 @@ namespace SynPSG.System.IO
 	endclass
 	
 endnamespace
+
 .endc

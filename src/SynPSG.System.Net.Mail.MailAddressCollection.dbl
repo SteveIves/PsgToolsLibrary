@@ -1,4 +1,3 @@
-.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       MailAddressCollection.dbc
@@ -34,6 +33,9 @@
 ;;              indicates your acceptance of these terms.
 ;;
 ;;***********************************************************************************
+
+.ifndef DBLNET
+
 import SynPSG.System
 import SynPSG.System.IO
 import SynPSG.System.Net.Mail
@@ -175,4 +177,5 @@ namespace SynPSG.System.Net.Mail
     endclass
 
 endnamespace
+
 .endc

@@ -7,34 +7,38 @@
 ; Date:		8th June 1999
 ;
 ; Description:	Creates and returns the name of a temporary file.
-;
 ;		The filename will be of the form:
-;
-;			path\preuuuu.tmp
+;		path\preuuuu.tmp
 ;
 ;		The following table describes the filename syntax:
 ;
 ;		Component	Meaning
 ;		---------	------- 
 ;		path		Path specified by the a_path argument, or
-;					current directory if a_path is not passed.
+;				current directory if a_path is not passed.
 ;
-;		pre			First three letters of the a_prefix argument,
-;					or TMP if a_prefix is not passed
+;		pre		First three letters of the a_prefix argument,
+;				or TMP if a_prefix is not passed
 ;
 ;		uuuu		A hexadecimal value derived from the system
-;					time, and incremented until a unique file
-;					name is generated.
+;				time, and incremented until a unique file
+;				name is generated.
 ;
-; Platforms:		32-bit Microsoft Windows platforms only.
+; Platforms:	32-bit Microsoft Windows platforms only.
 ;
 ;****************************************************************************
-;
+
 ; This code is supplied as seen and without warranty or support, and is used
 ; at your own risk. Neither the author or Synergex accept any responsability
 ; for any loss or damage which may result from the use of this code.
-;
+
 ;****************************************************************************
+
+.ifdef D_GUI
+
+import system
+import synpsg.system
+import synpsg
 
 namespace SynPSG.Windows
 
@@ -45,12 +49,12 @@ namespace SynPSG.Windows
 
 		.align
 		stack record
-			dll_handle		,i4		;Handle of kernel32.dll
-			unique			,i4
-			status			,i4
-			path			,a256
-			prefix			,a4
-			file			,a256	
+			dll_handle	,i4		;Handle of kernel32.dll
+			unique		,i4
+			status		,i4
+			path		,a256
+			prefix		,a4
+			file		,a256	
 		endrecord
 
 	.proc
@@ -62,14 +66,14 @@ namespace SynPSG.Windows
 
 		;Setup argument 1 - path (null terminated string)
 		xcall fill(%char(0),path)
-		if (^passed(a_path) && a_path) then
+		if (^passed(a_path)&&a_path) then
 			path(1:%trim(a_path)) = a_path
 		else
 			path(1:1)="."
 		
 		;Setup argument 2 - file prefix (null terminated string)
 		xcall fill(%char(0),prefix)
-		if (^passed(a_prefix) && a_prefix && (%trim(a_prefix)==3)) then
+		if (^passed(a_prefix)&&a_prefix&&(%trim(a_prefix)==3)) then
 			prefix(1:3) = a_prefix
 		else
 			prefix(1:3)="tmp"
@@ -97,3 +101,5 @@ namespace SynPSG.Windows
 	endfunction
 
 endnamespace
+
+.endc

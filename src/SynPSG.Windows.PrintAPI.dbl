@@ -1,0 +1,328 @@
+
+.ifdef D_GUI
+
+import System.Collections
+import system
+import synpsg.system
+import synpsg
+
+namespace SynPSG.Windows
+
+	structure strPrinterInfo
+		lpp	,i4	;Lines per page
+		cpl	,i4	;Characters per line
+		flags	,i4	;Miscellaneous flags
+			,a100	;Reserved space
+		driver	,a32	;Printer driver name
+		name	,a256	;Extended printer name and port(s)
+	endstructure
+	
+	public class PrintAPI
+		
+		public static method GetDefaultPrinterName, string
+			.include "WND:tools.def"
+			record
+				pos,		i4
+				printer,	strPrinterInfo
+			endrecord
+		proc
+			init printer
+			xcall synmsw_printquery(D_DEVICEINFO,printer)
+			if (pos = %instr(1,printer.name,","))
+				printer.name = printer.name(1,pos-1)
+			mreturn (string)%atrim(printer.name)
+		endmethod
+
+		public static method GetPrinterNames, @ArrayList
+			.include "WND:tools.def"
+			record
+				printers,	@ArrayList
+				printer,	strPrinterInfo
+			endrecord
+		proc
+			printers = new ArrayList()
+			xcall synmsw_printquery(D_ENUM_RESET,printer)
+			while (%synmsw_printquery(D_ENUM_WITH_INFO,printer) != D_EOLIST)
+			begin
+				data pos, int, %instr(1,printer.name,",")
+				if (pos) printer.name = printer.name(1,pos-1)
+				printers.Add((string)%atrim(printer.name))
+			end
+			mreturn printers
+		endmethod
+		
+		public static method PickPrinterName, string
+			.include "WND:tools.def"
+			.include "WND:windows.def"
+			record 
+				bldid,		i4
+				inpwid,		i4
+				lstcls,		i4
+				lstid,		i4
+				request,	i4
+				printer,	string
+				listData,	a128
+				selection,	string
+			endrecord
+		proc
+			xcall e_enter
+			
+			;;Build an input window
+			xcall ib_input(bldid,"",1,128)
+			xcall ib_dsp_area(bldid,1,1,1,40)
+			xcall ib_field(bldid,"DATA",D_FLD_TYPE,D_ALPHA,D_FLD_SIZE,128,D_FLD_POS,1,1)
+			xcall ib_end(bldid,inpwid)
+
+			;;Build a list class
+			xcall l_class(lstcls,"PRINTLST",,,10)
+
+			;;Create a list
+			xcall l_create(lstid,inpwid,listData,,"PRINTLST")
+
+			;;Set the list window title
+			xcall l_sect(lstid,"Select a Printer",D_TITLE)
+
+			;;Add an "OK" button
+			xcall l_button(lstid,DSB_ADD,"OK",DSB_TEXT,"OK",,,"O")
+
+			;;Add a "Close" button
+			xcall l_button(lstid,DSB_ADD,"CANCEL",DSB_TEXT,"Cancel",,,"C")
+
+			;;Default to the OK button
+			xcall l_buttonset(lstid,DSB_BOTTOM,,DSB_END,"OK")
+			
+			;;Tell Toolkit not to try to load data, we'll do it manually
+			xcall l_process(lstid,request=D_LNOP,listData)
+			if (request==D_LLOADBOT)
+				xcall l_process(lstid,request=D_LEOF,listData)
+
+			;;Load the data
+			foreach printer in PrintAPI.GetPrinterNames()
+			begin
+				xcall l_process(lstid,request=D_LAPPEND,listData)
+				xcall l_process(lstid,request=D_LNOP,listData=printer)
+				xcall i_display(inpwid,,listData)
+			end
+
+			;;Start at the top
+			xcall l_queue(lstid,D_LTOP)
+
+			;;Select the default printer
+			xcall l_findspec(lstid,PrintAPI.GetDefaultPrinterName())
+			xcall l_process(lstid,request=D_LFIND,listData)
+			
+			;;Place the list on the screen
+			xcall l_place(lstid,5,20)
+
+			;;Select a printer
+			xcall l_select(lstid,request=D_LNOP,listData)
+
+			;;Did the user pick a printer?
+			if ((!g_select) || (g_select && (g_entnam=="OK"))) then 
+				printer = (string)%atrim(listData)
+			else
+				printer = ^null
+			
+			xcall e_exit
+			
+			xcall u_update
+			
+			mreturn printer
+			
+		endmethod
+
+		public static method PrintFile,		boolean
+			required in  title,		string
+			required in  fileSpec,		string
+			required out errorMessage,	string
+			optional in  landscape,		boolean
+			endparams
+
+			.include "DBLDIR:winprint.def"
+			
+			.define D_NO_GLOBAL_DATA
+			.include "WND:tools.def"
+			.undefine D_NO_GLOBAL_DATA
+
+			record 
+				ok,			boolean
+				reportHandle,		i4
+				;TODO: Should be able to use struct fields but it breaks ^M on .NET in 10.3.1a
+				.ifdef DBLNET
+				ds,			a^size(dialog_specs)
+				fs,			a^size(font_specs)
+				ps,			a^size(print_specs)
+				.else
+				ds,			dialog_specs
+				fs,			font_specs
+				ps,			print_specs
+				.endc
+				dialogTitle,		string
+			endrecord
+			
+			record printer_info
+				lpp,			i4	;Lines per page
+				cpl,			i4	;Characters per line
+				flags,			i4	;Miscellaneous flags
+				,			a20	;Reserved space
+				printerid,		a80	;Printer ID
+				driver,			a32	;Printer driver name
+				extprinterid,		a256	;Extended printer name and port(s)
+			endrecord
+			
+		proc
+			ok = true
+			errorMessage = ""
+			
+			;;Put up a "Preparing print preview..." window
+			begin
+				data msgWinId, i4
+				xcall w_proc(WP_CREATE,msgWinId,"",3,28,WP_PLACE,msgWinId,9,28)
+				xcall w_disp(msgWinId,WD_POS,2,2,"Preparing print preview...")
+				xcall w_updt
+				xcall w_proc(WP_DELETE,msgWinId)
+			end
+
+			^m(dialog_specs.flags,ds) = DWP_PRINTDLG_STYLEPRINT
+			
+			;;Get a report handle for the users default printer
+			xcall wpr_info(reportHandle, DWP_GETPRINTER)
+
+			;;Did we get one?
+			if(!reportHandle)
+			begin
+				errorMessage = "Failed to allocate report handle. Do you have printers configured?"
+				ok = false
+			end
+
+			if (ok)
+			begin
+				data now, a20, %datetime
+				data outputFile, string
+				
+				repeat
+				begin
+					;;Select the required page orientation
+					if (^passed(landscape) && landscape) then
+						xcall wpr_setdevice(reportHandle,DWP_ORIENTATION,DWPO_LANDSCAPE)
+					else
+						xcall wpr_setdevice(reportHandle,DWP_ORIENTATION,DWPO_PORTRAIT)
+
+					;;Make sure we have a small margin around the print
+					xcall wpr_getdevice(reportHandle,DWP_SPECS,ps)
+					
+					;;Top margin
+					if (ps.yoffset < 10)
+					begin
+						data difference, i4, (10-ps.yoffset)
+						ps.yoffset += difference
+						ps.pixelheight -= difference
+					end
+
+					;;Left margin
+					if (ps.xoffset < 10)
+					begin
+						data difference, i4, (10-ps.xoffset)
+						ps.xoffset += difference
+						ps.pixelwidth -= difference
+					end
+
+					;;Bottom margin
+					;if ((ps.physicalheight-ps.yoffset-ps.pixelheight) < 10)
+						;ps.pixelheight -= (10-(ps.physicalheight-ps.yoffset-ps.pixelheight))
+
+					;;Right margin
+					if ((ps.physicalwidth-ps.xoffset-ps.pixelwidth) < 10)
+						ps.pixelwidth  -= (10-(ps.physicalwidth-ps.xoffset-ps.pixelwidth))
+
+					;;Set the new margins
+					xcall wpr_setdevice(reportHandle,DWP_PIXELWIDTH,  ps.pixelwidth)
+					xcall wpr_setdevice(reportHandle,DWP_PIXELHEIGHT, ps.pixelheight)
+					xcall wpr_setdevice(reportHandle,DWP_XOFFSET,     ps.xoffset)
+					xcall wpr_setdevice(reportHandle,DWP_YOFFSET,     ps.yoffset)
+
+					;;Set the title for the preview dialog
+					dialogTitle = title.Trim() + " [" + %atrim(^m(print_specs.printer,ps)) + "]"
+
+					;;Set the output file name
+					outputFile = "SYS$LOGIN:" + %string(^d(now(1:14)),"XXXX-XX-XX XX.XX.XX ") + dialogTitle + ".prn"
+
+					;;Start the presses!
+					xcall wpr_print (reportHandle, DWP_BEGINJOB,(a)outputFile,1)
+
+					;;Configure the font
+					clear ^i(^m(font_specs,fs))
+					;^m(font_specs.facename,fs) = "Consolas"
+					^m(font_specs.facename,fs) = "Courier New"
+					^m(font_specs.weight,fs) = DWPFW_NORMAL
+					^m(font_specs.italic,fs) = 0
+					^m(font_specs.underline,fs) = 0
+					^m(font_specs.strikeout,fs) = 0
+					^m(font_specs.fixed,fs) = 0
+					^m(font_specs.orientation,fs) = 0
+					^m(font_specs.escapement,fs) = 0
+
+					;;If we're in landscape mode make the font a little smaller so that 132 columns will fit
+					if (^passed(landscape) && landscape) then
+						^m(font_specs.pointsize,fs) = 9
+					else
+						^m(font_specs.pointsize,fs) = 12
+
+					;;Set the font
+					xcall wpr_setdevice(reportHandle,DWP_FONT,fs)
+
+					;;Add the spool file to the print job
+					xcall wpr_print (reportHandle, DWP_ADDFILE, (a)fileSpec)
+
+					;;Close the metafile
+					xcall wpr_print (reportHandle, DWP_ENDJOB)
+
+					;;Remove the "Preparing print preview..." window
+					xcall w_updt
+					
+					;;Preview the report
+					using %wpr_execute(reportHandle,DWP_PREVIEW,,(a)dialogTitle,DWP_PREVIEW_PRINTDLG|DWP_PREVIEW_TOOLBAR) select
+					(DWP_PREVIEW_PRINT),
+					begin
+						;;User asked to print the file to the current (default) printer
+						xcall wpr_execute(reportHandle, DWP_PRINT)
+						xcall wpr_info(reportHandle,DWP_DELPRINTER)
+						exitloop
+					end
+					(DWP_PREVIEW_REGEN),
+					begin
+						;;User selected a different printer
+						;;Start over from DWP_BEGINJOB to generate a new metafile
+						nextloop
+					end
+					(DWP_PREVIEW_CANCEL),
+					begin
+						;;User cancelled dialog without asking for a print
+						xcall wpr_info(reportHandle,DWP_DELPRINTER)
+						exitloop
+					end
+					endusing
+				end
+			end
+			
+			mreturn ok
+			
+		endmethod
+		
+		public static method ViewMetaFile, void
+			required in metaFile, string
+			endparams
+			record 
+				rpt, i4
+			endrecord
+		proc
+			xcall wpr_info(rpt,DWP_GETPRINTER)
+			xcall wpr_execute(rpt,DWP_PREVIEW,(a)metaFile,true)
+			xcall wpr_info(rpt,DWP_DELPRINTER,true)
+		endmethod
+		
+	endclass
+	
+endnamespace
+	
+.endc

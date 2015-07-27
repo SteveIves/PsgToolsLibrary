@@ -42,75 +42,55 @@
 ;;
 ;;*****************************************************************************
 
-import SynPsg.Windows
+.ifdef D_GUI
 
-function RightClickToClipboard	,^val
-	reserved1		,a
-	reserved2		,a
-	^val(window_id) 	,i
-	^val(event)		,i
-	^val(cell_col)		,i
-	^val(cell_row)		,i
-	^val(pixel_col)		,i
-	^val(pixel_row)		,i
-	^val(click_info)	,i
-    endparams
+import system
+import synpsg.windows
 
-    .include "WND:tools.def"
-    .include "WND:windows.def"
-    
-    record
-	rows	,i4
-	cols	,i4
-	rowdata	,a256
-	mh	,D_ADDR
-   endrecord
+namespace SynPSG.Windows
 
-    structure achar
-		,a1
-    endstructure
-proc
-	if (click_info & D_AREA_CLIENT) then
-	  begin
-	    
-	    data bell, boolean, false
-	    data infoMessage, string, ""
-	    
-	    ;;Get the dimensions of the window
-	    rows = %w_info(WIF_ROWS,window_id)
-	    cols = %w_info(WIF_COLS,window_id)
-	    
-	    ;;Allocate a buffer to store all the data from the window
-	    mh = %mem_proc(DM_ALLOC,rows*cols)
+    function RightClickToClipboard	,^val
+	    reserved1			,a
+	    reserved2			,a
+	    ^val(window_id) 		,i
+	    ^val(event)			,i
+	    ^val(cell_col)		,i
+	    ^val(cell_row)		,i
+	    ^val(pixel_col)		,i
+	    ^val(pixel_row)		,i
+	    ^val(click_info)		,i
+	endparams
 
-	    ;;Get the data from the window
-	    xcall w_info(WI_XFR, window_id, WIX_DGET, ^m(mh))
+	.include "WND:tools.def"
+	.include "WND:windows.def"
+	
+	record
+	    rows	,i4
+	    cols	,i4
+	    rowdata	,a256
+	    mh	,D_ADDR
+       endrecord
 
-	    ;;Get the data for the row that was clicked
-	    rowdata = ^m(achar(((cell_row-1)*cols)+1:cols),mh)
-	    mh = %mem_proc(DM_FREE,mh)
-	    
-	    if ((click_info & D_KEY_CONTROL) && (click_info & D_KEY_SHIFT)) then
+	structure achar
+		    ,a1
+	endstructure
+    proc
+	    if (click_info & D_AREA_CLIENT) then
 	      begin
-		;;Ctrl + + Shift + RightClick
-		infoMessage = "Ctrl+Shift+RightClick"
-		bell = true
-	      end
-	    else if (click_info & D_KEY_CONTROL) then
-	      begin
-		;;Ctrl + RightClick
-		infoMessage = "Ctrl+RightClick"
-		bell = true
-	      end
-	    else if (click_info & D_KEY_SHIFT) then
-	      begin
-		;;Shift + RightClick
-		infoMessage = "Shift+RightClick"
-		bell = true
-	      end
-	    else
-	      begin
-		;;RightClick - copy word
+		;;Get the dimensions of the window
+		rows = %w_info(WIF_ROWS,window_id)
+		cols = %w_info(WIF_COLS,window_id)
+		
+		;;Allocate a buffer to store all the data from the window
+		mh = %mem_proc(DM_ALLOC,rows*cols)
+
+		;;Get the data from the window
+		xcall w_info(WI_XFR, window_id, WIX_DGET, ^m(mh))
+
+		;;Get the data for the row that was clicked
+		rowdata = ^m(achar(((cell_row-1)*cols)+1:cols),mh)
+		mh = %mem_proc(DM_FREE,mh)
+		
 		;;Make sure there was data under the cursor (A-Z, a-z, 0-9)
 		using (%decml(rowdata(cell_col:1))) select
 		(48 thru 57, 65 thru 90, 97 thru 122),
@@ -120,7 +100,7 @@ proc
 		    data startPos, i4, 1
 		    data endPos, int,  cols
 		    data clipboard, @Clipboard
-
+		    
 		    for pos from cell_col-1 thru 1 by -1
 		      begin
 			using %decml(rowdata(pos:1)) select
@@ -150,32 +130,21 @@ proc
 		    clipboard = new Clipboard()
 		    clipboard.Copy(rowdata(startPos,endPos))
 		    clear clipboard
-
-		    infoMessage = "Copied '" + rowdata(startPos,endPos) + "' to the clipboard"
-		    bell = true
-
+		    
+		    ;TODO: Comment these two lines out if you don't want to "beep" on copy
+		    xcall w_disp(window_id,WD_BELL)
+		    xcall w_updt
+		    
 		  end
 		endusing
 		
-		;TODO: Comment these two lines out if you don't want to "beep" on copy
-		if (bell)
-		  begin
-		    xcall w_disp(window_id,WD_BELL)
-		    xcall w_updt
-		  end
-		
-		;TODO: Comment this out if you don't want to display a message in the info line
-		if (infoMessage.Length > 0)
-		  begin
-		    xcall e_sect(infoMessage,D_INFO,D_CLEAR,D_LEFT)
-		    xcall u_update
-		  end
-		
+		freturn false
 	      end
-	    freturn false
-	  end
-	else
-	  freturn true
+	    else
+	      freturn true
 
-endfunction
+    endfunction
+    
+endnamespace
 
+.endc

@@ -1,6 +1,6 @@
 ;;*****************************************************************************
 ;;
-;; Title:       ClipBoard.dbl
+;; Title:       SynPSG.Windows.ClipBoard.dbl
 ;;
 ;; Type:        Class
 ;;
@@ -47,6 +47,8 @@
 ;;
 ;;*****************************************************************************
 
+.ifdef D_GUI
+
 .include "WND:windows.def"
 
 namespace SynPSG.Windows
@@ -57,8 +59,8 @@ namespace SynPSG.Windows
 		private kernel32,		D_ADDR		;;DLL handle for kernel32.dll
 		
 		private CF_TEXT,		i4, 1		;;Clipboard format "text"
-		private GMEM_MOVEABLE,	i4,	2
-		private GMEM_DDESHARE,	i4, 8192	;;
+		private GMEM_MOVEABLE,		i4, 2
+		private GMEM_DDESHARE,		i4, 8192	;;
 		
 		structure oneCharacterStructure	;;Structure to allow us to use ^m to access memory one character at a time
 							,a1
@@ -133,6 +135,7 @@ namespace SynPSG.Windows
 			endrecord
 		proc
 			clipboardData = ""
+			
 			;;Is there text available on the clipboard?
 			if (%dll_call(user32,DLL_TYPE_WINAPI,"IsClipboardFormatAvailable",CF_TEXT))
 			begin
@@ -166,9 +169,13 @@ namespace SynPSG.Windows
 					xcall dll_call(user32,DLL_TYPE_WINAPI,"CloseClipboard")
 				end
 			end
+
 			mreturn clipboardData
+
 		endmethod
 		
 	endclass
 	
 endnamespace
+		
+.endc

@@ -1,4 +1,8 @@
 
+import system
+import synpsg.system
+import synpsg
+
 namespace SynPSG
 
 	function ExpandLogicalInFileSpec,	string
@@ -8,7 +12,7 @@ namespace SynPSG
 			colon,			int
 			file,			string
 			path,			string
-			translation,	a256
+			translation,		a256
 			length,			i4
 		endrecord
 	proc
@@ -41,7 +45,7 @@ namespace SynPSG
 		begin
 			;;No : or both : and \ 
 			;;Don't mess with it!
-			freturn fileSpec
+			freturn fileSpec.Trim()
 		end
 
 	endfunction

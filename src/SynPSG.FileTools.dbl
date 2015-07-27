@@ -1,0 +1,63 @@
+
+.ifndef OS_VMS
+
+import system
+import synpsg
+import synpsg.system
+import synpsg.system.io
+
+namespace SynPSG
+
+	public class FileTools
+
+		public static method UnloadIsamFile, boolean
+			required in  isamFile, string
+			required in  outputFile, string
+			optional out errtxt, string
+			endparams
+			stack record 
+				pipe, 		i4
+				buffer,		a256
+				command,	string
+				err, 		string
+			endrecord
+		proc
+			err = ""
+
+			;;If the output file exists, delete it
+			xcall delet(outputFile)
+
+			;;Define the fconvert command
+			command = '|fconvert -ii -n "' + %expandlogicalinfilespec(isamFile) + '" -ot -f "' + %expandlogicalinfilespec(outputFile) + '"'
+
+			;;Execute the command file with "open pipe"
+			open(pipe=0,i,command)
+
+			;;Wait until the command has completed
+			repeat
+			begin
+				sleep 0.1
+				reads(pipe,buffer,end_pipe)
+				if (buffer)
+				begin
+					if (err.Length > 0)
+						err = err + ", "
+					err = err + %atrim(buffer)
+				end
+			end
+
+		end_pipe,
+			close pipe
+
+			if (^passed(errtxt))
+				errtxt = err
+
+			mreturn ((File.Exists(outputFile)) && (err.Length == 0))
+
+		endmethod
+
+	endclass
+	
+endnamespace
+
+.endc

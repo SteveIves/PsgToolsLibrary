@@ -1,4 +1,3 @@
-.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       Mime_Namespace.dbc
@@ -34,6 +33,9 @@
 ;;              indicates your acceptance of these terms.
 ;;
 ;;***********************************************************************************
+
+.ifndef DBLNET
+
 import SynPSG.System
 
 namespace SynPSG.System.Net.Mime
@@ -238,4 +240,5 @@ namespace SynPSG.System.Net.Mime
     endclass
 
 endnamespace
+
 .endc

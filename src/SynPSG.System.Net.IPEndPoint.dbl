@@ -1,4 +1,3 @@
-.ifndef DBLNET
 ;;***********************************************************************************
 ;;
 ;; Copyright    © 2009 Synergex International Corporation.  All rights reserved.
@@ -36,11 +35,16 @@
 ;;              indicates your acceptance of these terms.
 ;;
 ;;***********************************************************************************
+
+.ifndef DBLNET
+
 .include "DBLDIR:synsock.def"
 
 namespace SynPSG.System.Net
-    public class IPEndPoint
-        public Address          ,integer
+	
+	public class IPEndPoint
+		
+		public Address          ,integer
         public Port             ,integer
 
         public method IPEndPoint
@@ -68,6 +72,9 @@ namespace SynPSG.System.Net
                 mreturn ("0.0.0.0:" + %string(Port))
             mreturn (%atrim(dotAddress) + ":" + %string(Port))
         endmethod
-    endclass
+	
+	endclass
+
 endnamespace
+
 .endc

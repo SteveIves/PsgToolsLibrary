@@ -1,0 +1,2405 @@
+;;*****************************************************************************
+;;
+;; File:        SynPSG.Windows.Report.dbl
+;;
+;; Title:       Report
+;;
+;; Type:       	Class
+;;
+;; Description: Manipulates the Synergy Widows Print API to create a report
+;;
+;; Date:        19th July 2015
+;;
+;; Author:      Steve Ives, Synergex Professional Services Group
+;;              http://www.synergex.com
+;;
+;;*****************************************************************************
+;;
+;; Copyright (c) 2015, Synergex International, Inc.
+;; All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;*****************************************************************************
+
+.ifdef D_GUI
+
+import System.Collections
+import System
+import synpsg.system
+import synpsg
+
+namespace SynPSG.Windows
+
+	.include "DBLDIR:winprint.def"
+
+	enum ReportOrientation
+		Portrait,  	1
+		Landscape, 	2
+	endenum
+
+	public class Report
+		
+		private rpt, 			i4 		;Windows Print API report handle
+		private reportTitle,		string		;Report title (passed in)
+		private mOutputFile, 		string		;Name of the Windows meta file
+		private jobStarted,		boolean		;Has WRR_PRINT(DWP_BEGINJOB) been called?
+		private pageStarted,		boolean		;Has WPR_PRINT(DWP_BEGINPAGE) been called?
+		private centerBodyInPage,	boolean		;Should the requested body width be centered on the page if an exact fit is not achieved
+		private keepFile,		boolean		;Should the metafile be retained after the report is complete?
+		
+		private ps,			print_specs	;Windows Print API print specs structure
+		private fs,			font_specs	;Windows Print API font specs structure
+		private ts,			text_specs	;Windows Print API text specs structure
+		
+		private pageHeaderOffset,	int		;Pixel offset down from natural top margin to allow for page headers
+		private pageFooterOffset,	int		;Pixel offset up from natural bottom margin to allow for page footers
+
+		private leftOffset,		int		;Pixels to add to natural left margin (because of requested left margin) to get to left extreme of effective print area
+		private topOffset,		int		;Pixels to add to natural top margin (because of requested top margin) to get to top extreme of effective print area
+		private rightOffset,		int		;Pixels to add to natural right margin (because of requested right margin) to get to right extreme of effective print area
+		private bottomOffset,		int		;Pixels to add to natural bottom margin (because of requested bottom margin) to get to bottom extreme of effective print area
+		
+		;;Used when printing output
+		private start_x,		int		;Used to calculate start X position for text and lines
+		private start_y,		int		;Used to calculate start Y position for text and lines
+		private end_x,			int		;Used to calculate end X position for lines
+		private end_y,			int		;Used to calculate end Y position for lines
+		
+		;;--------------------------------------------------------------------------------
+		;;CONSTRUCTORS
+		
+		;;; <summary>
+		;;; Creates a new report. You must ALWAYS call the Initialize method immediately after
+		;;; creating a new Report object.
+		;;; </summary>
+		;;; <param name="title">Title to use for print preview dialog.</returns>
+		;;; <param name="printFileName">Optional text to be used as part of the output file name. Do not include any special charcters. Default is "Report".</returns>
+		;;; <param name="centerBody">If the selected font results in a page width larger than requested, should the left and right margins be adjusted so that the body is centered in the page? Default is true.</returns>
+		;;; <param name="keepOutputFile">Should the output file be retained after the report is complete? Default is false.</returns>
+		public method Report
+			required in title, string
+			optional in printFileName, string
+			optional in keepOutputFile, boolean
+			optional in centerBody, boolean
+		proc
+			reportTitle = title.Trim()
+
+			if (^passed(printFileName) && (printFileName.Trim().Length > 0)) then
+			begin
+				data now, a20, %datetime
+				mOutputFile = "SYS$LOGIN:" + %string(^d(now(1:14)),"XXXX-XX-XX XX.XX.XX " + printFileName.Trim() + ".prn")
+			end
+			else
+			begin
+				data now, a20, %datetime
+				mOutputFile = "SYS$LOGIN:" + %string(^d(now(1:14)),"XXXX-XX-XX XX.XX.XX Report.prn")
+			end
+
+			if (^passed(keepOutputFile)) then 
+				keepFile = keepOutputFile
+			else
+				keepFile = false
+
+			if (^passed(centerBody)) then 
+				centerBodyInPage = centerBody
+			else
+				centerBodyInPage = true
+			
+			rpt = 0
+			jobStarted = false
+			pageStarted = false
+
+			mForegroundColor = ReportColor.Black
+			mBackgroundColor = ReportColor.White
+			
+			;;Configure page headers and footers
+			mPageHeader = new ArrayList()
+			mPageFooter = new ArrayList()
+
+			;;Configure body boxes, lines and text blocks
+			mBodyBoxes = new ArrayList()
+			mBodyLines = new ArrayList()
+			mBodyText  = new ArrayList()
+			
+		endmethod
+		
+		;;--------------------------------------------------------------------------------
+		;;PUBLIC METHODS
+		
+		;;; <summary>
+		;;; Initializes a report. This method must ALWAYS be called immediately after creating a new
+		;;; instance of the Report class.
+		;;; </summary>
+		;;; <param name="aOrientation">Optional page orientation. Specify PageOrientation.Portrait on PageOrientation.Landscape. Default is portrait.</param>
+		;;; <param name="aPageWidth">Requested width of the page in characters. Default is 80.</param>
+		;;; <param name="aLeftMargin">Optional width of the left margin in inches. If you request a value that is less than the printers minimum left margin then that minimum value will be used. Default is printer minimum.</param>
+		;;; <param name="aTopMargin">Optional height of the top margin in inches. If you request a value that is less than the printers minimum top margin then that minimum value will be used. Default is printer minimum.</param>
+		;;; <param name="aRightMargin">Optional width of the right margin in inches. If you request a value that is less than the printers minimum right margin then that minimum value will be used. Default is printer minimum.</param>
+		;;; <param name="aBottomMargin">Optional height of the bottom margin in inches. If you request a value that is less than the printers minimum bottom margin then that minimum value will be used. Default is printer minimum.</param>
+		;;; <param name="aPageHeader">Optional array of header lines to display at the top of each page. Deault is no page headers.</param>
+		;;; <param name="aPageFooter">Optional array of footer lines to display at the bottom of each page. Deault is no page footers.</param>
+		;;; <param name="aFontName">Optional font name to use. Default is Lucida Console.</param>
+		;;; <param name="aMaxFontSize">Optional maximum font size to be selected. Default is to use whatever font size most closely produces the desired page width.</param>
+		;;; <param name="aPrinterName">Optional name of printer to output to. Default is your current printer, unless the 'Show Pick Printer' option is used.</param>
+		;;; <param name="aShowPickPrinter">Optional display a printer selection dialog to determine the printer to output to.</param>
+		;;; <param name="aErrorMessage">Optional returned error message. If the method returns a fail status (false) then an accompnying error message is returned here.</param>
+		;;; <returns>Returns true if the report was successfully initialized with the requested parameters, otherwise false.</returns>
+		public method Initialize, 		boolean
+			optional in  aOrientation,	ReportOrientation
+			optional in  aPageWidth, 	n
+			optional in  aLeftMargin,	d.
+			optional in  aTopMargin,	d.
+			optional in  aRightMargin,	d.
+			optional in  aBottomMargin,	d.
+			optional in  aFontName,		a
+			optional in  aMaxFontSize,	n
+			optional in  aPrinterName, 	a
+			optional in  aShowPickPrinter,	boolean
+			optional out aErrorMessage,	string
+			endparams
+			
+			record 
+				ok,			boolean
+				maxColumnsAtFontSize,	int
+			endrecord
+
+		proc
+			ok = true
+			
+			if (^passed(aShowPickPrinter) && aShowPickPrinter) then
+			begin
+				data dlg, dialog_specs
+				clear ^i(dlg)
+				
+				dlg.flags = DWP_PRINTDLG_STYLEPRINT| 	;Use Print dialog (not Setup)
+				& DWP_PRINTDLG_DISABLECURPAGE| 		;Disable "Current page"
+				& DWP_PRINTDLG_DISABLEPAGENUMS|		;Disable "Pages"
+				& DWP_PRINTDLG_DISABLESELECT| 		;Disable "Selection"
+				& DWP_PRINTDLG_COLLATE 			;Collate if multiple copies
+				dlg.pages = DWP_PRINTDLG_ALLPAGES	;Start with "All" checked
+				dlg.copies = 1				;Default to 1 copy
+
+				;;Get a report handle
+				xcall wpr_info(rpt, DWP_GETPRINTER)
+				
+				if (%wpr_info(rpt, DWP_PRINTDLG, dlg) == DWP_PRINTDLG_PRINT) then
+				begin 
+					;;Nothing to do really. We'll pick up the name of the selected printer later
+					;;and if the user selected multiple copies then that'll already be wired up
+					;;as part of the report handle
+					nop
+				end
+				else
+				begin
+					if (^passed(aErrorMessage))
+					     aErrorMessage = "The user cancelled from the printer selection dialog!"
+					mreturn false
+				end
+			end
+			else
+			begin
+				;;Allocate a report handle
+				if (^passed(aPrinterName) && aPrinterName) then
+					mPrinterName = aPrinterName
+				else
+					mPrinterName = PrintAPI.GetDefaultPrinterName()
+
+				xcall wpr_info(rpt, DWP_GETPRINTER,(a)mPrinterName)
+			end
+			
+			;;Did we get a report handle? If not then there is a problem with the
+			;;requested printer, or if no printer was requested then the user doesn't
+			;;have a default printer defined.
+			
+			if (!rpt)
+			begin
+				if (^passed(aErrorMessage))
+				begin
+					if (^passed(aPrinterName) && aPrinterName) then 
+						aErrorMessage = "Failed to initiate report for printer " + %atrim(aPrinterName)
+					else
+						aErrorMessage = "Failed to initiate report. Do you have a default printer defined?"
+				end
+				mreturn false
+			end
+			
+			;;Let's check the printer status
+			begin
+				data status, i4, %wpr_info(rpt,DWP_GETSTATUS)
+				
+				if (status & DWPST_OFFLINE)
+				begin
+					if (^passed(aErrorMessage))
+						aErrorMessage = "Printer is offline!"
+					mreturn false
+				end
+				if (status & DWPST_NOT_AVAILABLE)
+				begin
+					if (^passed(aErrorMessage))
+						aErrorMessage = "Printer is not available!"
+					mreturn false
+				end
+				if (status & DWPST_PAPER_JAM)
+				begin
+					if (^passed(aErrorMessage))
+						aErrorMessage = "Printer is experiencing a paper jam!"
+					mreturn false
+				end
+				if (status & DWPST_PAPER_OUT)
+				begin
+					if (^passed(aErrorMessage))
+						aErrorMessage = "Printer is out of paper!"
+					mreturn false
+				end
+				if (status & DWPST_NO_TONER)
+				begin
+					if (^passed(aErrorMessage))
+						aErrorMessage = "Printer is out of toner/ink!"
+					mreturn false
+				end
+				if (status & DWPST_DOOR_OPEN)
+				begin
+					if (^passed(aErrorMessage))
+						aErrorMessage = "Printer door is open!"
+					mreturn false
+				end
+			end
+			
+			;;Select page orientation
+			if (^passed(aOrientation)) then
+			begin
+				mPageOrientation = aOrientation
+				if (aOrientation == ReportOrientation.Portrait) then 
+					xcall wpr_setdevice(rpt,DWP_ORIENTATION,DWPO_PORTRAIT)
+				else
+					xcall wpr_setdevice(rpt,DWP_ORIENTATION,DWPO_LANDSCAPE)
+			end
+			else
+			begin
+				;;If we do nothing here then the printers current orientation will be used,
+				;;and also the user has the option of changing the orientation in the printer
+				;;configuration dialog.
+				data tmpor, i4
+				xcall wpr_getdevice(rpt,DWP_ORIENTATION,tmpor)
+				if (tmpor == DWPO_PORTRAIT) then
+					mPageOrientation = PageOrientation.Portrait
+				else
+					mPageOrientation = PageOrientation.Landscape
+				
+;				mPageOrientation = PageOrientation.Portrait
+;				xcall wpr_setdevice(rpt,DWP_ORIENTATION,DWPO_PORTRAIT)
+			end
+
+			;;Set page width (columns)
+			if (^passed(aPageWidth) && (aPageWidth > 0)) then
+				mRequestedPageWidth = aPageWidth
+			else
+				mRequestedPageWidth = 80
+
+			;;Make sure we have a small margin around the print
+			xcall wpr_getdevice(rpt,DWP_SPECS,ps)
+			
+			;;If we don't have the printer name yet, get it from print_specs
+			if ((mPrinterName==^null) || (mPrinterName.Trim().Length == 0))
+				mPrinterName = %atrim(ps.printer)
+
+			;;Left margin
+			if (^passed(aLeftMargin) && (aLeftMargin >= 0) && ((aLeftMargin * ps.resolution_x) > ps.xoffset)) then 
+			begin
+				;;Margin requested and larger than natural margin. Use requested margin.
+				mLeftMargin = aLeftMargin
+				leftOffset = (aLeftMargin * ps.resolution_x) - ps.xoffset
+			end
+			else
+			begin
+				;;No margin requested or smaller than natural margin. Use natural margin.
+				mLeftMargin = ps.xoffset / (ps.resolution_x * 1.0)
+				leftOffset = 0
+			end
+			
+			;;Top margin
+			if (^passed(aTopMargin) && (aTopMargin >= 0) && ((aTopMargin * ps.resolution_y) > ps.yoffset)) then
+			begin
+				;;Margin requested and larger than natural margin. Use requested margin.
+				mTopMargin = aTopMargin
+				topOffset = (aTopMargin * ps.resolution_y) - ps.yoffset
+			end
+			else
+			begin
+				;;No margin requested or smaller than natural margin. Use natural margin.
+				mTopMargin = ps.yoffset / (ps.resolution_y * 1.0)
+				topOffset = 0
+			end
+
+			;;Right margin
+			if (^passed(aRightMargin) && (aRightMargin >= 0) && ((aRightMargin * ps.resolution_x) > (ps.physicalwidth-ps.xoffset-ps.pixelwidth))) then 
+			begin
+				;;Margin requested and larger than natural margin. Use requested margin.
+				mRightMargin = aRightMargin
+				rightOffset = (aRightMargin * ps.resolution_x) - (ps.physicalwidth-ps.xoffset-ps.pixelwidth)
+			end
+			else
+			begin
+				;;No margin requested or smaller than natural margin. Use natural margin.
+				mRightMargin = (ps.physicalwidth-ps.xoffset-ps.pixelwidth) / (ps.resolution_x * 1.0)
+				rightOffset = 0
+			end
+			
+			;;Bottom margin
+			if (^passed(aBottomMargin) && (aBottomMargin>=0) && ((aBottomMargin * ps.resolution_y) > (ps.physicalheight-ps.yoffset-ps.pixelheight))) then
+			begin
+				;;Margin requested and larger than natural margin. Use requested margin.
+				mBottomMargin = aBottomMargin
+				bottomOffset = (aBottomMargin * ps.resolution_y) - (ps.physicalheight-ps.yoffset-ps.pixelheight)
+			end
+			else
+			begin
+				;;No margin requested or smaller than natural margin. Use natural margin.
+				mBottomMargin = (ps.physicalheight-ps.yoffset-ps.pixelheight) / (ps.resolution_y * 1.0)
+				bottomOffset = 0
+			end
+
+			;;Roll the presses!
+			if (%wpr_print(rpt, DWP_BEGINJOB,(a)mOutputFile,1)) then
+			begin
+				jobStarted = true
+			end
+			else
+			begin
+				if (^passed(aErrorMessage))
+					aErrorMessage = "Failed to start print job!"
+				mreturn false
+			end
+			
+			;;Configure the default font
+			clear ^i(^m(font_specs,fs))
+
+			if (^passed(aFontName) && aFontName) then 
+				^m(font_specs.facename,fs) = %atrim(aFontName)
+			else
+				^m(font_specs.facename,fs) = "Lucida Console"
+
+			^m(font_specs.weight,fs) = DWPFW_NORMAL
+
+			;;Start with font sizes that should allow 80 wide in portrait and 132 in landscape
+			if (mPageOrientation == PageOrientation.Portrait) then
+				^m(font_specs.pointsize,fs) = 12
+			else
+				^m(font_specs.pointsize,fs) = 9
+
+			;;Set the font
+			xcall wpr_setdevice(rpt,DWP_FONT,fs)
+
+			;;Get the width of each character in pixels
+			mCharacterWidth = %wpr_info(rpt,DWP_TEXTWIDTH)
+			maxColumnsAtFontSize = ((ps.pixelwidth-leftOffset-rightOffset) / mCharacterWidth)
+
+			if (maxColumnsAtFontSize < mRequestedPageWidth) then
+			begin
+				;;Not enough columns, decrease the font size until we get a match
+				data newFontSize, int
+				ok = false
+				for newFontSize from ^m(font_specs.pointsize,fs)-1 thru 1 by -1
+				begin
+					^m(font_specs.pointsize,fs) = newFontSize
+					xcall wpr_setdevice(rpt,DWP_FONT,fs)
+					mCharacterWidth = %wpr_info(rpt,DWP_TEXTWIDTH)
+					maxColumnsAtFontSize = ((ps.pixelwidth-leftOffset-rightOffset) / mCharacterWidth)
+					if (maxColumnsAtFontSize >= mRequestedPageWidth)
+					begin
+						mActualPageWidth = maxColumnsAtFontSize
+						ok = true
+						exitloop
+					end
+				end
+			end
+			else if (maxColumnsAtFontSize > mRequestedPageWidth)
+			begin
+				;;Too many columns, increase the font size until we have gone too far
+				ok = false
+				repeat
+				begin
+					^m(font_specs.pointsize,fs) += 1
+					xcall wpr_setdevice(rpt,DWP_FONT,fs)
+					mCharacterWidth = %wpr_info(rpt,DWP_TEXTWIDTH)
+					maxColumnsAtFontSize = ((ps.pixelwidth-leftOffset-rightOffset) / mCharacterWidth)
+					if (maxColumnsAtFontSize < mRequestedPageWidth)
+					begin
+						;;We went too far so back off to the previous point size
+						^m(font_specs.pointsize,fs) -= 1
+						xcall wpr_setdevice(rpt,DWP_FONT,fs)
+						mCharacterWidth = %wpr_info(rpt,DWP_TEXTWIDTH)
+						maxColumnsAtFontSize = ((ps.pixelwidth-leftOffset-rightOffset) / mCharacterWidth)
+						mActualPageWidth = maxColumnsAtFontSize
+						ok = true
+						exitloop
+					end
+				end
+			end
+			
+			;;If we were able to find a font size that provides the width that we need then we can continue
+			if (ok) then
+			begin
+				;;Were we given a maximum font size?
+				if (^passed(aMaxFontSize) && aMaxFontSize)
+				begin
+					if (^m(font_specs.pointsize,fs) > aMaxFontSize)
+					begin
+						;;The selected font is bigger than the mazimum requested, so we'll reduce to that
+						^m(font_specs.pointsize,fs) = aMaxFontSize
+						xcall wpr_setdevice(rpt,DWP_FONT,fs)
+						mCharacterWidth = %wpr_info(rpt,DWP_TEXTWIDTH)
+						maxColumnsAtFontSize = ((ps.pixelwidth-leftOffset-rightOffset) / mCharacterWidth)
+						mActualPageWidth = maxColumnsAtFontSize
+					end
+				end
+
+				;;Record the selected font size
+				mFontSize = ^m(font_specs.pointsize,fs)
+
+				;;Now we need to know how many rows will fit on the page at the selected font size
+
+				mRowHeight = %wpr_info(rpt,DWP_TEXTHEIGHT,"W")
+				mTotalRows = ((ps.pixelheight - topOffset - bottomOffset) / mRowHeight)
+
+				pageHeaderOffset = mPageHeader.Count * mRowHeight
+				pageFooterOffset = mPageFooter.Count * mRowHeight
+
+				mPageBodyRows = mTotalRows - mPageHeader.Count - mPageFooter.Count
+
+				;;If the page is wider than requested, should we manipulate the margins so that the
+				;;requested width is centered horizontally within the page?
+				
+				if ((mActualPageWidth != mRequestedPageWidth) && centerBodyInPage)
+				begin
+					data additionalColumns, int, mActualPageWidth - mRequestedPageWidth
+					data additionalPixels, int, additionalColumns * mCharacterWidth
+					;;Divide the additional space between the left and right margins
+					leftOffset += (additionalPixels / 2)
+					rightOffset += (additionalPixels / 2)
+					mActualPageWidth = mRequestedPageWidth
+				end
+				
+				;;Record where we're at
+				mPageNumber = 0
+				mCurrentRow = 1
+				mCurrentCol = 1
+
+			end
+			else
+			begin
+				Dispose()
+			end
+			
+			mreturn ok
+
+		endmethod
+		
+		;;; <summary>
+		;;; Configures the font used for subsequent output.
+		;;; </summary>
+		;;; <param name="bold">If passed and true the font weight will be set to bold, otherwise normal.</param>
+		;;; <param name="italic">If passed and true the font will be set to italic, otherwise normal.</param>
+		;;; <param name="underline">If passed and true the font will be set to underlined, otherwise normal.</param>
+		;;; <param name="strikeout">If passed and true the font will be set to strikeout, otherwise normal.</param>
+		public method ConfigureFont,	void
+			optional in bold,	boolean
+			optional in italic,	boolean
+			optional in underline,	boolean
+			optional in strikeout,	boolean
+		proc
+			;;Font weight
+			if (^passed(bold)) then
+			begin
+				if (bold) then
+				begin
+					^m(font_specs.weight,fs) = DWPFW_HEAVY
+				end
+				else
+				begin
+					^m(font_specs.weight,fs) = DWPFW_NORMAL
+				end
+			end
+			else
+			begin
+				^m(font_specs.weight,fs) = DWPFW_NORMAL
+			end
+
+			;Italic
+			if (^passed(italic)) then 
+			begin
+				^m(font_specs.italic,fs) = italic
+			end
+			else
+			begin
+				^m(font_specs.italic,fs) = false
+			end
+
+			;Underline
+			if (^passed(underline)) then 
+			begin
+				^m(font_specs.underline,fs) = underline
+			end
+			else
+			begin
+				^m(font_specs.underline,fs) = false
+			end
+
+			;Strikeout
+			if (^passed(strikeout)) then 
+			begin
+				^m(font_specs.strikeout,fs) = strikeout
+			end
+			else
+			begin
+				^m(font_specs.strikeout,fs) = false
+			end
+
+			xcall wpr_setdevice(rpt,DWP_FONT,fs)
+
+		endmethod
+
+		private mForegroundColor, ReportColor
+		public property ForegroundColor, ReportColor
+			method get
+			proc
+				mreturn mForegroundColor
+			endmethod
+			method set
+			proc
+				mForegroundColor = value
+				xcall wpr_setdevice(rpt,DWP_TEXTCOLOR,mForegroundColor)
+			endmethod
+		endproperty
+
+		private mBackgroundColor, ReportColor
+		public property BackgroundColor, ReportColor
+			method get
+			proc
+				mreturn mBackgroundColor
+			endmethod
+			method set
+			proc
+				mBackgroundColor = value
+				xcall wpr_setdevice(rpt,DWP_BACKCOLOR,mBackgroundColor)
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Prints text at the current cursor position and positions the cursor
+		;;; immediately after that text, or to the last cell on the current line if the
+		;;; text ends outside of the page body. If the current cursor position is below
+		;;; the page body then a new page is automatically generated and the text will
+		;;; be printed at the top of the new page.
+		;;; </summary>
+		;;; <param name="text">Text to display</param>
+		public method DisplayText, void
+			required in text, a
+		proc
+			if (!pageStarted || (mCurrentRow>mPageBodyRows))
+				NewPage()
+
+			start_x = getX(mCurrentCol)
+			start_y = getBodyY(mCurrentRow)
+			xcall wpr_print(rpt,DWP_WRITEOUT,start_x,start_y,text)
+
+			CurrentCol = mCurrentCol + ^size(text)
+			
+		endmethod
+
+		;;; <summary>
+		;;; Prints text at a specific row and column position and positions the cursor
+		;;; immediately after that text, or to the last cell on the current line if the
+		;;; text ends outside of the page body.
+		;;; </summary>
+		;;; <param name="row">Row within the page body to display text at. Should be between 1 and PageBodyLines.</param>
+		;;; <param name="col">Column within the page body to display text at. Should be between 1 and PageWidth.</param>
+		;;; <param name="text">Text to display.</param>
+		;;; <param name="bold">Display the text in a bold font.</param>
+		;;; <param name="color">Display the text in a specific color.</param>
+		;;; <returns>Returns the new current column position.</returns>
+		public method DisplayText, 	int
+			required in row, 	n
+			required in col, 	n
+			required in text, 	a
+			optional in bold,	boolean
+			optional in color, 	ReportColor
+			endparams
+			record 
+				saveBold,	i4
+			endrecord
+		proc
+			if (!pageStarted)
+				NewPage()
+
+			;;Configure bold
+			if (^passed(bold))
+			begin
+				saveBold = ^m(font_specs.weight,fs)
+				if (bold) then
+					^m(font_specs.weight,fs) = DWPFW_HEAVY
+				else
+					^m(font_specs.weight,fs) = DWPFW_NORMAL
+				xcall wpr_setdevice(rpt,DWP_FONT,fs)
+			end
+			
+			;;Configure foreground color
+			if (^passed(color))
+				xcall wpr_setdevice(rpt,DWP_TEXTCOLOR,color)
+			
+			start_x = getX(col)
+			start_y = getBodyY(row)
+
+			xcall wpr_print(rpt,DWP_WRITEOUT,start_x,start_y,text)
+
+			;;Reset bold
+			if (^passed(bold))
+			begin
+				^m(font_specs.weight,fs) = saveBold
+				xcall wpr_setdevice(rpt,DWP_FONT,fs)
+			end
+			
+			;;Reset foreground color
+			if (^passed(color))
+				xcall wpr_setdevice(rpt,DWP_TEXTCOLOR,mForegroundColor)
+
+			mCurrentRow = row
+			CurrentCol = col + ^size(text)
+			
+			mreturn mCurrentCol
+			
+		endmethod
+		
+		;;; <summary>
+		;;; Displays the text defined by a ReportText object.
+		;;; </summary>
+		;;; <param name="textObject">ReportText object to be displayed.</param>
+		;;; <returns>Returns the new current column position.</returns>
+		public method DisplayText, int
+			required in textObject, @ReportText
+		proc
+			mreturn DisplayText(textObject.Row,textObject.Col,textObject.Text,textObject.Bold,textObject.Color)
+		endmethod
+
+		;;; <summary>
+		;;; Positions the cursor at a specific position within the current page body.
+		;;; </summary>
+		;;; <param name="row">Row position (between 1 and PageBodyRows)</param>
+		;;; <param name="col">Column position (between 1 and PageWidth)</param>
+		public method PositionCursor, void
+			required in row, n
+			required in col, n
+		proc
+			if (!pageStarted)
+				NewPage()
+
+			if (row <= mPageBodyRows) then 
+				mCurrentRow = row
+			else
+				mCurrentRow = mPageBodyRows
+
+			CurrentCol = col
+
+		endmethod
+
+		;;; <summary>
+		;;; Prints text at the current cursor position and moves the cursor to the
+		;;; beginning of the next line. If the current cursor position is below the
+		;;; page body then a new page is automatically generated and the text will
+		;;; be printed at the top of the new page.
+		;;; </summary>
+		;;; <param name="text">Text to display</param>
+		;;; <returns>Returns the new current row number. This page number could be
+		;;; one higher than the page height, in which case a new page will be
+		;;; thrown the next time text is printed.</returns>
+		public method PrintText, int
+			required in text, a
+		proc
+			if (!pageStarted || (mCurrentRow>mPageBodyRows))
+				NewPage()
+			
+			start_x = getX(mCurrentCol)
+			start_y = getBodyY(mCurrentRow)
+			xcall wpr_print(rpt,DWP_WRITEOUT,start_x,start_y,text)
+
+			mCurrentRow += 1
+			CurrentCol = 1
+			
+			mreturn mCurrentRow
+			
+		endmethod
+		
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="x"></param>
+		;;; <param name="y"></param>
+		;;; <param name="width"></param>
+		;;; <param name="height"></param>
+		;;; <param name="file"></param>
+		;;; <returns></returns>
+		public method PrintImage, void
+			required in x, int
+			required in y, int
+			required in width, int
+			required in height, int
+			required in file, a
+		proc
+			if (!pageStarted)
+				NewPage()
+			xcall wpr_print(rpt,DWP_BITMAP,file,x+leftOffset,y+topOffset,width,height,true)
+		endmethod
+
+		;;; <summary>
+		;;; Prints text at a specified column in the current row and positions the cursor immediately after the text printed.
+		;;; </summary>
+		;;; <param name="col">Column within the current line to display text at. Should be between 1 and PageBodyLines.</param>
+		;;; <param name="text">Text to display</param>
+		;;; <returns>Returns the new current column number.</returns>
+		public method PrintText, int
+			required in col, n
+			required in text, a
+		proc
+			if (!pageStarted)
+				NewPage()
+
+			start_x = getX(col)
+			start_y = getBodyY(mCurrentRow)
+			xcall wpr_print(rpt,DWP_WRITEOUT,start_x,start_y,text)
+
+			CurrentCol = (CurrentCol + ^size(text))
+			
+			mreturn CurrentCol
+			
+		endmethod
+ 
+		;;; <summary>
+		;;; Draws a horizontal line from the current cursor position to the end of the
+		;;; current line. By default the line is drawn from and to the center of the
+		;;; start and end cells, unless fullWidth is passed, in which case the line is
+		;;; drawn from the left side of the first cell to the right side of the last cell.
+		;;; The current cursor position set to the beginning of the next line.
+		;;; </summary>
+		;;; <param name="fullWidth">Optionally draw the line the full width of the cells.</param>
+		;;; <param name="width">Optional line width in pixels. Default is 5.</param>
+		;;; <param name="color">Optional line color as an RGB triplet defined using the M_RGB(r,g,b) macro. Default is black (M_RGB(0,0,0).</param>
+		;;; <returns>Returns the new current row number.</returns>
+		public method DrawLine		,int
+			optional in fullWidth	,boolean
+			optional in width	,int
+			optional in color	,ReportColor
+			record 
+				penWidth	,int
+				penColor	,ReportColor
+				pen		,i4
+			endrecord
+		proc
+			if (!pageStarted || mCurrentRow>mPageBodyRows)
+				NewPage()
+
+			penWidth = ^passed(width) ? width : 5
+
+			if (^passed(color)) then 
+				penColor = color
+			else
+				penColor = ReportColor.Black
+
+			pen = getSolidPen(penWidth,penColor)
+
+			start_x = getX(mCurrentCol) + (characterWidth / 2)
+			start_y = getBodyY(mCurrentRow) + ((mRowHeight-penWidth)/2)
+			end_x   = getX(mActualPageWidth) + (mCharacterWidth / 2)
+			end_y   = start_y
+
+			if (^passed(fullWidth) && fullWidth)
+			begin
+				start_x -= (characterWidth / 2)
+				end_x += (characterWidth / 2)
+			end
+
+			xcall wpr_print(rpt,DWP_LINE,pen,start_x,start_y,end_x,end_y)
+
+			deletePen(pen)
+			
+			mCurrentRow += 1
+			CurrentCol = 1
+			
+			mreturn mCurrentRow
+			
+		endmethod
+		
+		;;; <summary>
+		;;; Draws a line from the current cell to the end of the current line.
+		;;; By default the line is drawn from and to the center of the start and end cells,
+		;;; unless fullWidth is passed, in which case the line is drawn from the left side
+		;;; of the first cell to the right side of the last cell.
+		;;; The current cursor position is NOT updated by line drawing.
+		;;; </summary>
+		;;; <param name="fromRow">Origin cell row.</param>
+		;;; <param name="fromCol">Origin cell column.</param>
+		;;; <param name="toRow">Destination cell row.</param>
+		;;; <param name="toCol">Destination cell column.</param>
+		;;; <param name="width">Line width in pixels. Default is 5.</param>
+		;;; <param name="color">Line color.</param>
+		public method DrawLine, void
+			required in fromRow, int
+			required in fromCol, int
+			required in toRow, int
+			required in toCol, int
+			optional in width, int
+			optional in color, ReportColor
+			record
+				pen, i4
+				penWidth, int
+				penColor, ReportColor
+			endrecord
+		proc
+			if (!pageStarted)
+				NewPage()
+
+			penWidth = ^passed(width) ? width : 5
+
+			if (^passed(color)) then
+				penColor = color
+			else
+				penColor = ReportColor.Black
+
+			pen = getSolidPen(penWidth,penColor)
+
+			start_x = getX(fromCol) + ((characterWidth-penWidth)/2)
+			start_y = getBodyY(fromRow) + ((mRowHeight-penWidth)/2)
+			end_x   = getX(toCol) + ((mCharacterWidth-penWidth)/2)
+			end_y   = getBodyY(toRow) + ((mRowHeight-penWidth)/2)
+
+			xcall wpr_print(rpt,DWP_LINE,pen,start_x,start_y,end_x,end_y)
+
+			deletePen(pen)
+
+		endmethod
+		
+		;;; <summary>
+		;;; Draws the line defined by a ReportLine object.
+		;;; </summary>
+		;;; <param name="lineObject">ReportLine object to be displayed.</param>
+		public method DrawLine, void
+			required in lineObject, @ReportLine
+		proc
+			DrawLine(lineObject.FromRow,lineObject.FromCol,lineObject.ToRow,lineObject.ToCol,lineObject.Width,lineObject.Color)
+		endmethod
+
+		;;; <summary>
+		;;; Draws a box from the center of specified start and end cells.
+		;;; The current cursor position is NOT updated by this method.
+		;;; </summary>
+		;;; <param name="fromRow">Top left corner row.</param>
+		;;; <param name="fromCol">Top left corner column.</param>
+		;;; <param name="toRow">Bottom right corner row.</param>
+		;;; <param name="toCol">Bottom right corner column.</param>
+		;;; <param name="width">Line width in pixels. Default is 5.</param>
+		;;; <param name="color">Line color.</param>
+		;;; <param name="fillWithColor">Should the box be filled by the specified color?</param>
+		public method DrawBox, void
+			required in fromRow, int
+			required in fromCol, int
+			required in toRow, int
+			required in toCol, int
+			optional in width, int
+			optional in color, ReportColor
+			optional in fillWithColor, boolean
+		proc
+			if (!pageStarted)
+				NewPage()
+
+			DrawLine(fromRow,fromCol,fromRow,toCol,width,color)
+			DrawLine(fromRow,fromCol,toRow,fromCol,width,color)
+			DrawLine(fromRow,toCol,toRow,toCol,width,color)
+			DrawLine(toRow,fromCol,toRow,toCol,width,color)
+
+			if (^passed(fillWithColor) && fillWithColor)
+			begin
+				data penColor, ReportColor
+				data penWidth, int
+
+				if (^passed(color)) then 
+					penColor = color
+				else
+					penColor = ReportColor.Black
+
+				penWidth = ^passed(width) ? width : 5
+
+				xcall wpr_print(rpt,DWP_FILL,
+				&	getX(fromCol) + ((characterWidth-penWidth)/2),
+				&	getBodyY(fromRow)  + ((mRowHeight-penWidth)/2),
+				&	getX(toCol)-getX(fromCol),
+				&	getBodyY(toRow)-getBodyY(fromRow),
+				&	penColor)
+			end
+
+		endmethod
+
+		;;; <summary>
+		;;; Draws the box defined by a ReportBox object.
+		;;; </summary>
+		;;; <param name="boxObject">ReportBox object to be displayed.</param>
+		public method DrawBox, void
+			required in boxObject, @ReportBox
+		proc
+			DrawBox(boxObject.FromRow,boxObject.FromCol,boxObject.ToRow,boxObject.ToCol,boxObject.Width,boxObject.Color,boxObject.FillWithColor)
+		endmethod
+
+		;;; <summary>
+		;;; Moves the cursor to the beginning of the next line. If the next line
+		;;; is outside of the page body a new page is generated.
+		;;; </summary>
+		;;; <returns>Returns the new current row number.</returns>
+		public method NewLine, int
+		proc
+			if (!pageStarted)
+				NewPage()
+
+			if (mCurrentRow < mPageBodyRows) then 
+			begin
+				mCurrentRow += 1
+				CurrentCol = 1
+			end
+			else
+			begin
+				NewPage()
+			end
+
+			mreturn mCurrentRow
+			
+		endmethod
+		
+		;;; <summary>
+		;;; Starts a new page.
+		;;; </summary>
+		;;; <returns>Returns the new page number.</returns>
+		public method NewPage, int
+		proc
+			;;Have we previously started a page, or is this the first page?
+			if (!pageStarted) then 
+				pageStarted = true
+			else
+			begin
+				;;Print body lines on the current page
+				drawStaticObjects()
+				
+				;;Print footers on the current page
+				printPageFooters()
+
+				;;End the current page
+				xcall wpr_print(rpt,DWP_ENDPAGE)
+			end
+
+			;;Start a new page
+			xcall wpr_print(rpt,DWP_BEGINPAGE)
+
+			;;Record the new page number and reset the page's current row counter
+			mPageNumber += 1
+			mCurrentRow = 1
+			CurrentCol = 1
+
+			;;Print page headers on the new page
+			printPageHeaders()
+
+			mreturn mPageNumber
+			
+		endmethod
+
+		;;; <summary>
+		;;; Displays the report in a print preview window.
+		;;; After calling this method the report is no longer valid.
+		;;; </summary>
+		public method Preview, void
+
+		proc
+			if (!pageStarted)
+				NewPage()
+
+			;;Draw body lines on the final page
+			drawStaticObjects()
+
+			;;Print footers on the final page
+			printPageFooters()
+
+			;;End the final page
+			xcall wpr_print(rpt,DWP_ENDPAGE)
+
+			;;End the job
+			xcall wpr_print(rpt,DWP_ENDJOB)
+			jobStarted = false
+
+			;;Preview the report
+			using %wpr_execute(rpt,DWP_PREVIEW,,(a)reportTitle + " (" + mPrinterName + ")",DWP_PREVIEW_TOOLBAR) select
+			(DWP_PREVIEW_PRINT),
+			begin
+				;;User asked to print the file to the current (default) printer
+				xcall wpr_execute(rpt, DWP_PRINT,,keepFile)
+			end
+			(DWP_PREVIEW_REGEN),
+			begin
+				;;Can't happen here because we didn't ebable DWP_PREVIEW_PRINTDLG
+				nop
+			end
+			(DWP_PREVIEW_CANCEL),
+			begin
+				;;The user cancelled, so we're not going to print.
+				nop
+			end
+			endusing
+
+			Dispose()
+
+		endmethod
+
+		;;; <summary>
+		;;; Prints the report directly to the printer.
+		;;; After calling this method the report is no longer valid.
+		;;; </summary>
+		public method Print, boolean
+
+			record 
+				ok, boolean
+			endrecord
+		proc
+			if (!pageStarted)
+				NewPage()
+
+			;;Draw body lines on the final page
+			drawStaticObjects()
+			
+			;;Print footers on the final page
+			printPageFooters()
+
+			;;End the final page
+			xcall wpr_print(rpt,DWP_ENDPAGE)
+
+			;;End the job
+			xcall wpr_print(rpt,DWP_ENDJOB)
+			jobStarted = false
+
+			;;Print the report
+			ok = %wpr_execute(rpt,DWP_PRINT,,keepFile)
+
+			Dispose()
+
+			mreturn ok
+
+		endmethod
+
+		;;; <summary>
+		;;; Terminates a report and releases its resources.
+		;;; Reports are implicitly terminated when the Preview() or Print() methods are called.
+		;;; Call this method to terminate a report if you will not call Preview() or Print().
+		;;; </summary>
+		public method Dispose, void
+		proc
+			if (jobStarted)
+			begin
+				xcall wpr_print(rpt, DWP_ENDJOB)
+				jobStarted = false
+			end
+			xcall wpr_info(rpt,DWP_DELPRINTER,keepFile)
+		endmethod
+
+		;;--------------------------------------------------------------------------------
+		;;PRIVATE METHODS
+		
+		private method drawStaticObjects, void
+		proc
+			;;Text first so it won't overwrite any lines
+			if (mBodyText.Count > 0)
+			begin
+				data thisText, @ReportText
+				foreach thisText in mBodyText
+					DisplayText(thisText)
+			end
+			;;Then boxes
+			if (mBodyBoxes.Count > 0)
+			begin
+				data thisBox, @ReportBox
+				foreach thisBox in mBodyBoxes
+					DrawBox(thisBox)
+			end
+			;;Then lines
+			if (mBodyLines.Count > 0)
+			begin
+				data thisLine, @ReportLine
+				foreach thisLine in mBodyLines
+					DrawLine(thisLine)
+			end
+		endmethod
+		
+		private method getBodyY, int
+			required in bodyRow, int
+		proc
+			mreturn topOffset + pageHeaderOffset + ((bodyRow-1) * mRowHeight)
+		endmethod
+
+		private method getFooterY, int
+			required in footerRow, int
+		proc
+			mreturn topOffset + pageHeaderOffset + ((mPageBodyRows-1) * mRowHeight) + (footerRow * mRowHeight)
+		endmethod
+
+		private method getHeaderY, int
+			required in headerRow, int
+		proc
+			mreturn topOffset + ((headerRow-1) * mRowHeight)
+		endmethod
+
+		private method getX, int
+			required in col, int
+		proc
+			mreturn leftOffset + ((col-1) * mCharacterWidth)
+		endmethod
+		
+		private method printPageHeaders, void
+		proc
+			if (mPageHeader.Count > 0)
+			begin
+				data ix, int
+				for ix from 0 thru mPageHeader.Count -1
+				begin
+					if (((string)mPageHeader[ix]).Trim().Length==0) then 
+						nop
+					else if ((string)mPageHeader[ix]=="[LINE]") then 
+					begin
+						data penWidth, int, 5
+						data pen, i4
+						start_x = getX(1)
+						start_y = getHeaderY(ix+1) + ((mRowHeight-penWidth)/2)
+						end_x   = getX(mActualPageWidth) + mCharacterWidth
+						end_y   = start_y
+						pen = getSolidPen(penWidth,ReportColor.Black)
+						xcall wpr_print(rpt,DWP_LINE,pen,start_x,start_y,end_x,end_y)
+						deletePen(pen)
+					end
+					else
+					begin
+						start_x = getX(1)
+						start_y = getHeaderY(ix+1)
+						xcall wpr_print(rpt,DWP_WRITEOUT,start_x,start_y,(a)expandTokens((string)mPageHeader[ix]))
+					end
+				end
+			end
+		endmethod
+		
+		private method printPageFooters, void
+		proc
+			if (mPageFooter.Count > 0)
+			begin
+				data ix, int
+				for ix from 0 thru mPageFooter.Count - 1
+				begin
+					if (((string)mPageFooter[ix]).Trim().Length==0) then 
+						nop
+					else if ((string)mPageFooter[ix]=="[LINE]") then
+					begin
+						data penWidth, int, 5
+						data pen, i4
+						start_x = getX(1)
+						start_y = getFooterY(ix+1) + ((mRowHeight-penWidth)/2)
+						end_x   = getX(mActualPageWidth) + mCharacterWidth
+						end_y   = start_y
+						pen = getSolidPen(penWidth,ReportColor.Black)
+						xcall wpr_print(rpt,DWP_LINE,pen,start_x,start_y,end_x,end_y)
+						deletePen(pen)
+					end
+					else
+					begin
+						start_x = getX(1)
+						start_y = getFooterY(ix+1)
+						xcall wpr_print(rpt,DWP_WRITEOUT,start_x,start_y,(a)expandTokens((string)mPageFooter[ix]))
+					end
+				end
+			end
+		endmethod
+		
+		private method deletePen, void
+			required inout pen, i4
+		proc
+			xcall wpr_info(rpt,DWP_DELPEN,pen)
+			clear pen
+		endmethod
+
+		private method getSolidPen, i4
+			required in width, int
+			required in color, ReportColor
+			record 
+				ps, pen_specs
+			endrecord
+		proc
+			ps.pen_style   = DWP_GEOMETRIC
+			ps.line_style  = DWP_SOLID
+			ps.line_width  = width
+			ps.brush_style = DWP_BS_SOLID
+			ps.brush_color = (i4)color
+			mreturn %wpr_info(rpt,DWP_GETPEN,ps)
+		endmethod
+		
+		private method expandTokens, string
+			required in buffer, string
+			record 
+				tmpbuf, string
+			endrecord
+		proc
+			if ((buffer==^null) || (buffer.Trim().Length==0))
+				mreturn ""
+
+			tmpbuf = buffer
+
+			if (tmpbuf.Contains("MM/DD/YYYY"))
+				tmpbuf = tmpbuf.Replace("MM/DD/YYYY",DateTimeTools.GetFormattedDateMMDDYYYY())
+			if (tmpbuf.Contains("DD/MM/YYYY"))
+				tmpbuf = tmpbuf.Replace("MM/DD/YYYY",DateTimeTools.GetFormattedDateDDMMYYYY())
+			if (tmpbuf.Contains("HH:MM"))
+				tmpbuf = tmpbuf.Replace("HH:MM",DateTimeTools.GetFormattedTimeHHMM())
+			if (tmpbuf.Contains("HH:MM:SS"))
+				tmpbuf = tmpbuf.Replace("HH:MM",DateTimeTools.GetFormattedTimeHHMMSS())
+			if (tmpbuf.Contains("[PAGE#]"))
+				tmpbuf = tmpbuf.Replace("[PAGE#]",%string(mPageNumber))
+			if (tmpbuf.Contains("[FILE]"))
+				tmpbuf = tmpbuf.Replace("[FILE]",mOutputFile)
+			if (tmpbuf.Contains("[FONT_SIZE]"))
+				tmpbuf = tmpbuf.Replace("[FONT_SIZE]",%string(mFontSize))
+
+			mreturn tmpbuf
+			
+		endmethod
+		
+		;;--------------------------------------------------------------------------------
+		;;PUBLIC PROPERTIES
+		
+		private mBodyBoxes, @ArrayList
+		;;; <summary>
+		;;; A collection of ReportBox objects that are to be drawn on the page
+		;;; during NewPage processing.
+		;;; </summary>
+		public property BodyBoxes, @ArrayList
+			method get
+			proc
+				mreturn mBodyBoxes
+			endmethod
+			method set
+			proc
+				mBodyBoxes = value
+			endmethod
+		endproperty
+
+		private mBodyLines, @ArrayList
+		;;; <summary>
+		;;; A collection of ReportLine objects that are to be drawn on the page
+		;;; during NewPage processing.
+		;;; </summary>
+		public property BodyLines, @ArrayList
+			method get
+			proc
+				mreturn mBodyLines
+			endmethod
+			method set
+			proc
+				mBodyLines = value
+			endmethod
+		endproperty
+
+		private mBodyText, @ArrayList
+		;;; <summary>
+		;;; A collection of ReportText objects that are to be drawn on the page
+		;;; during NewPage processing.
+		;;; </summary>
+		public property BodyText, @ArrayList
+			method get
+			proc
+				mreturn mBodyText
+			endmethod
+			method set
+			proc
+				mBodyText = value
+			endmethod
+		endproperty
+
+		private mBottomMargin, double
+		;;; <summary>
+		;;; Width of the bottom margin in inches.
+		;;; </summary>
+		public property BottomMargin, double
+			method get
+			proc
+				mreturn mBottomMargin
+			endmethod
+		endproperty
+
+		private mCharacterWidth, int
+		;;; <summary>
+		;;; Width of a single character in pixels.
+		;;; </summary>
+		public property CharacterWidth, int
+			method get
+			proc
+				mreturn mCharacterWidth
+			endmethod
+		endproperty
+		
+		private mCurrentCol, int
+		;;; <summary>
+		;;; Current column position where text will print next
+		;;; </summary>
+		public property CurrentCol, int
+			method get
+			proc
+				mreturn mCurrentCol
+			endmethod
+			method set
+			proc
+				using value select
+				(<1),
+					mCurrentCol = 1
+				(>mPageBodyRows),
+					mCurrentCol = mPageBodyRows
+				(),
+					mCurrentCol = value
+				endusing
+			endmethod
+		endproperty
+
+		private mCurrentRow, int
+		;;; <summary>
+		;;; Current row position where text will print next
+		;;; </summary>
+		public property CurrentRow, int
+			method get
+			proc
+				mreturn mCurrentRow
+			endmethod
+			method set
+			proc
+				using value select
+				(<1),
+					mCurrentRow = 1
+				(>mActualPageWidth),
+					mCurrentRow = mActualPageWidth
+				(),
+					mCurrentRow = value
+				endusing
+			endmethod
+		endproperty
+		
+		private mFontSize, int
+		;;; <summary>
+		;;; Font size selected.
+		;;; </summary>
+		public property FontSize, int
+			method get
+			proc
+				mreturn mFontSize
+			endmethod
+		endproperty
+
+		private mLeftMargin, double
+		;;; <summary>
+		;;; Width of the left margin in inches.
+		;;; </summary>
+		public property LeftMargin, double
+			method get
+			proc
+				mreturn mLeftMargin
+			endmethod
+		endproperty
+
+		private mPageBodyRows, int
+		;;; <summary>
+		;;; Height of the page body (the printable area after lines have been
+		;;; reserved for page headers and footers) in rows.
+		;;; </summary>
+		public property PageBodyRows, int
+			method get
+			proc
+				mreturn mPageBodyRows
+			endmethod
+		endproperty
+
+		private mPageFooter, @ArrayList
+		;;; <summary>
+		;;; Array of page footer data that was provied to the Initialize method.
+		;;; If you need to change the footers at runtime then do so before calling
+		;;; NewPage and before oututting text that would cause a new page to be
+		;;; generated automatically (i.e. if CurrentRow > PageBodyHeight).
+		;;; </summary>
+		public property PageFooter, @ArrayList
+			method get
+			proc
+				mreturn mPageFooter
+			endmethod
+		endproperty
+		
+		private mPageHeader, @ArrayList
+		;;; <summary>
+		;;; Array of page header data that was provied to the Initialize method.
+		;;; If you need to change the headers at runtime then do so before calling
+		;;; NewPage and before oututting text that would cause a new page to be
+		;;; generated automatically  (i.e. if CurrentRow > PageBodyHeight).
+		;;; </summary>
+		public property PageHeader, @ArrayList
+			method get
+			proc
+				mreturn mPageHeader
+			endmethod
+		endproperty
+
+		private mPageNumber, int
+		;;; <summary>
+		;;; Current page number.
+		;;; </summary>
+		public property PageNumber, int
+			method get
+			proc
+				mreturn mPageNumber
+			endmethod
+		endproperty
+
+		private mPageOrientation, ReportOrientation
+		;;; <summary>
+		;;; Page orientation (portrait or landscape).
+		;;; </summary>
+		public property PageOrientation, ReportOrientation
+			method get
+			proc
+				mreturn mPageOrientation
+			endmethod
+		endproperty
+
+		private mActualPageWidth, int
+		;;; ;; <summary>
+		;;; Available page width in columns. This is the number of columns that remain
+		;;; after allowing for any minimum or requested left and right margins.
+		;;; </summary>
+		public property ActualPageWidth, int
+			method get
+			proc
+				mreturn mActualPageWidth
+			endmethod
+		endproperty
+
+		private mPrinterName, string
+		;;; <summary>
+		;;; Name of the printer being targeted.
+		;;; </summary>
+		public property PrinterName, string
+			method get
+			proc
+				mreturn mPrinterName
+			endmethod
+		endproperty
+
+		private mRequestedPageWidth, int
+		;;; ;; <summary>
+		;;; Page width in columns as originally requested by the host.
+		;;; </summary>
+		public property RequestedPageWidth, int
+			method get
+			proc
+				mreturn mRequestedPageWidth
+			endmethod
+		endproperty
+
+		private mRightMargin, double
+		;;; <summary>
+		;;; Width of the right margin in inches.
+		;;; </summary>
+		public property RightMargin, double
+			method get
+			proc
+				mreturn mRightMargin
+			endmethod
+		endproperty
+
+		private mRowHeight, int
+		;;; <summary>
+		;;; Height of a single row in pixels.
+		;;; </summary>
+		public property RowHeight, int
+			method get
+			proc
+				mreturn mRowHeight
+			endmethod
+		endproperty
+
+		private mTopMargin, double
+		;;; <summary>
+		;;; Height of the top margin in inches.
+		;;; </summary>
+		public property TopMargin, double
+			method get
+			proc
+				mreturn mTopMargin
+			endmethod
+		endproperty
+
+		private mTotalRows, int
+		;;; <summary>
+		;;; Total height of the page in rows, including the header, body and footer rows.
+		;;; </summary>
+		public property TotalRows, int
+			method get
+			proc
+				mreturn mTotalRows
+			endmethod
+		endproperty
+		
+	endclass
+		
+	public class ReportText
+
+		public method ReportText
+			required in aRow, int
+			required in aCol, int
+			required in aText, a
+			optional in aBold, boolean
+			optional in aColor, ReportColor
+			endparams
+		proc
+			Row = aRow
+			Col = aCol
+			Text = aText
+			if (^passed(aBold)) then
+				Bold = aBold
+			else
+				Bold = false
+			if (^passed(aColor)) then
+				Color = aColor
+			else
+				color = Color.Black
+		endmethod
+
+		public property Row, int
+			method get
+			endmethod
+			method set
+			endmethod
+		endproperty
+
+		public property Col, int
+			method get
+			endmethod
+			method set
+			endmethod
+		endproperty
+
+		public property Text, string
+			method get
+			endmethod
+			method set
+			endmethod
+		endproperty
+
+		public property Bold, boolean
+			method get
+			endmethod
+			method set
+			endmethod
+		endproperty
+
+		public property Color, ReportColor
+			method get
+			endmethod
+			method set
+			endmethod
+		endproperty
+
+	endclass
+
+	public class ReportLine
+
+		public method ReportLine
+			required in aFromRow, int
+			required in aFromCol, int
+			required in aToRow, int
+			required in aToCol, int
+			optional in aWidth, int
+			optional in aColor, ReportColor
+		proc
+			FromRow = aFromRow
+			FromCol = aFromCol
+			ToRow = aToRow
+			ToCol = aToCol
+			Width = ^passed(aWidth) ? aWidth : 5
+			if (^passed(aColor)) then
+				Color = aColor
+			else
+				color = ReportColor.Black
+		endmethod
+
+		public property FromRow, int
+			method get
+			endmethod
+			method set
+			endmethod
+		endproperty
+
+		public property FromCol, int
+			method get
+			endmethod
+			method set
+			endmethod
+		endproperty
+
+		public property ToRow, int
+			method get
+			endmethod
+			method set
+			endmethod
+		endproperty
+
+		public property ToCol, int
+			method get
+			endmethod
+			method set
+			endmethod
+		endproperty
+
+		public property Width, int
+			method get
+			endmethod
+			method set
+			endmethod
+		endproperty
+
+		public property Color, ReportColor
+			method get
+			endmethod
+			method set
+			endmethod
+		endproperty
+
+	endclass
+
+	public class ReportBox extends ReportLine
+
+		public method ReportBox
+			required in aFromRow, int
+			required in aFromCol, int
+			required in aToRow, int
+			required in aToCol, int
+			optional in aWidth, int
+			optional in aColor, ReportColor
+			optional in aFillWithColor, boolean
+			endparams
+			parent(aFromRow,aFromCol,aToRow,aToCol,aWidth,aColor)
+		proc
+			if (^passed(aFillWithColor)) then
+				FillWithColor = aFillWithColor
+			else
+				FillWithColor = false
+		endmethod
+
+		public property FillWithColor, boolean
+			method get
+			endmethod
+			method set
+			endmethod
+		endproperty
+
+	endclass
+
+	
+	public enum ReportColor
+		AirForceblue,			M_RGB(93,138,168)
+		AliceBlue,			M_RGB(240,248,255)
+		AlizarinCrimson,		M_RGB(227,38,54)
+		Almond,				M_RGB(239,222,205)
+		Amaranth,			M_RGB(229,43,80)
+		Amber,				M_RGB(255,191,0)
+		AmericanRose,			M_RGB(255,3,62)
+		Amethyst,			M_RGB(153,102,204)
+		AndroidGreen,			M_RGB(164,198,57)
+		AntiFlashWhite,			M_RGB(242,243,244)
+		AntiqueBrass,			M_RGB(205,149,117)
+		AntiqueFuchsia,			M_RGB(145,92,131)
+		AntiqueWhite,			M_RGB(250,235,215)
+		Ao,				M_RGB(0,128,0)
+		AppleGreen,			M_RGB(141,182,0)
+		Apricot,			M_RGB(251,206,177)
+		Aqua,				M_RGB(0,255,255)
+		Aquamarine,			M_RGB(127,255,212)
+		ArmyGreen,			M_RGB(75,83,32)
+		Arsenic,			M_RGB(59,68,75)
+		ArylideYellow,			M_RGB(233,214,107)
+		AshGray,			M_RGB(178,190,181)
+		Asparagus,			M_RGB(135,169,107)
+		AtomicTangerine,		M_RGB(255,153,102)
+		Auburn,				M_RGB(165,42,42)
+		Aureolin,			M_RGB(253,238,0)
+		AuroMetalSaurus,		M_RGB(110,127,128)
+		Awesome,			M_RGB(255,32,82)
+		Azure,				M_RGB(0,127,255)
+		AzureMist,			M_RGB(240,255,255)
+		BabyBlue,			M_RGB(137,207,240)
+		BabyBlueEyes,			M_RGB(161,202,241)
+		BabyPink,			M_RGB(244,194,194)
+		BallBlue,			M_RGB(33,171,205)
+		BananaMania,			M_RGB(250,231,181)
+		BananaYellow,			M_RGB(255,225,53)
+		BattleShipGray,			M_RGB(132,132,130)
+		Bazaar,				M_RGB(152,119,123)
+		BeauBlue,			M_RGB(188,212,230)
+		Beaver,	       			M_RGB(159,129,112)
+		Beige,	       			M_RGB(245,245,220)
+		Bisque,	       			M_RGB(255,228,196)
+		Bistre,	       			M_RGB(61,43,31)
+		BitterSweet,			M_RGB(254,111,94)
+		Black,				M_RGB(0,0,0)
+		BlanchedAlmond,			M_RGB(255,235,205)
+		BleudeFrance,			M_RGB(49,140,231)
+		BlizzardBlue,			M_RGB(172,229,238)
+		Blond,				M_RGB(250,240,190)
+		Blue,				M_RGB(0,0,255)
+		BlueBell,			M_RGB(162,162,208)
+		BlueGray,			M_RGB(102,153,204)
+		BlueGreen,			M_RGB(0,221,221)
+		BlueViolet,			M_RGB(138,43,226)
+		Blush,				M_RGB(222,93,131)
+		Bole,				M_RGB(121,68,59)
+		BondiBlue,			M_RGB(0,149,182)
+		BostonUniversityRed,		M_RGB(204,0,0)
+		BrandeisBlue,			M_RGB(0,112,255)
+		Brass,				M_RGB(181,166,66)
+		BrickRed,			M_RGB(203,65,84)
+		BrightCerulean,			M_RGB(29,172,214)
+		BrightGreen,			M_RGB(102,255,0)
+		BrightLavender,			M_RGB(191,148,228)
+		BrightMaroon,			M_RGB(195,33,72)
+		BrightPink,			M_RGB(255,0,127)
+		BrightTurquoise,		M_RGB(8,232,222)
+		BrightUbe,			M_RGB(209,159,232)
+		BrilliantLavender,		M_RGB(244,187,255)
+		BrillianRrose,			M_RGB(255,85,163)
+		BrinkPink,			M_RGB(251,96,127)
+		BritishRacingGreen,		M_RGB(0,66,37)
+		Bronze,				M_RGB(205,127,50)
+		Brown,				M_RGB(150,75,0)
+		BubbleGum,			M_RGB(255,193,204)
+		Bubbles,			M_RGB(231,254,255)
+		Buff,				M_RGB(240,220,130)
+		BulgarianRose,			M_RGB(72,6,7)
+		Burgundy,			M_RGB(128,0,32)
+		Burlywood,			M_RGB(222,184,135)
+		BurntOrange,			M_RGB(204,85,0)
+		BurntSienna,			M_RGB(233,116,81)
+		BurntUmber,			M_RGB(138,51,36)
+		Byzantine,			M_RGB(189,51,164)
+		Byzantium,			M_RGB(112,41,99)
+		Cadet,				M_RGB(83,104,114)
+		CadetBlue,			M_RGB(95,158,160)
+		CadetGray,			M_RGB(145,163,176)
+		CadmiumGreen,			M_RGB(0,107,60)
+		CadmiumOrange,			M_RGB(237,135,45)
+		CadmiumRed,			M_RGB(227,0,34)
+		CadmiumYellow,			M_RGB(255,246,0)
+		CalPolyPomonaGreen,		M_RGB(30,77,43)
+		CambridgeBlue,			M_RGB(163,193,173)
+		Camel,				M_RGB(193,154,107)
+		CamouflageGreen,		M_RGB(120,134,107)
+		CanaryYellow,			M_RGB(255,239,0)
+		CandyAppleRed,			M_RGB(255,8,0)
+		CandyPink,			M_RGB(228,113,122)
+		Capri,				M_RGB(0,191,255)
+		CaputMortuum,			M_RGB(89,39,32)
+		Cardinal,			M_RGB(196,30,58)
+		CaribbeanGreen,			M_RGB(0,204,153)
+		Carmine,			M_RGB(150,0,24)
+		CarminePink,			M_RGB(235,76,66)
+		CarmineRed,			M_RGB(255,0,56)
+		CarnationPink,			M_RGB(255,166,201)
+		Carnelian,			M_RGB(179,27,27)
+		CarolinaBlue,			M_RGB(153,186,221)
+		CarrotOrange,			M_RGB(237,145,33)
+		Ceil,				M_RGB(146,161,207)
+		Celadon,			M_RGB(172,225,175)
+		CelestialBlue,			M_RGB(73,151,208)
+		Cerise,				M_RGB(222,49,99)
+		CerisePink,			M_RGB(236,59,131)
+		Cerulean,			M_RGB(0,123,167)
+		CeruleanBlue,			M_RGB(42,82,190)
+		CGBlue,				M_RGB(0,122,165)
+		CGRed,				M_RGB(224,60,49)
+		Chamoisee,			M_RGB(160,120,90)
+		Champagne,			M_RGB(247,231,206)
+		Charcoal,			M_RGB(54,69,79)
+		Chartreuse,			M_RGB(223,255,0)
+		CherryBlossomPink,		M_RGB(255,183,197)
+		Chestnut,			M_RGB(205,92,92)
+		Chocolate,			M_RGB(123,63,0)
+		ChromeYellow,			M_RGB(255,167,0)
+		Cinereous,			M_RGB(152,129,123)
+		Cinnabar,			M_RGB(227,66,52)
+		Cinnamon,			M_RGB(210,105,30)
+		Citrine,			M_RGB(228,208,10)
+		ClassicRose,			M_RGB(251,204,231)
+		Cobalt,				M_RGB(0,71,171)
+		Coffee,				M_RGB(200,100,40)
+		ColumbiaBlue,			M_RGB(155,221,255)
+		CoolBlack,			M_RGB(0,46,99)
+		CoolGray,			M_RGB(140,146,172)
+		Copper,				M_RGB(184,115,51)
+		CopperRose,			M_RGB(153,102,102)
+		Coquelicot,			M_RGB(255,56,0)
+		Coral,				M_RGB(255,127,80)
+		CoralPink,			M_RGB(248,131,121)
+		CoralRed,			M_RGB(255,64,64)
+		Cordovan,			M_RGB(137,63,69)
+		Corn,				M_RGB(251,236,93)
+		CornFlowerBlue,			M_RGB(100,149,237)
+		CornSilk,			M_RGB(255,248,220)
+		CosmicLatte,			M_RGB(255,248,231)
+		CottonCandy,			M_RGB(255,188,217)
+		Cream,				M_RGB(255,253,208)
+		Crimson,			M_RGB(220,20,60)
+		CrimsonGlory,			M_RGB(190,0,50)
+		Cyan,				M_RGB(0,183,235)
+		Daffodil,			M_RGB(255,255,49)
+		Dandelion,			M_RGB(240,225,48)
+		DarkBlue,			M_RGB(0,0,139)
+		DarkBrown,			M_RGB(101,67,33)
+		DarkByzantium,			M_RGB(93,57,84)
+		DarkCandyapplered,		M_RGB(164,0,0)
+		DarkCerulean,			M_RGB(8,69,126)
+		DarkChampagne,			M_RGB(194,178,128)
+		DarkChestnut,			M_RGB(152,105,96)
+		DarkCoral,			M_RGB(205,91,69)
+		DarkCyan,			M_RGB(0,139,139)
+		DarkElectricBlue,		M_RGB(83,104,120)
+		DarkGoldenRod,			M_RGB(184,134,11)
+		DarkGray,			M_RGB(169,169,169)
+		DarkGreen,			M_RGB(1,50,32)
+		DarkJungleGreen,		M_RGB(26,36,33)
+		DarkKhaki,			M_RGB(189,183,107)
+		DarkLava,			M_RGB(72,60,50)
+		DarkLavender,			M_RGB(115,79,150)
+		DarkMagenta,			M_RGB(139,0,139)
+		DarkMidnightBlue,		M_RGB(0,51,102)
+		DarkOliveGreen,			M_RGB(85,107,47)
+		DarkOrange,			M_RGB(255,140,0)
+		DarkOrchid,			M_RGB(153,50,204)
+		DarkPastelBlue,			M_RGB(119,158,203)
+		DarkPastelGreen,		M_RGB(3,192,60)
+		DarkPastelPurple,		M_RGB(150,111,214)
+		DarkPastelRed,			M_RGB(194,59,34)
+		DarkPink,			M_RGB(231,84,128)
+		DarkPowderBlue,			M_RGB(0,51,153)
+		DarkRaspberry,			M_RGB(135,38,87)
+		DarkRed,			M_RGB(139,0,0)
+		DarkSalmon,			M_RGB(233,150,122)
+		DarkScarlet,			M_RGB(86,3,25)
+		DarkSeaGreen,			M_RGB(143,188,143)
+		DarkSienna,			M_RGB(60,20,20)
+		DarkSlateBlue,			M_RGB(72,61,139)
+		DarkSlateGray,			M_RGB(47,79,79)
+		DarkspringGreen,		M_RGB(23,114,69)
+		DarkTan,			M_RGB(145,129,81)
+		DarkTangerine,			M_RGB(255,168,18)
+		DarkTerracotta,			M_RGB(204,78,92)
+		DarkTurquoise,			M_RGB(0,206,209)
+		DarkViolet,			M_RGB(148,0,211)
+		DartMouthGreen,			M_RGB(0,105,62)
+		DavysGray,			M_RGB(85,85,85)
+		DebianRed,			M_RGB(215,10,83)
+		DeepCarmine,			M_RGB(169,32,62)
+		DeepCarminepink,		M_RGB(239,48,56)
+		DeepcarrotOrange,		M_RGB(233,105,44)
+		Deepcerise,			M_RGB(218,50,135)
+		Deepchampagne,			M_RGB(250,214,165)
+		Deepchestnut,			M_RGB(185,78,72)
+		DeepFuchsia,			M_RGB(193,84,193)
+		DeepJunglegreen,		M_RGB(0,75,73)
+		DeepLilac,			M_RGB(153,85,187)
+		DeepMagenta,			M_RGB(204,0,204)
+		DeepPeach,			M_RGB(255,203,164)
+		DeepPink,			M_RGB(255,20,147)
+		Deepsaffron,			M_RGB(255,153,51)
+		Denim,				M_RGB(21,96,189)
+		DesertSand,			M_RGB(237,201,175)
+		DimGray,			M_RGB(105,105,105)
+		DodgerBlue,			M_RGB(30,144,255)
+		DogWoodRose,			M_RGB(215,24,104)
+		DollarBill,			M_RGB(133,187,101)
+		Drab,				M_RGB(150,113,23)
+		DukeBlue,			M_RGB(0,0,156)
+		EarthYellow,			M_RGB(225,169,95)
+		EggPlant,			M_RGB(97,64,81)
+		EggShell,			M_RGB(240,234,214)
+		EgyptianBlue,			M_RGB(16,52,166)
+		ElectricBlue,			M_RGB(125,249,255)
+		ElectricCrimson,		M_RGB(255,0,63)
+		ElectricGreen,			M_RGB(0,254,0)
+		ElectricIndigo,			M_RGB(111,0,255)
+		ElectricLime,			M_RGB(204,255,0)
+		ElectricPurple,			M_RGB(191,0,255)
+		ElectricUltraMarine,		M_RGB(63,0,255)
+		ElectricViolet,			M_RGB(143,0,255)
+		ElectricYellow,			M_RGB(255,254,0)
+		Emerald,			M_RGB(80,200,120)
+		EtonBlue,			M_RGB(150,200,162)
+		FaluRed,			M_RGB(128,24,24)
+		Fandango,			M_RGB(181,51,137)
+		FashionFuchsia,			M_RGB(244,0,161)
+		Fawn,				M_RGB(229,170,112)
+		Feldgrau,			M_RGB(77,93,83)
+		FernGreen,			M_RGB(79,121,66)
+		FerrariRed,			M_RGB(255,40,0)
+		FieldDrab,			M_RGB(108,84,30)
+		FireBrick,			M_RGB(178,34,34)
+		FireEngineRed,			M_RGB(206,32,41)
+		Flame,				M_RGB(226,88,34)
+		FlamingoPink,			M_RGB(252,142,172)
+		Flavescent,			M_RGB(247,233,142)
+		Flax,				M_RGB(238,220,130)
+		FloralWhite,			M_RGB(255,250,240)
+		Folly,				M_RGB(255,0,79)
+		ForestGreen,			M_RGB(1,68,33)
+		FrenchBeige,			M_RGB(166,123,91)
+		FrenchBlue,			M_RGB(0,114,187)
+		FrenchLilac,			M_RGB(134,96,142)
+		FrenchRose,			M_RGB(246,74,138)
+		Fuchsia,			M_RGB(255,0,255)
+		FuchsiaPink,			M_RGB(255,119,255)
+		Fulvous,			M_RGB(228,132,0)
+		FuzzyWuzzy,			M_RGB(204,102,102)
+		Gainsboro,			M_RGB(220,220,220)
+		Gamboge,			M_RGB(228,155,15)
+		GhostWhite,			M_RGB(248,248,255)
+		Ginger,				M_RGB(176,101,0)
+		Glaucous,			M_RGB(96,130,182)
+		Gold,				M_RGB(212,175,55)
+		GoldenBrown,			M_RGB(153,101,21)
+		GoldenPoppy,			M_RGB(252,194,0)
+		GoldenRod,			M_RGB(218,165,32)
+		GoldenYellow,			M_RGB(255,223,0)
+		GrannySmithApple,		M_RGB(168,228,160)
+		Gray,				M_RGB(128,128,128)
+		GrayAsparagus,			M_RGB(70,89,69)
+		Green,				M_RGB(0,255,0)
+		GreenYellow,			M_RGB(173,255,47)
+		Grullo,				M_RGB(169,154,134)
+		GuppieGreen,			M_RGB(0,255,127)
+		Halayaube,			M_RGB(102,56,84)
+		HanBlue,			M_RGB(68,108,207)
+		HanPurple,			M_RGB(82,24,250)
+		Harlequin,			M_RGB(63,255,0)
+		HarvardCrimson,			M_RGB(201,0,22)
+		HarvestGold,			M_RGB(218,145,0)
+		Heliotrope,			M_RGB(223,115,255)
+		Honeydew,			M_RGB(240,255,240)
+		HookersGreen,			M_RGB(0,112,0)
+		HotMagenta,			M_RGB(255,29,206)
+		HotPink,			M_RGB(255,105,180)
+		HunterGreen,			M_RGB(53,94,59)
+		Iceberg,			M_RGB(113,166,210)
+		Icterine,			M_RGB(252,247,94)
+		Inchworm,			M_RGB(178,236,93)
+		IndiaGreen,			M_RGB(19,136,8)
+		IndianYellow,			M_RGB(227,168,87)
+		Indigo,				M_RGB(0,65,106)
+		InternationalKleinBlue,		M_RGB(0,47,167)
+		InternationalOrange,		M_RGB(255,79,0)
+		Iris,				M_RGB(90,79,207)
+		Isabelline,			M_RGB(244,240,236)
+		IslamicGreen,			M_RGB(0,144,0)
+		Ivory,				M_RGB(255,255,240)
+		Jade,				M_RGB(0,168,107)
+		Jasmine,			M_RGB(248,222,126)
+		Jasper,				M_RGB(215,59,62)
+		JazzberryJam,			M_RGB(165,11,94)
+		Jonquil,			M_RGB(250,218,94)
+		Junebud,			M_RGB(189,218,87)
+		JungleGreen,			M_RGB(41,171,135)
+		KellyGreen,			M_RGB(76,187,23)
+		Khaki,				M_RGB(195,176,145)
+		KUCrimson,			M_RGB(232,0,13)
+		LanguidLavender,		M_RGB(214,202,221)
+		Lapislazuli,			M_RGB(38,97,156)
+		LaSalleGreen,			M_RGB(8,120,48)
+		LaserLemon,			M_RGB(254,254,34)
+		Lava,				M_RGB(207,16,32)
+		Lavender,			M_RGB(181,126,220)
+		LavenderBlue,			M_RGB(204,204,255)
+		LavenderBlush,			M_RGB(255,240,245)
+		LavenderGray,			M_RGB(196,195,208)
+		LavenderIndigo,			M_RGB(148,87,235)
+		LavenderMagenta,		M_RGB(238,130,238)
+		LavenderMist,			M_RGB(230,230,250)
+		LavenderPink,			M_RGB(251,174,210)
+		LavenderPurple,			M_RGB(150,123,182)
+		LavenderRose,			M_RGB(251,160,227)
+		LawnGreen,			M_RGB(124,252,0)
+		Lemon,				M_RGB(255,247,0)
+		LemonChiffon,			M_RGB(255,250,205)
+		LightApricot,			M_RGB(253,213,177)
+		LightBlue,			M_RGB(173,216,230)
+		LightBrown,			M_RGB(181,101,29)
+		LightCarminePink,		M_RGB(230,103,113)
+		LightCoral,			M_RGB(240,128,128)
+		LightCornFlowerBlue,		M_RGB(147,204,234)
+		LightCrimson,			M_RGB(245,105,145)
+		LightCyan,			M_RGB(224,255,255)
+		LightFuchsiaPink,		M_RGB(249,132,239)
+		LightGoldenrodYellow,		M_RGB(250,250,210)
+		LightGray,			M_RGB(211,211,211)
+		LightGreen,			M_RGB(144,238,144)
+		LightKhaki,			M_RGB(240,230,140)
+		LightMauve,			M_RGB(220,208,255)
+		LightPastelPurple,		M_RGB(177,156,217)
+		LightPink,			M_RGB(255,182,193)
+		LightSalmon,			M_RGB(255,160,122)
+		LightSalmonPink,		M_RGB(255,153,153)
+		LightSeaGreen,			M_RGB(32,178,170)
+		LightSkyBlue,			M_RGB(135,206,250)
+		LightSlateGray,			M_RGB(119,136,153)
+		LightTaupe,			M_RGB(179,139,109)
+		LightThulianPink,		M_RGB(230,143,172)
+		LightYellow,			M_RGB(255,255,237)
+		Lilac,				M_RGB(200,162,200)
+		Lime,				M_RGB(191,255,0)
+		LimeGreen,			M_RGB(50,205,50)
+		LincolnGreen,			M_RGB(25,89,5)
+		Linen,				M_RGB(250,240,230)
+		Liver,				M_RGB(83,75,79)
+		Lust,				M_RGB(230,32,32)
+		Magenta,			M_RGB(202,31,123)
+		Magicmint,			M_RGB(170,240,209)
+		Magnolia,			M_RGB(248,244,255)
+		Mahogany,			M_RGB(192,64,0)
+		MajorelleBlue,			M_RGB(96,80,220)
+		Malachite,			M_RGB(11,218,81)
+		Manatee,			M_RGB(151,154,170)
+		MangoTango,			M_RGB(255,130,67)
+		Maroon,				M_RGB(128,0,0)
+		Mauve,				M_RGB(224,176,255)
+		Mauvelous,			M_RGB(239,152,170)
+		Mauvetaupe,			M_RGB(145,95,109)
+		MayaBlue,			M_RGB(115,194,251)
+		MeatBrown,			M_RGB(229,183,59)
+		MediumAquaMarine,		M_RGB(102,221,170)
+		MediumMlue,			M_RGB(0,0,205)
+		MediumCandyAppleRed,		M_RGB(226,6,44)
+		MediumCarmine,			M_RGB(175,64,53)
+		MediumChampagne,		M_RGB(243,229,171)
+		MediumElectricBlue,		M_RGB(3,80,150)
+		MediumJungleGreen,		M_RGB(28,53,45)
+		MediumLavenderMagenta,		M_RGB(221,160,221)
+		MediumOrchid,			M_RGB(186,85,211)
+		MediumPersianBlue,		M_RGB(0,103,165)
+		MediumPurple,			M_RGB(147,112,219)
+		MediumRedViolet,		M_RGB(187,51,133)
+		MediumSeaGreen,			M_RGB(60,179,113)
+		MediumSlateBlue,		M_RGB(123,104,238)
+		MediumSpringBud,		M_RGB(201,220,135)
+		MediumSpringGreen,		M_RGB(0,250,154)
+		MediumTaupe,			M_RGB(103,76,71)
+		MediumTealBlue,			M_RGB(0,84,180)
+		MediumTurquoise,		M_RGB(72,209,204)
+		MediumVioletRed,		M_RGB(199,21,133)
+		Melon,				M_RGB(253,188,180)
+		MidnightBlue,			M_RGB(25,25,112)
+		MidnightGreen,			M_RGB(0,73,83)
+		MikadoYellow,			M_RGB(255,196,12)
+		Mint,				M_RGB(62,180,137)
+		MintCream,			M_RGB(245,255,250)
+		MintGreen,			M_RGB(152,255,152)
+		MistyRose,			M_RGB(255,228,225)
+		MoonStoneBlue,			M_RGB(115,169,194)
+		MordantRed19,			M_RGB(174,12,0)
+		MossGreen,			M_RGB(173,223,173)
+		MountainMeadow,			M_RGB(48,186,143)
+		MountBattenPink,		M_RGB(153,122,141)
+		MSUGreen,			M_RGB(24,69,59)
+		Mulberry,			M_RGB(197,75,140)
+		Mustard,			M_RGB(255,219,88)
+		Myrtle,				M_RGB(33,66,30)
+		NadeshikoPink,			M_RGB(246,173,198)
+		NapierGreen,			M_RGB(42,128,0)
+		NavajoWhite,			M_RGB(255,222,173)
+		Navy,				M_RGB(0,0,128)
+		NeonCarrot,			M_RGB(255,163,67)
+		NeonFuchsia,			M_RGB(254,89,194)
+		NeonGreen,			M_RGB(57,255,20)
+		NonPhotoBlue,			M_RGB(164,221,237)
+		OceanBoatBlue,			M_RGB(0,119,190)
+		Ochre,				M_RGB(204,119,34)
+		OldGold,			M_RGB(207,181,59)
+		OldLace,			M_RGB(253,245,230)
+		OldLavender,			M_RGB(121,104,120)
+		OldMauve,			M_RGB(103,49,71)
+		OldRose,			M_RGB(192,128,129)
+		Olive,				M_RGB(128,128,0)
+		OliveDrab,			M_RGB(107,142,35)
+		OliveDrab7,			M_RGB(60,52,31)
+		Olivine,			M_RGB(154,185,115)
+		Onyx,				M_RGB(15,15,15)
+		OperaNauve,			M_RGB(183,132,167)
+		Orange,				M_RGB(255,127,0)
+		OrangePeel,			M_RGB(255,159,0)
+		OrangeRed,			M_RGB(255,69,0)
+		Orchid,				M_RGB(218,112,214)
+		OUCrimsonRed,			M_RGB(153,0,0)
+		OuterSpace,			M_RGB(65,74,76)
+		OutrageousOrange,		M_RGB(255,110,74)
+		OxfordBlue,			M_RGB(0,33,71)
+		PakistanGreen,			M_RGB(0,102,0)
+		PalatinateBlue,			M_RGB(39,59,226)
+		PalatinatePurple,		M_RGB(104,40,96)
+		PaleBlue,			M_RGB(175,238,238)
+		PaleBrown,			M_RGB(152,118,84)
+		PaleCerulean,			M_RGB(155,196,226)
+		PaleChestnut,			M_RGB(221,173,175)
+		PaleCopper,			M_RGB(218,138,103)
+		PaleCornFlowerBlue,		M_RGB(171,205,239)
+		PaleGold,			M_RGB(230,190,138)
+		PaleGoldenRod,			M_RGB(238,232,170)
+		PaleGreen,			M_RGB(152,251,152)
+		PaleMagenta,			M_RGB(249,132,229)
+		PalePink,			M_RGB(250,218,221)
+		PaleRedViolet,			M_RGB(219,112,147)
+		PaleRobinEggBlue,		M_RGB(150,222,209)
+		PaleSilver,			M_RGB(201,192,187)
+		PaleSpringBud,			M_RGB(236,235,189)
+		PaleTaupe,			M_RGB(188,152,126)
+		PansyPurple,			M_RGB(120,24,74)
+		PapayaWhip,			M_RGB(255,239,213)
+		PastelBlue,			M_RGB(174,198,207)
+		PastelBrown,			M_RGB(131,105,83)
+		PastelGray,			M_RGB(207,207,196)
+		PastelGreen,			M_RGB(119,221,119)
+		PastelMagenta,			M_RGB(244,154,194)
+		PastelOrange,			M_RGB(255,179,71)
+		PastelPink,			M_RGB(255,209,220)
+		PastelPurple,			M_RGB(179,158,181)
+		PastelRed,			M_RGB(255,105,97)
+		PastelViolet,			M_RGB(203,153,201)
+		PastelYellow,			M_RGB(253,253,150)
+		Patriarch,			M_RGB(128,0,128)
+		PaynesGray,			M_RGB(64,64,79)
+		Peach,				M_RGB(255,229,180)
+		PeachOrange,			M_RGB(255,204,153)
+		PeachPuff,			M_RGB(255,218,185)
+		PeachYellow,			M_RGB(250,223,173)
+		Pear,				M_RGB(209,226,49)
+		PearlAqua,			M_RGB(136,216,192)
+		Peridot,			M_RGB(230,226,0)
+		PersianBlue,			M_RGB(28,57,187)
+		PersianGreen,			M_RGB(0,166,147)
+		PersianIndigo,			M_RGB(50,18,122)
+		PersianOrange,			M_RGB(217,144,88)
+		PersianPink,			M_RGB(247,127,190)
+		PersianPlum,			M_RGB(112,28,28)
+		PersianRed,			M_RGB(204,51,51)
+		PersianRose,			M_RGB(254,40,162)
+		Persimmon,			M_RGB(236,88,0)
+		Phlox,				M_RGB(223,0,255)
+		PhthaloBlue,			M_RGB(0,15,137)
+		PhthaloGreen,			M_RGB(18,53,36)
+		PiggyPink,			M_RGB(253,221,230)
+		PineGreen,			M_RGB(1,121,111)
+		Pink,				M_RGB(255,192,203)
+		PinkPearl,			M_RGB(231,172,207)
+		PinkSherbet,			M_RGB(247,143,167)
+		Pistachio,			M_RGB(147,197,114)
+		Platinum,			M_RGB(229,228,226)
+		Plum,				M_RGB(142,69,133)
+		PortlandOrange,			M_RGB(255,90,54)
+		PowderBlue,			M_RGB(176,224,230)
+		PrincetonOrange,		M_RGB(255,143,0)
+		PrussianBlue,			M_RGB(0,49,83)
+		Puce,				M_RGB(204,136,153)
+		Pumpkin,			M_RGB(255,117,24)
+		Purple,				M_RGB(159,0,197)
+		PurpleHeart,			M_RGB(105,53,156)
+		PurpleMountainMajesty,		M_RGB(150,120,182)
+		PurplePizzazz,			M_RGB(254,78,218)
+		PurpleTaupe,			M_RGB(80,64,77)
+		Quartz,				M_RGB(81,72,79)
+		RadicalRed,			M_RGB(255,53,94)
+		Raspberry,			M_RGB(227,11,93)
+		RaspberryPink,			M_RGB(226,80,152)
+		RaspberryRose,			M_RGB(179,68,108)
+		RawUmber,			M_RGB(130,102,68)
+		RazzleDazzleRose,		M_RGB(255,51,204)
+		Razzmatazz,			M_RGB(227,37,107)
+		Red,				M_RGB(255,0,0)
+		Redwood,			M_RGB(171,78,82)
+		Regalia,			M_RGB(82,45,128)
+		RichBlack,			M_RGB(0,64,64)
+		RichBrilliantLavender,		M_RGB(241,167,254)
+		RichCarmine,			M_RGB(215,0,64)
+		RichElectricBlue,		M_RGB(8,146,208)
+		RichLavender,			M_RGB(167,107,207)
+		RichLilac,			M_RGB(182,102,210)
+		RichMaroon,			M_RGB(176,48,96)
+		RifleGreen,			M_RGB(65,72,51)
+		RobinEggBlue,			M_RGB(0,204,204)
+		RoseBonBon,			M_RGB(249,66,158)
+		RoseEbony,			M_RGB(103,72,70)
+		RoseGold,			M_RGB(183,110,121)
+		RosePink,			M_RGB(255,102,204)
+		RoseQuartz,			M_RGB(170,152,169)
+		RoseTaupe,			M_RGB(144,93,93)
+		RoseWood,			M_RGB(101,0,11)
+		RossoCorsa,			M_RGB(212,0,0)
+		RosyBrown,			M_RGB(188,143,143)
+		RoyalAzure,			M_RGB(0,56,168)
+		RoyalBlue,			M_RGB(0,35,102)
+		RoyalFuchsia,			M_RGB(202,44,146)
+		RoyalPurple,			M_RGB(120,81,169)
+		Ruby,				M_RGB(224,17,95)
+		Ruddy,				M_RGB(255,0,40)
+		RuddyBrown,			M_RGB(187,101,40)
+		RuddyPink,			M_RGB(225,142,150)
+		Rufous,				M_RGB(168,28,7)
+		Russet,				M_RGB(128,70,27)
+		Rust,				M_RGB(183,65,14)
+		SacramentoStateGreen,		M_RGB(0,86,63)
+		SaddleBrown,			M_RGB(139,69,19)
+		SafetyOrange,			M_RGB(255,103,0)
+		Saffron,			M_RGB(244,196,48)
+		Salmon,				M_RGB(255,140,105)
+		SalmonPink,			M_RGB(255,145,164)
+		SandStorm,			M_RGB(236,213,64)
+		SandyBrown,			M_RGB(244,164,96)
+		Sangria,			M_RGB(146,0,10)
+		SapGreen,			M_RGB(80,125,42)
+		Sapphire,			M_RGB(8,37,103)
+		SatinSheenGold,			M_RGB(203,161,53)
+		Scarlet,			M_RGB(255,36,0)
+		SchoolBusYellow,		M_RGB(255,216,0)
+		ScreaminGreen,			M_RGB(118,255,122)
+		SeaGreen,			M_RGB(46,139,87)
+		SealBrown,			M_RGB(50,20,20)
+		SeaShell,			M_RGB(255,245,238)
+		SelectiveYellow,		M_RGB(255,186,0)
+		Sepia,				M_RGB(112,66,20)
+		Shadow,				M_RGB(138,121,93)
+		ShamrockGreen,			M_RGB(0,158,96)
+		ShockingPink,			M_RGB(252,15,192)
+		Sienna,				M_RGB(136,45,23)
+		Silver,				M_RGB(192,192,192)
+		Sinopia,			M_RGB(203,65,11)
+		Skobeloff,			M_RGB(0,116,116)
+		SkyBlue,			M_RGB(135,206,235)
+		SkyMagenta,			M_RGB(207,113,175)
+		SlateBlue,			M_RGB(106,90,205)
+		SlateGray,			M_RGB(112,128,144)
+		SmokeyTopaz,			M_RGB(147,61,65)
+		SmokyBlack,			M_RGB(16,12,8)
+		Snow,				M_RGB(255,250,250)
+		SpiroDiscoBall,			M_RGB(15,192,252)
+		SplashedWhite,			M_RGB(254,253,255)
+		SpringBud,			M_RGB(167,252,0)
+		SteelBlue,			M_RGB(70,130,180)
+		SaintPatricksBlue,		M_RGB(35,41,122)
+		Straw,				M_RGB(228,217,111)
+		Sunglow,			M_RGB(255,204,51)
+		Tan,				M_RGB(210,180,140)
+		Tangelo,			M_RGB(249,77,0)
+		Tangerine,			M_RGB(242,133,0)
+		TangerineYellow,		M_RGB(255,204,0)
+		TaupeGray,			M_RGB(139,133,137)
+		TeaGreen,			M_RGB(208,240,192)
+		Teal,				M_RGB(0,128,128)
+		TealBlue,			M_RGB(54,117,136)
+		TealGreen,			M_RGB(0,109,91)
+		Tenne,				M_RGB(205,87,0)
+		Terracotta,			M_RGB(226,114,91)
+		Thistle,			M_RGB(216,191,216)
+		ThulianPink,			M_RGB(222,111,161)
+		TickleMePink,			M_RGB(252,137,172)
+		TiffanyBlue,			M_RGB(10,186,181)
+		TigersEye,			M_RGB(224,141,60)
+		TimberWolf,			M_RGB(219,215,210)
+		TitaniumYellow,			M_RGB(238,230,0)
+		Tomato,				M_RGB(255,99,71)
+		Toolbox,			M_RGB(116,108,192)
+		Topaz,				M_RGB(255,200,124)
+		TractorRed,			M_RGB(253,14,53)
+		TropicalRainForest,		M_RGB(0,117,94)
+		TrueBlue,			M_RGB(0,115,207)
+		TuftsBlue,			M_RGB(65,125,193)
+		Tumbleweed,			M_RGB(222,170,136)
+		TurkishRose,			M_RGB(181,114,129)
+		Turquoise,			M_RGB(48,213,200)
+		TurquoiseBlue,			M_RGB(0,255,239)
+		TurquoiseGreen,			M_RGB(160,214,180)
+		TuscanRed,			M_RGB(102,66,77)
+		TwilightLavender,		M_RGB(138,73,107)
+		TyrianPurple,			M_RGB(102,2,60)
+		UABlue,				M_RGB(0,51,170)
+		UARed,				M_RGB(217,0,76)
+		Ube,				M_RGB(136,120,195)
+		UCLABlue,			M_RGB(83,104,149)
+		UCLAGold,			M_RGB(255,179,0)
+		UFOGreen,			M_RGB(60,208,112)
+		UltraMarine,			M_RGB(18,10,143)
+		UltraMarineBlue,		M_RGB(65,102,245)
+		UltraPink,			M_RGB(255,111,255)
+		Umber,				M_RGB(99,81,71)
+		UnitedNationsBlue,		M_RGB(91,146,229)
+		UniversityOfCaliforniaGold,	M_RGB(183,135,39)
+		UnmellowYellow,			M_RGB(255,255,102)
+		UPMaroon,			M_RGB(123,17,19)
+		UpsdellRed,			M_RGB(174,32,41)
+		Urobilin,			M_RGB(225,173,33)
+		UtahCrimson,			M_RGB(211,0,63)
+		VegasGold,			M_RGB(197,179,88)
+		VenetianRed,			M_RGB(200,8,21)
+		Verdigris,			M_RGB(67,179,174)
+		Veronica,			M_RGB(160,32,240)
+		Violet,				M_RGB(127,0,255)
+		Viridian,			M_RGB(64,130,109)
+		VividAuburn,			M_RGB(146,39,36)
+		VividBurgundy,			M_RGB(159,29,53)
+		VividCerise,			M_RGB(218,29,129)
+		VividTangerine,			M_RGB(255,160,137)
+		VividViolet,			M_RGB(159,0,255)
+		WarmBlack,			M_RGB(0,66,66)
+		Wenge,				M_RGB(100,84,82)
+		Wheat,				M_RGB(245,222,179)
+		White,				M_RGB(255,255,255)
+		WhiteSmoke,			M_RGB(245,245,245)
+		WildBlueYonder,			M_RGB(162,173,208)
+		WildStrawberry,			M_RGB(255,67,164)
+		WildWatermelon,			M_RGB(252,108,133)
+		Wine,				M_RGB(114,47,55)
+		Wisteria,			M_RGB(201,160,220)
+		Xanadu,				M_RGB(115,134,120)
+		YaleBlue,			M_RGB(15,77,146)
+		Yellow,				M_RGB(255,255,0)
+		YellowGreen,			M_RGB(154,205,50)
+		YellowOrange,			M_RGB(255,239,2)
+		Zaffre,				M_RGB(0,20,168)
+		ZinnwalditeBrown,		M_RGB(44,22,8)
+	endenum
+
+endnamespace
+		
+.endc

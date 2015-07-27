@@ -1,4 +1,6 @@
+
 .ifndef DBLNET
+
 namespace SynPSG.System
 
 	class Uri
@@ -498,4 +500,5 @@ namespace SynPSG.System
 	endclass
 
 endnamespace
+
 .endc

@@ -1,4 +1,3 @@
-.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       Directory.dbl
@@ -9,7 +8,7 @@
 ;;
 ;; Author:      Steve Ives, Synergex Professional Services Group
 ;;
-;; Copyright    © 2014 Synergex International Corporation.  All rights reserved.
+;; Copyright    ï¿½ 2014 Synergex International Corporation.  All rights reserved.
 ;;
 ;; WARNING:     All content constituting or related to this code ("Code") is the
 ;;              property of Synergex International Corporation ("Synergex") and
@@ -34,6 +33,12 @@
 ;;              indicates your acceptance of these terms.
 ;;
 ;;***********************************************************************************
+
+.ifndef DBLNET
+
+import system
+import synpsg.system
+import synpsg
 
 import System.Collections
 
@@ -422,7 +427,7 @@ namespace SynPSG.System.IO
 			files = Directory.EnumerateFiles(path,srchPattern,search,^null)
 			filearray = new string[files.Count]
 			for ix from 0 thru files.Count-1
-				filearray[ix] = (string)files[ix]
+				filearray[ix+1] = (string)files[ix]
 			mreturn filearray
 		endmethod
 		
@@ -484,4 +489,5 @@ namespace SynPSG.System.IO
 .endc
 	
 endnamespace
+
 .endc

@@ -1,0 +1,1639 @@
+
+.ifdef DBLNET
+import System
+import System.Collections
+import System.IO
+.else
+import System.Collections
+import SynPsg.System
+import SynPSG.System.IO
+.endc
+
+import system
+import synpsg
+import synpsg.system
+import synpsg.windows
+
+.include "WND:windows.def"
+
+namespace SynPSG
+
+	public enum FileType
+		Sequential
+		Relative
+		Indexed
+	endenum
+	
+	public class UI
+		
+		private static MainWindow		,i4
+
+		private static ScreenNormalWidth	,int
+		private static ScreenMaxWidth		,int
+
+		private static ScreenHeight		,int
+		private static ScreenWidth		,int
+		
+		private static ForegroundColor		,int
+		private static BackgroundColor		,int
+		
+		public static method OpenTerminal, void
+			required in caption, string
+			endparams
+		proc
+			OpenTerminal()
+			SetCaption(caption)
+		endmethod
+
+		public static method OpenTerminal, void
+			endparams
+			
+			.include "WND:tools.def"
+			
+			.define COLOR_BLACK     0
+			.define COLOR_BLUE      1
+			.define COLOR_LIME      2
+			.define COLOR_CYAN      3
+			.define COLOR_RED       4
+			.define COLOR_FUCHSIA   5
+			.define COLOR_YELLOW    6
+			.define COLOR_WHITE     7
+			.define COLOR_GREY      8
+			.define COLOR_NAVY      9
+			.define COLOR_GREEN     10
+			.define COLOR_TEAL      11
+			.define COLOR_MAROON    12
+			.define COLOR_PURPLE    13
+			.define COLOR_OLIVE     14
+			.define COLOR_SILVER    15
+
+		proc
+			
+			;;Suppress the STOP message and allow backspace to delete characters
+			xcall flags(7004000,1)
+			
+			;;Default to echoing the terminator from READS statements.
+			mEchoTerminator = true
+
+			;;Define screen dimensions
+			ScreenHeight = 24
+			ScreenNormalWidth = 84
+			ScreenMaxWidth = 136
+
+			;;Start off with a normal width screen
+			ScreenWidth = ScreenNormalWidth
+
+			;;Start UI Toolkit at maximum size, then resize to normal size
+			xcall u_start(,0,0,,ScreenHeight,ScreenMaxWidth,,250)
+			xcall u_resize(ScreenHeight,ScreenWidth)
+
+			PrintModeOld = false
+			PrintMode = false
+			MaxPrintWidth = 0
+			
+			;;Set default colors
+			ForegroundColor = COLOR_BLACK
+			BackgroundColor = COLOR_WHITE
+			
+			;;Do we have a SCREEN_COLOR environment variable?
+			begin
+				data colors, string, Environment.GetEnvironmentVariable("SCREEN_COLOR")
+				if ((colors!=^null)&&(colors.Length>0)&&(colors.Contains("/")))
+				begin
+					;;Yes we do
+					data slashPos, int, %instr(1,colors,"/")
+					data forecolor, string, colors(1,slashPos-1)
+					data backcolor, string, colors(slashPos+1,%trim(colors))
+					
+					;;Default to invalid color codes
+					ForegroundColor = -1
+					BackgroundColor = -1
+					
+					;;Set the foreground color
+					using forecolor select
+					("BLACK"),	ForegroundColor = COLOR_BLACK
+					("BLUE"),	ForegroundColor = COLOR_BLUE
+					("LIME"),	ForegroundColor = COLOR_LIME
+					("CYAN"),	ForegroundColor = COLOR_CYAN
+					("RED"),	ForegroundColor = COLOR_RED
+					("FUCHSIA"),	ForegroundColor = COLOR_FUCHSIA
+					("YELLOW"),	ForegroundColor = COLOR_YELLOW
+					("WHITE"),	ForegroundColor = COLOR_WHITE
+					("GREY"),	ForegroundColor = COLOR_GREY
+					("NAVY"),	ForegroundColor = COLOR_NAVY
+					("GREEN"),	ForegroundColor = COLOR_GREEN
+					("TEAL"),	ForegroundColor = COLOR_TEAL
+					("MAROON"),	ForegroundColor = COLOR_MAROON
+					("PURPLE"),	ForegroundColor = COLOR_PURPLE
+					("OLIVE"),	ForegroundColor = COLOR_OLIVE
+					("SILVER"),	ForegroundColor = COLOR_SILVER
+					endusing
+
+					;;Set the background color
+					using backcolor select
+					("BLACK"),	BackgroundColor = COLOR_BLACK
+					("BLUE"),	BackgroundColor = COLOR_BLUE
+					("LIME"),	BackgroundColor = COLOR_LIME
+					("CYAN"),	BackgroundColor = COLOR_CYAN
+					("RED"),	BackgroundColor = COLOR_RED
+					("FUCHSIA"),	BackgroundColor = COLOR_FUCHSIA
+					("YELLOW"),	BackgroundColor = COLOR_YELLOW
+					("WHITE"),	BackgroundColor = COLOR_WHITE
+					("GREY"),	BackgroundColor = COLOR_GREY
+					("NAVY"),	BackgroundColor = COLOR_NAVY
+					("GREEN"),	BackgroundColor = COLOR_GREEN
+					("TEAL"),	BackgroundColor = COLOR_TEAL
+					("MAROON"),	BackgroundColor = COLOR_MAROON
+					("PURPLE"),	BackgroundColor = COLOR_PURPLE
+					("OLIVE"),	BackgroundColor = COLOR_OLIVE
+					("SILVER"),	BackgroundColor = COLOR_SILVER
+					endusing
+					
+					;;If either are invalid, go back to defaults
+					if ((ForegroundColor==-1)||(BackgroundColor==-1))
+					begin
+						ForegroundColor = COLOR_BLACK
+						BackgroundColor = COLOR_WHITE
+					end
+				end
+			end
+			
+			;;Define color palettes
+			xcall w_proc(WP_PALET,1, BackgroundColor, ForegroundColor,
+			&	     WP_PALET,2, COLOR_WHITE, COLOR_GREEN,
+			&	     WP_PALET,3, COLOR_WHITE, COLOR_BLACK,
+			&	     WP_PALET,4, COLOR_WHITE, COLOR_RED,
+			&	     WP_PALET,5, COLOR_WHITE, COLOR_BLUE,
+			&	     WP_PALET,6, COLOR_RED,   COLOR_WHITE,
+			&	     WP_PALET,7, COLOR_BLUE,  COLOR_WHITE,
+			&	     WP_PALET,8, COLOR_WHITE, COLOR_BLACK,
+			&	     WP_PALET,9, COLOR_WHITE, COLOR_RED,
+			&	     WP_PALET,10,COLOR_WHITE, COLOR_RED,
+			&	     WP_PALET,11,COLOR_WHITE, COLOR_BLACK,
+			&	     WP_PALET,12,COLOR_WHITE, COLOR_BLACK,
+			&	     WP_PALET,13,COLOR_WHITE, COLOR_BLACK,
+			&	     WP_PALET,14,COLOR_WHITE, COLOR_BLACK,
+			&	     WP_PALET,15,COLOR_WHITE, COLOR_BLACK,
+			&	     WP_PALET,16,COLOR_WHITE, COLOR_BLACK)
+
+			xcall w_proc(WP_CREATE, MainWindow, "", ScreenHeight, ScreenMaxWidth,
+			&	     WP_RESIZE, MainWindow, ScreenHeight, ScreenWidth,
+			&	     WP_PLACE, MainWindow,  1, 1)
+
+			;;Take the border off the main window
+			xcall w_brdr(MainWindow,WB_OFF)
+		
+			;;Hook up the right-click to copy mechanism
+			begin
+			    data eventset, i4, %u_wndevents(D_CREATE,,D_EVENT_RIGHT_CLICK,"RightClickToClipboard")
+			    xcall u_wndevents(D_ASSIGN,eventset,MainWindow)
+			end
+			
+			;;Make sure the user folder exists, and we're in it
+			xcall GoToUserFolder()
+			
+			;;Record that we have opened the terminal
+			mTerminalIsOpen = true
+			
+			;;Disable Interrupt
+			AllowInterrupt = false
+			
+		endmethod
+		
+		public static method CloseTerminal, void
+			endparams
+		proc
+			if (mTerminalIsOpen)
+			begin
+				xcall w_proc(WP_DELETE,MainWindow)
+				xcall u_finish
+				clear MainWindow
+				mTerminalIsOpen = false
+				PrintModeOld = false
+				PrintMode = false
+				MaxPrintWidth = 0
+				mPrintFile = ""
+				mPrintChannel = 0
+			end
+		endmethod
+		
+		;-------------------------------------------------
+		;General properties
+		
+		private static mTerminalIsOpen, boolean, false
+		
+		public static property TerminalIsOpen, boolean
+			method get
+			proc
+				mreturn mTerminalIsOpen
+			endmethod
+		endproperty
+		
+		private static mAllowInterrupt, boolean
+
+		public static property AllowInterrupt, boolean
+			method get
+			proc
+				mreturn mAllowInterrupt
+			endmethod
+			method set
+			proc
+				mAllowInterrupt = value
+				if (mAllowInterrupt) then 
+					xcall flags(80000000,0)
+				else
+					xcall flags(80000000,1)
+			endmethod
+		endproperty
+		
+		
+		private static mEchoTerminator, boolean, true
+
+		public static property EchoTerminator, boolean
+			method get
+			proc
+				mreturn mEchoTerminator
+			endmethod
+			method set
+			proc
+				mEchoTerminator = value
+			endmethod
+		endproperty
+		
+		public static property InSubAccount, boolean
+			method get
+			proc
+				mreturn (Environment.GetEnvironmentVariable("USER$SUBACCOUNT") != ^null)
+			endmethod
+		endproperty
+		
+		private static mSubAccountName, string
+
+		public static property SubAccountName, string
+			method get
+			proc
+				mreturn Environment.GetEnvironmentVariable("USER$SUBACCOUNT")
+			endmethod
+		endproperty
+		
+		;-------------------------------------------------
+		;Screen width 
+
+		public static method Width80, void
+			endparams
+		proc
+			if (mTerminalIsOpen)
+			begin
+				xcall w_proc(
+				&	WP_RESIZE,MainWindow,ScreenHeight,ScreenWidth=ScreenNormalWidth,
+				&	WP_RESIZE,WPR_SCREEN,ScreenHeight,ScreenWidth)
+			end
+		endmethod
+
+		public static method Width132, void
+			endparams
+		proc
+			if (mTerminalIsOpen)
+			begin
+				xcall w_proc(
+				&	WP_RESIZE,MainWindow,ScreenHeight,ScreenWidth=ScreenMaxWidth,
+				&	WP_RESIZE,WPR_SCREEN,ScreenHeight,ScreenWidth)
+			end
+		endmethod
+		
+		;-------------------------------------------------
+		;Cursor positioning
+
+		public static method PositionCursor, void
+			required in row, n
+			required in col, n
+			endparams
+		proc
+			if (PrintModeOld || !mTerminalIsOpen) then 
+				nop
+			else if (PrintMode) then
+				pdf.SetPosition(row,col)
+			else
+				xcall w_disp(MainWindow,WD_POS,row,col)
+		endmethod
+
+		public static method PositionCursorAndClearLine, void
+			required in row, n
+			required in col, n
+			endparams
+		proc
+			if (PrintModeOld || !mTerminalIsOpen) then 
+				nop
+			else if (PrintMode) then
+				pdf.SetPosition(row,col) ;TODO: Needs clear line
+			else
+			begin
+				xcall w_disp(MainWindow,WD_POS,row,col,WD_CLR,WDC_LIN)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method MoveCursor, void
+			required in rows, n
+			required in cols, n
+			endparams
+		proc
+			if (PrintModeOld || !mTerminalIsOpen) then 
+				nop
+			else if (PrintMode) then
+			begin
+				pdf.Row = pdf.Row + rows
+				pdf.Column = pdf.Column + cols
+			end
+			else
+				xcall w_disp(MainWindow,WD_MOVE,rows,cols)
+		endmethod
+
+		public static method CursorLeft, void
+			endparams
+		proc
+			if (PrintModeOld || !mTerminalIsOpen) then 
+				nop
+			else if (PrintMode) then
+				pdf.Column = pdf.Column - 1
+			else
+				xcall w_disp(MainWindow,WD_MOVE,0,-1)
+		endmethod
+
+		public static method CursorRight, void
+			endparams
+		proc
+			if (PrintModeOld || !mTerminalIsOpen) then 
+				nop
+			else if (PrintMode) then
+				pdf.Column = pdf.Column + 1
+			else
+				xcall w_disp(MainWindow,WD_MOVE,0,1)
+		endmethod
+
+		public static method CursorUp, void
+			endparams
+		proc
+			if (PrintModeOld || !mTerminalIsOpen) then 
+				nop
+			else if (PrintMode) then
+				pdf.Row = pdf.Row - 1
+			else
+				xcall w_disp(MainWindow,WD_MOVE,-1,0)
+		endmethod
+
+		public static method CursorDown, void
+			endparams
+		proc
+			if (PrintModeOld || !mTerminalIsOpen) then 
+				nop
+			else if (PrintMode) then
+				pdf.Row = pdf.Row + 1
+			else
+				xcall w_disp(MainWindow,WD_MOVE,1,0)
+		endmethod
+		
+		public static method CursorToBOL, void
+			endparams
+		proc
+			if (PrintModeOld || !mTerminalIsOpen) then 
+				nop
+			else if (PrintMode) then
+				pdf.Column = 1
+			else
+				xcall w_disp(MainWindow,WD_MOVE,0,-132)
+		endmethod
+
+		public static method Forms, void
+			required in opt, n
+			endparams
+		proc
+			if (PrintModeOld) then 
+				forms(mPrintChannel,opt)
+
+			else if (PrintMode) then
+			begin
+				using opt select
+				(-3),   pdf.NewLine()				;New line
+				(-2),   nop					;TODO: Shift out?
+				(-1),   nop					;TODO: Vertical Tab?
+				(0),    pdf.NewPage()				;Form feed
+				(),
+				begin
+					data ix, int
+					for ix from 1 thru opt
+						pdf.NewLine()
+				end
+				endusing
+			end
+			
+			else if (mTerminalIsOpen)
+			begin
+				using opt select
+				(-3),   xcall w_disp(MainWindow,WD_WRITES,"")	;New line
+				(-2),   xcall w_disp(MainWindow,%char(14))	;Shift out
+				(-1),   xcall w_disp(MainWindow,%char(11))	;Vertical tab
+				(0),    xcall w_disp(MainWindow,%char(12))	;Form feed
+				(),
+				begin
+					data ix, int
+					for ix from 1 thru opt
+						xcall w_disp(MainWindow,WD_WRITES,"")						
+				end
+				endusing
+				xcall w_updt
+			end
+		endmethod
+		
+		;-------------------------------------------------
+		;Scroll Window
+		
+		private static mScrollWindow, @ScrollWindow
+
+		private static mUsingScrollWindow, boolean, false
+		
+		public static property UsingScrollWindow, boolean
+			method get
+			proc
+				mreturn mUsingScrollWindow
+			endmethod
+		endproperty
+		
+		public static property ScrollWindowImmediateUpdate, boolean
+			method set
+			proc
+				if (mScrollWindow != ^null)
+					mScrollWindow.ImmediateUpdate = value
+			endmethod
+		endproperty
+
+		public static method StartScrollWindow, void
+			optional in title,		string
+			optional in rows,		i4
+			optional in row,		i4
+			optional in cols,		i4
+			optional in col,		i4
+			optional in headerText,		string
+			optional in footerText,		string
+			optional in disablePrint,	boolean
+			optional in disableEmail,	boolean
+			optional in disableFind,	boolean
+			optional in disableTop,		boolean
+			optional in disablePgUp,	boolean
+			optional in disablePgDn,	boolean
+			optional in disableBotm,	boolean
+			endparams
+		proc
+			if (mTerminalIsOpen)
+			begin
+				mUsingScrollWindow = true
+				mScrollWindow = new ScrollWindow(title,rows,row,cols,col,headerText,footerText,disablePrint,disableEmail,disableFind,disableTop,disablePgUp,disablePgDn,disableBotm)
+
+				;;Put up a "Preparing report ..." window
+				begin
+					data msgWinId, i4
+					xcall w_proc(WP_CREATE,msgWinId,"",3,30,WP_PLACE,msgWinId,9,25)
+					xcall w_disp(msgWinId,WD_POS,2,2,"Preparing scrollable data...")
+					xcall w_updt
+					xcall w_proc(WP_DELETE,msgWinId)
+				end
+			end
+		endmethod
+		
+		public static method CancelScrollWindow, void
+			endparams
+		proc
+			if (mScrollWindow != ^null)
+			begin
+				xcall w_updt ;Remove the "Preparing scrollable data..." window
+				mScrollWindow.Dispose()
+				mScrollWindow = ^null
+				mUsingScrollWindow = false
+			end
+		endmethod
+		
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="dontDeleteOnClose">If you use this you should manually call CancelScrollWindow when you are done!</param>
+		;;; <returns></returns>
+		public static method ShowScrollWindow, string
+			optional in dontDeleteOnClose, boolean
+			record 
+				selection, string
+			endrecord
+		proc
+			selection = ""
+			if (mScrollWindow != ^null)
+			begin
+				xcall w_updt ;Remove the "Preparing scrollable data..." window
+				selection = mScrollWindow.Process()
+				if (!^passed(dontDeleteOnClose) || !dontDeleteOnClose) then
+					CancelScrollWindow()
+				else
+					mScrollWindow.GoToBottom()
+			end
+			mreturn selection
+		endmethod
+		
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="dontDeleteOnClose">If you use this you should manually call CancelScrollWindow when you are done!</param>
+		;;; <returns></returns>
+		public static method ShowScrollWindowTop, string
+			optional in dontDeleteOnClose, boolean
+			record 
+				selection, string
+			endrecord
+		proc
+			selection = ""
+			if (mScrollWindow != ^null)
+			begin
+				xcall w_updt ;Remove the "Preparing scrollable data..." window
+				selection = mScrollWindow.ProcessFromTop()
+				if (!^passed(dontDeleteOnClose) || !dontDeleteOnClose) then
+					CancelScrollWindow()
+				else
+					mScrollWindow.GoToBottom()
+			end
+			mreturn selection
+		endmethod
+		
+		public static method RestartScrollWindow, void
+		proc
+			mScrollWindow.Restart()
+		endmethod
+		
+		;-------------------------------------------------
+		;Item picker
+		
+		public static method PickItem, string
+			required in items,		@ArrayList
+			required in title,		string
+			required in rows,		i4
+			required in cols,		i4
+			required in row,		i4
+			required in col,		i4
+			record 
+				sw,			@ScrollWindow
+				item,			string
+				selection,		string
+			endrecord
+		proc
+			selection = ""
+			if (mTerminalIsOpen)
+			begin
+				sw = new ScrollWindow(title,rows,row,cols,col,,,true,true,true,true,true,true,true)
+				foreach item in items
+					sw.AddItem(item)
+				selection = sw.ProcessFromTop()
+				sw.Dispose()
+			end
+			mreturn selection
+		endmethod
+	
+		;-------------------------------------------------
+		;Scroll File
+		
+		public static method ScrollFile, void
+			required in type, FileType
+			required in file, string
+			required in title, string
+			required in listRows, int
+			required in listScreenRow, int
+			endparams
+			record 
+				ch	,int
+				reclen	,d5
+				buffer	,a65535
+			endrecord
+		proc
+			;;If the terminal is not open, do nothing!
+			if (!mTerminalIsOpen)
+				mreturn
+			
+			try 
+			begin
+				using type select
+				(FileType.Sequential),
+				begin
+					open(ch=0,i:s,file)
+					reclen = 65535
+				end
+				(FileType.Relative),
+				begin
+					open(ch=0,i:r,file)
+					xcall getfa(ch,"RSZ",reclen)
+				end
+				(FileType.Indexed),
+				begin
+					open(ch=0,i:i,file)
+					xcall getfa(ch,"RSZ",reclen)
+				end
+				endusing
+			end
+			catch (ex)
+			begin
+				UI.ErrorMessage("Error","Failed to open file " + file.Trim())
+				mreturn
+			end
+			endtry
+			
+			
+			UI.StartScrollWindow(title,listRows,listScreenRow)
+
+			repeat
+			begin
+				reads(ch,buffer(1:reclen),eof)
+				UI.DisplayLine(buffer(1:reclen))
+			end
+
+eof,			close ch
+			
+			UI.ShowScrollWindow()			
+			
+		endmethod
+		
+		;-------------------------------------------------
+		;Application caption methods
+		
+		public static method SetCaption,void
+			required in caption,	string
+			endparams
+			record 
+				tmpCaption,	string
+			endrecord
+		proc
+			tmpCaption = caption.Trim()
+			
+			if (InSubAccount)
+				tmpCaption = tmpCaption + " [Sub account " + SubAccountName + "]"
+				
+			xcall e_sect(tmpCaption,D_CAPTION,D_CENTER,D_CLEAR)
+		endmethod
+		
+		;-------------------------------------------------
+		;Popup message methods
+		
+		;;; <summary>
+		;;; Displays an error message in a popup dialog
+		;;; </summary>
+		;;; <param name="title"></param>
+		;;; <param name="text"></param>
+		;;; <returns></returns>
+		public static method InfoMessage	,void
+			required in title		,a
+			required in text		,a
+			endparams
+		proc
+			if (mTerminalIsOpen)
+				xcall u_msgbox(text,D_MCENTER|D_MOK|D_MICONINFO,title)
+		endmethod
+
+		public static method ErrorMessage	,void
+			required in title		,a
+			required in text		,a
+			endparams
+		proc
+			if (mTerminalIsOpen)
+				xcall u_msgbox(text,D_MCENTER|D_MOK|D_MICONEXCLAM,title)
+		endmethod
+		
+		public static method YesNoMessage	,int
+			required in title		,a
+			required in text		,a
+			required in default		,int
+			endparams
+		proc
+			if (mTerminalIsOpen) then
+			begin
+				using default select
+				(D_MIDYES),
+					mreturn %u_msgbox(text,D_MCENTER|D_MYESNO|D_MICONQUESTION|D_MDEFBUTTON1,title)
+				(D_MIDNO),
+					mreturn %u_msgbox(text,D_MCENTER|D_MYESNO|D_MICONQUESTION|D_MDEFBUTTON2,title)
+				endusing
+			end
+			else
+				mreturn 0
+		endmethod
+
+		;-------------------------------------------------
+		;DISPLAY methods
+		
+		public static method DisplayCharacter, void
+			required in characterNumber, n
+			endparams
+			record 
+				character, a1
+			endrecord
+		proc
+			xcall ascii(characterNumber,character)
+			if (PrintModeOld) then 
+				display(mPrintChannel,character)
+			else if (PrintMode) then
+			begin
+				if (characterNumber==12) then 
+					pdf.NewPage()
+				else
+				begin
+					data newCol, int, pdf.PrintText(character)
+					if ((newCol-1)>MaxPrintWidth)
+						MaxPrintWidth = newCol-1
+				end
+			end
+			else if (mTerminalIsOpen)
+			begin
+				xcall w_disp(MainWindow,character)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method DisplayText, void
+			required in text, a
+			endparams
+		proc
+			if (PrintModeOld) then 
+				display(mPrintChannel,text)
+			else if (PrintMode) then
+			begin
+				if ((%trim(text)==1) && (%decml(text(1:1))==12)) then 
+					pdf.NewPage()
+				else
+				begin
+					data newCol, int, pdf.PrintText(text)
+					if ((newCol-1)>MaxPrintWidth)
+						MaxPrintWidth = newCol-1
+				end
+			end
+			else if (mTerminalIsOpen)
+			begin
+				xcall w_disp(MainWindow,text)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method DisplayTextBold, void
+			required in text, a
+			endparams
+		proc
+			if (PrintModeOld) then 
+				display(mPrintChannel,text)
+			else if (PrintMode) then
+			begin
+				data newCol, int, pdf.PrintText(text,true)
+				if ((newCol-1)>MaxPrintWidth)
+					MaxPrintWidth = newCol-1
+			end
+			else if (mTerminalIsOpen)
+			begin
+				xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_BOLD,text,WD_ATTR,ATTR_CLR+ATTR_ALL)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method DisplayTextBoldBlink, void
+			required in text, a
+			endparams
+		proc
+			if (PrintModeOld) then 
+				display(mPrintChannel,text)
+			else if (PrintMode) then
+			begin
+				data newCol, int, pdf.PrintText(text,true)
+				if ((newCol-1)>MaxPrintWidth)
+					MaxPrintWidth = newCol-1
+			end
+			else if (mTerminalIsOpen)
+			begin
+				xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_BOLD+ATTR_BLNK,text,WD_ATTR,ATTR_CLR+ATTR_ALL)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method DisplayTextAndBeep, void
+			required in text, a
+			endparams
+		proc
+			if (PrintModeOld) then 
+				display(mPrintChannel,text)
+			else if (PrintMode) then
+			begin
+				data newCol, int, pdf.PrintText(text)
+				if ((newCol-1)>MaxPrintWidth)
+					MaxPrintWidth = newCol-1
+			end
+			else if (mTerminalIsOpen)
+			begin
+				xcall w_disp(MainWindow,text,WD_BELL)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method DisplayTextAt, void
+			required in row, n
+			required in col, n
+			required in text, a
+			endparams
+		proc
+			if (PrintModeOld || !mTerminalIsOpen) then 
+				nop
+			else if (PrintMode) then
+			begin
+				data newCol, int, pdf.PrintText(row,col,text)
+				if ((newCol-1)>MaxPrintWidth)
+					MaxPrintWidth = newCol-1
+			end
+			else
+			begin
+				xcall w_disp(MainWindow,WD_POS,row,col,text)
+				xcall w_updt
+			end
+		endmethod
+		
+		public static method DisplayTextAtAndBeep, void
+			required in row, n
+			required in col, n
+			required in text, a
+			endparams
+		proc
+			if (PrintModeOld || !mTerminalIsOpen) then 
+				nop
+			else if (PrintMode) then
+			begin
+				data newCol, int, pdf.PrintText(row,col,text)
+				if ((newCol-1)>MaxPrintWidth)
+					MaxPrintWidth = newCol-1
+			end
+			else
+			begin
+				xcall w_disp(MainWindow,
+				&	WD_POS,row,col,text,
+				&	WD_BELL)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method DisplayBoldTextAt, void
+			required in row, n
+			required in col, n
+			required in text, a
+			endparams
+		proc
+			if (PrintModeOld || !mTerminalIsOpen) then 
+				nop
+			else if (PrintMode) then
+			begin
+				data newCol, int, pdf.PrintText(row,col,text,true)
+				if ((newCol-1)>MaxPrintWidth)
+					MaxPrintWidth = newCol-1
+			end
+			else
+			begin
+				xcall w_disp(MainWindow,WD_POS,row,col,WD_ATTR,ATTR_SET+ATTR_BOLD,text,WD_ATTR,ATTR_CLR+ATTR_ALL)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method DisplayReverseTextAt, void
+			required in row, n
+			required in col, n
+			required in text, a
+			endparams
+		proc
+			if (PrintModeOld || !mTerminalIsOpen) then 
+				nop
+			else if (PrintMode) then
+			begin
+				data newCol, int, pdf.PrintText(row,col,text) ;TODO: Needs reverse support
+				if ((newCol-1)>MaxPrintWidth)
+					MaxPrintWidth = newCol-1
+			end
+			else
+			begin
+				xcall w_disp(MainWindow,WD_POS,row,col,WD_ATTR,ATTR_SET+ATTR_RVRS,text,WD_ATTR,ATTR_CLR+ATTR_ALL)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method DisplayUnderlinedTextAt, void
+			required in row, n
+			required in col, n
+			required in text, a
+			endparams
+		proc
+			if (PrintModeOld || !mTerminalIsOpen) then 
+				nop
+			else if (PrintMode) then
+			begin
+				data newCol, int, pdf.PrintText(row,col,text) ;TODO: Needs underline support
+				if ((newCol-1)>MaxPrintWidth)
+					MaxPrintWidth = newCol-1
+			end
+			else
+			begin
+				xcall w_disp(MainWindow,WD_POS,row,col,WD_ATTR,ATTR_SET+ATTR_UNDR,text,WD_ATTR,ATTR_CLR+ATTR_ALL)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method ClearScreenAndDisplayTextAt, void
+			required in row, n
+			required in col, n
+			required in text, a
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+			begin
+				xcall w_disp(MainWindow,WD_CLEAR,WD_POS,row,col,text)
+				xcall w_updt
+			end
+		endmethod
+		
+		;-------------------------------------------------
+		;WRITES methods
+		
+		public static method DisplayLine, void
+			required in text, a
+			endparams
+		proc
+			if (PrintModeOld) then 
+			begin
+				data length, int, %trimz(text)
+				if (length > MaxPrintWidth)
+					MaxPrintWidth = length
+				writes(mPrintChannel,text)
+			end
+			else if (PrintMode) then
+			begin
+				data newCol, int, pdf.PrintText(text,,,,true)
+				if ((newCol-1)>MaxPrintWidth)
+					MaxPrintWidth = newCol-1
+			end
+			else if (mUsingScrollWindow) then 
+			begin
+				 mScrollWindow.AddItem(text)
+			end
+			else if (mTerminalIsOpen)
+			begin
+				xcall w_disp(MainWindow,WD_WRITES,text)
+				xcall w_updt
+			 end
+		endmethod
+
+		public static method DisplayTextOnNextLine, void
+			required in text, a
+			endparams
+		proc
+			if (PrintModeOld) then 
+			begin
+				data length, int, %trimz(text)
+				if (length > MaxPrintWidth)
+					MaxPrintWidth = length
+				display(mPrintChannel,13,10,text)
+			end
+			else if (PrintMode) then 
+			begin
+				data newCol, int
+				pdf.NewLine()
+				newCol = pdf.PrintText(text,,,,true)
+				if ((newCol-1)>MaxPrintWidth)
+					MaxPrintWidth = newCol-1
+			end
+			else if (mUsingScrollWindow) then 
+			begin
+				mScrollWindow.AddItem("")
+				mScrollWindow.AddItem(text)
+			end
+			else if (mTerminalIsOpen)
+			begin
+				xcall w_disp(MainWindow,WD_WRITES,"",text)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method DisplayTextOnNextLineAndBeep, void
+			required in text, a
+			endparams
+		proc
+			if (PrintModeOld) then 
+			begin
+				data length, int, %trimz(text)
+				if (length > MaxPrintWidth)
+					MaxPrintWidth = length
+				display(mPrintChannel,13,10,text,7)
+			end
+			else if (PrintMode) then 
+			begin
+				data newCol, int
+				pdf.NewLine()
+				newCol = pdf.PrintText(text)
+				if ((newCol-1)>MaxPrintWidth)
+					MaxPrintWidth = newCol-1
+			end
+			else if (mUsingScrollWindow) then 
+			begin
+				mScrollWindow.AddItem("")
+				mScrollWindow.AddItem(text)
+			end
+			else if (mTerminalIsOpen)
+			begin
+				xcall w_disp(MainWindow,WD_WRITES,"",text,WD_BELL)
+				xcall w_updt
+			end
+		endmethod
+
+		;-------------------------------------------------
+		;ACCEPT methods
+		
+		public static method AcceptAsNumber, d
+			endparams
+			record 
+				charnum, d3
+			endrecord
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				charnum = 0
+			else
+				xcall w_disp(MainWindow,WD_ACCEPT,charnum)
+			mreturn charnum
+		endmethod
+
+		public static method AcceptAsNumberWithTimeout, d
+			required in timeout, n
+			endparams
+			record 
+				charnum, d3
+			endrecord
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				charnum = 0
+			else
+				xcall w_disp(MainWindow,WD_ACCEPT,charnum,WD_WAIT,timeout)
+			mreturn charnum
+		endmethod
+
+		public static method AcceptAsCharacter, a
+			endparams
+			record 
+				character, a1
+			endrecord
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				character = ""
+			else
+					xcall w_disp(MainWindow,WD_ACCEPT,character)
+			mreturn character
+		endmethod
+
+		public static method AcceptAsCharacterWithTimeout, a
+			required in timeout, n
+			endparams
+			record 
+				character, a1
+			endrecord
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				character = ""
+			else
+					xcall w_disp(MainWindow,WD_ACCEPT,character,WD_WAIT,timeout)
+			mreturn character
+		endmethod
+		
+		;-------------------------------------------------
+		;READS methods
+		
+		public static method EnterField, void
+			required inout field, a
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				field = " "
+			else
+			begin
+				xcall w_disp(MainWindow,WD_READS,field)
+				if (mEchoTerminator)
+					xcall w_disp(MainWindow,WD_WRITES,"")
+			end
+		endmethod
+
+		public static method EnterFieldAt, void
+			required in    row, n
+			required in    col, n
+			required inout field, a
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				field = " "
+			else
+			begin
+				xcall w_disp(MainWindow,WD_POS,row,col,WD_READS,field)
+				if (mEchoTerminator)
+					xcall w_disp(MainWindow,WD_WRITES,"")
+			end
+		endmethod
+		
+		;-------------------------------------------------
+		;Scrolling Region
+		
+		public static method SetScrollRegion, void
+			required in startRow, n
+			required in endRow, n
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_area(MainWindow,WA_SET,startRow,1,endRow-startRow+1,ScreenWidth)
+		endmethod
+		
+		;-------------------------------------------------
+		;CLEAR methods
+		
+		public static method ClearScreen, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+			begin
+				xcall w_disp(MainWindow,WD_CLEAR)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method ClearToBeginningOfScreen, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+			begin
+				xcall w_disp(MainWindow,WD_CLR,WDC_BOW)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method ClearToEndOfScreen, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+			begin
+				xcall w_disp(MainWindow,WD_CLR,WDC_EOW)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method ClearLine, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+			begin
+				xcall w_disp(MainWindow,WD_CLR,WDC_LIN)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method ClearToBeginningOfLine, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+			begin
+				xcall w_disp(MainWindow,WD_CLR,WDC_BOL)
+				xcall w_updt
+			end
+		endmethod
+
+		public static method ClearToEndOfLine, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+			begin
+				xcall w_disp(MainWindow,WD_CLR,WDC_EOL)
+				xcall w_updt
+			end
+		endmethod
+		
+		;-------------------------------------------------
+		;Renditions / Attributes
+		
+		public static method ClearAttributes, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_disp(MainWindow,WD_ATTR,ATTR_CLR+ATTR_ALL)
+		endmethod
+		
+		public static method Bold, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_BOLD)
+		endmethod
+		
+		public static method BoldOff, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_disp(MainWindow,WD_ATTR,ATTR_CLR+ATTR_BOLD)
+		endmethod
+
+		public static method Blink, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_BLNK)
+		endmethod
+
+		public static method BlinkOff, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_disp(MainWindow,WD_ATTR,ATTR_CLR+ATTR_BLNK)
+		endmethod
+
+		public static method Reverse, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_RVRS)
+		endmethod
+
+		public static method ReverseOff, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_disp(MainWindow,WD_ATTR,ATTR_CLR+ATTR_RVRS)
+		endmethod
+
+		public static method BoldReverse, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_BOLD+ATTR_RVRS)
+		endmethod
+
+		public static method BoldBlinkReverse, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_BOLD+ATTR_BLNK+ATTR_RVRS)
+		endmethod
+
+		public static method Underline, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_UNDR)
+		endmethod
+
+		public static method UnderlineOff, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_disp(MainWindow,WD_ATTR,ATTR_CLR+ATTR_UNDR)
+		endmethod
+		
+		public static method GraphicsOn, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_disp(MainWindow,WD_ANSI,%char(14))
+		endmethod
+		
+		public static method GraphicsOff, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_disp(MainWindow,WD_ANSI,%char(15))
+		endmethod
+		
+		;-------------------------------------------------
+		;Beeping
+
+		public static method Beep, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+			begin
+				xcall w_disp(MainWindow,WD_BELL)
+				xcall w_updt
+			end
+		endmethod
+		
+		;-------------------------------------------------
+		;Screen update
+		
+		public static method UpdateScreen, void
+			endparams
+		proc
+			if (PrintModeOld || PrintMode || !mTerminalIsOpen) then 
+				nop
+			else
+				xcall w_updt
+		endmethod
+		
+		;-------------------------------------------------
+		;Terminal printing via PrintAPI.PrintFile
+		
+		private static PrintModeOld	,boolean
+		private static MaxPrintWidth	,int
+		private static mPrintChannel	,int
+		private static mPrintFile	,string
+		private static mPreviewTitle	,string
+
+		public static property PrintChannel, int
+			method get
+			proc
+				mreturn mPrintChannel
+			endmethod
+		endproperty
+
+		public static property PrintFile, string
+			method get
+			proc
+				mreturn mPrintFile
+			endmethod
+		endproperty
+
+		public static method StartPrintModeOld, void
+			optional in previewTitle, a
+		proc
+			;;Are we already in print mode?
+			if (PrintModeOld)
+			begin
+				close mPrintChannel
+				xcall delet(mPrintFile)
+				PrintModeOld = false
+				mPrintFile = ""
+				mPreviewTitle = ""
+				mPrintChannel = 0
+			end
+
+			;;Are we already in print mode?
+			if (PrintMode)
+				throw new ApplicationException("Can't use StartPrintModeOld and StartPrintMode at the same time!")
+
+			;;If we were passed a title then use it
+			if (^passed(previewTitle) && previewTitle) then
+				mPreviewTitle = %atrim(previewTitle)
+			else
+				mPreviewTitle = "Print Preview"
+
+			;;Make a temporary file name for the print output
+			mPrintFile = %WinTempFile(,"PRN")
+
+			open(mPrintChannel=0,o:s,mPrintFile)
+
+			PrintModeOld = true
+
+			;;Put up a "Preparing report ..." window
+			begin
+				data msgWinId, i4
+				xcall w_proc(WP_CREATE,msgWinId,"",3,21,WP_PLACE,msgWinId,9,29)
+				xcall w_disp(msgWinId,WD_POS,2,2,"Preparing report...")
+				xcall w_updt
+				xcall w_proc(WP_DELETE,msgWinId)
+			end
+		endmethod
+
+		public static method EndPrintModeOld, void
+			endparams
+		proc
+			;;Are we in print mode?
+			if (PrintModeOld)
+			begin
+				data errorMessage, string
+				close mPrintChannel
+				PrintModeOld = false
+				mPrintChannel = 0
+
+				;;Update the screen to ensure the "Preparing report..." window is removed
+				xcall w_updt
+
+				;;If the terminal is not open then we'll just leave the spool file on disk
+				;;for the calling program to do something with.
+				if (mTerminalIsOpen)
+				begin
+					;;Show the print output in a print preview window
+					PrintAPI.PrintFile(mPreviewTitle,mPrintFile,errorMessage,(MaxPrintWidth>80))
+
+					;;Delete the temp file
+					try
+					begin
+						xcall delet(mPrintFile)
+					end
+					catch (ex)
+					begin
+						nop
+					end
+					endtry
+				end
+			end
+		endmethod
+		
+		;-------------------------------------------------
+		;Terminal printing via VDSC.Report
+		
+		private static PrintMode,		boolean
+		private static pdf,			@PdfFile
+		
+		public static method StartPrintMode,	boolean
+
+			optional in aPartialFileName,	string
+			optional in aOrientation, 	PdfOrientation
+			optional in aMinimumColumns, 	int
+			optional in aMaxFontSize,	int
+			optional in aCenterBodyInPage,	boolean
+			optional in aLeftMargin,	float
+			optional in aTopMargin,		float
+			optional in aRightMargin,	float
+			optional in aBottomMargin,	float
+			optional in aHeaderRows,	@ArrayList
+			optional in aFooterRows,	@ArrayList
+
+			record 
+				ok,			boolean
+				orientation,		PdfOrientation
+				headerRows,		int
+				footerRows,		int
+				partialName,		string
+				minWidth,		int
+			endrecord
+			
+			
+		proc
+			;;Are we already in print mode?
+			if (PrintModeOld)
+				throw new ApplicationException("Can't use StartPrintMode and StartPrintModeOld at the same time!")
+
+			;;Are we already in report mode?
+			if (PrintMode)
+			begin
+				pdf.Dispose()
+				PrintMode = false
+			end
+			;;Put up a "Preparing report ..." window
+			begin
+				data msgWinId, i4
+				xcall w_proc(WP_CREATE,msgWinId,"",3,21,WP_PLACE,msgWinId,9,29)
+				xcall w_disp(msgWinId,WD_POS,2,2,"Preparing report...")
+				xcall w_updt
+				xcall w_proc(WP_DELETE,msgWinId)
+			end
+
+			;;Set the page orientation
+			if (^passed(aOrientation)) then
+				orientation = aOrientation
+			else
+			begin
+				if (MaxPrintWidth > 80) then 
+					orientation = PdfOrientation.Landscape
+				else
+					orientation = PdfOrientation.Portrait
+			end
+
+			;;Add any page headers
+			if (^passed(aHeaderRows) && (aHeaderRows.Count > 0)) then
+				headerRows = aHeaderRows.Count
+			else
+				headerRows = 0
+			
+			;;Add any page footers
+			if (^passed(aFooterRows) && (aFooterRows.Count > 0)) then
+				footerRows = aFooterRows.Count
+			else
+				footerRows = 0
+			
+			;;Create a new PdfFile object
+			pdf = new PdfFile(orientation,aLeftMargin,aTopMargin,aRightMargin,aLeftMargin,headerRows,footerRows)
+			PrintMode = true
+
+			;;Add any page headers
+			if (headerRows)
+			begin
+				data ix, int
+				for ix from 1 thru headerRows
+					pdf.HeaderText[ix] = (string)aHeaderRows[ix-1]
+			end
+			
+			;;Add any page footers
+			if (footerRows)
+			begin
+				data ix, int
+				for ix from 1 thru footerRows
+					pdf.FooterText[ix] = (string)aFooterRows[ix-1]
+			end
+
+			if (^passed(aPartialFileName) && (aPartialFileName.Trim().Length>0)) then
+				partialName = aPartialFileName.Trim()
+			else
+			begin
+				data tmpName, a30
+				data ix, int, 0
+				repeat
+				begin
+					xcall modname(ix+=1,tmpName)
+					if (tmpName=="MAIN$")
+						exitloop
+				end
+				partialName = %atrim(tmpName)
+			end
+			
+			if (^passed(aMinimumColumns) && (aMinimumColumns > 0)) then 
+				minWidth = aMinimumColumns
+			else if (MaxPrintWidth) then
+				minWidth = MaxPrintWidth
+			else
+				minWidth = 80
+			
+			ok = pdf.Initialize("SYS$LOGIN:",partialName,minWidth,aMaxFontSize,aCenterBodyInPage)
+			
+			mreturn ok
+			
+		endmethod
+
+		public static method EndPrintMode, void
+			endparams
+		proc
+			;;Are we in print mode?			
+			if (PrintMode)
+			begin
+				data errorMessage, string
+				PrintMode = false
+
+				;;Update the screen to ensure the "Preparing report..." window is removed
+				xcall w_updt
+
+				if (mTerminalIsOpen)
+					pdf.Preview()
+				
+				;Calling Print or Preview also implicitly calls Dispose
+				clear pdf
+			end
+		endmethod
+		
+		public static property PrintModePdf, @PdfFile
+			method get
+			proc
+				mreturn pdf
+			endmethod
+		endproperty
+		
+		;-------------------------------------------------
+		;Echo on / off
+		
+		public static method EchoOff, void
+			endparams
+		proc
+			xcall flags('1000000000',1)
+		endmethod
+
+		public static method EchoOn, void
+			endparams
+		proc
+			xcall flags('1000000000',0)
+		endmethod
+
+	endclass
+
+endnamespace

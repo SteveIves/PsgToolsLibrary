@@ -44,6 +44,8 @@
 ;;              1.3  03/28/2011 - fixed "N. Central Asia Standard Time" offset
 ;;***************************************************************************
 
+import System
+
 namespace SynPSG
 
     public enum StringSplitOptions
@@ -163,19 +165,8 @@ namespace SynPSG
         ;;;<return>Uppercase string</return>
         public static method ToUpper    ,string
             req in inString             ,string
-            endparams
-
-            structure s
-                sStr            ,a1
-            endstructure
-            record
-                hdl             ,D_HANDLE
-            endrecord
         proc
-            hdl = %mem_proc(DM_ALLOC, ^size(inString))
-            ^m(hdl) = inString
-            upcase ^m(hdl)
-            mreturn ^m(hdl)
+            mreturn inString.ToUpper()
         endmethod
 
         ;;;<summary>
@@ -184,19 +175,8 @@ namespace SynPSG
         ;;;<return>Lowercase string</return>
         public static method ToLower    ,string
             req in inString             ,string
-            endparams
-
-            structure s
-                sStr            ,a1
-            endstructure
-            record
-                hdl             ,D_HANDLE
-            endrecord
         proc
-            hdl = %mem_proc(DM_ALLOC, ^size(inString))
-            ^m(hdl) = inString
-            locase ^m(hdl)
-            mreturn ^m(hdl)
+	    mreturn inString.ToLower()
         endmethod
 
         ;;;<summary>

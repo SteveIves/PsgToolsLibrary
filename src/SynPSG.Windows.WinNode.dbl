@@ -18,6 +18,8 @@
 ;
 ;****************************************************************************
 
+.ifdef D_GUI
+
 namespace SynPSG.Windows
 
 	function WinNode, string
@@ -45,3 +47,4 @@ namespace SynPSG.Windows
 
 endnamespace
 
+.endc

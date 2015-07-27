@@ -129,11 +129,15 @@
         <Folder
             Name="Source Files"
             Filters="*.dbl;*.tpl;*.dbc">
+            <F N="../src/pdfdbl.dbl"/>
             <F N="../src/SynPSG.calc_wk_no.dbl"/>
             <F N="../src/SynPSG.CanadianProvince.dbl"/>
             <F N="../src/SynPSG.CopyHandle.dbl"/>
+            <F N="../src/SynPSG.DataServer.dbl"/>
+            <F N="../src/SynPSG.DateTimeTools.dbl"/>
             <F N="../src/SynPSG.ExpandLogicalInFileSpec.dbl"/>
             <F N="../src/SynPSG.FileToHandle.dbl"/>
+            <F N="../src/SynPSG.FileTools.dbl"/>
             <F N="../src/SynPSG.FormatDate.dbl"/>
             <F N="../src/SynPSG.FormatTime.dbl"/>
             <F N="../src/SynPSG.FtpClient.dbl"/>
@@ -144,6 +148,13 @@
             <F N="../src/SynPSG.IsoCountry.dbl"/>
             <F N="../src/SynPSG.MonthNumberToShortName.dbl"/>
             <F N="../src/SynPSG.MonthShortNameToNumber.dbl"/>
+            <F N="../src/SynPSG.PdfBox.dbl"/>
+            <F N="../src/SynPSG.PdfFile.dbl"/>
+            <F N="../src/SynPSG.PdfFile.Enums.dbl"/>
+            <F N="../src/SynPSG.PdfFile.Private.dbl"/>
+            <F N="../src/SynPSG.PdfLine.dbl"/>
+            <F N="../src/SynPSG.PdfText.dbl"/>
+            <F N="../src/SynPSG.ScrollWindow.dbl"/>
             <F N="../src/SynPSG.SevenZipAPI.dbl"/>
             <F N="../src/SynPSG.StringUtil.dbl"/>
             <F N="../src/SynPSG.SubversionAPI.dbl"/>
@@ -179,6 +190,7 @@
             <F N="../src/SynPSG.System.Text.Encoding.ASCIIEncoding.dbl"/>
             <F N="../src/SynPSG.System.Uri.dbl"/>
             <F N="../src/SynPSG.TimeUtil.dbl"/>
+            <F N="../src/SynPSG.UI.dbl"/>
             <F N="../src/SynPSG.UrlEncode.dbl"/>
             <F N="../src/SynPSG.UsState.dbl"/>
             <F N="../src/SynPSG.VmsCompatibility.DBL$SETKRF.DBL"/>
@@ -199,13 +211,15 @@
             <F N="../src/SynPSG.VmsCompatibility.SYS$ASCTIM.DBL"/>
             <F N="../src/SynPSG.VmsCompatibility.SYS$BINTIM.DBL"/>
             <F N="../src/SynPSG.VmsCompatibility.SYS$GETTIM.DBL"/>
+            <F N="../src/SynPSG.Windows.Clipboard.dbl"/>
+            <F N="../src/SynPSG.Windows.PrintAPI.dbl"/>
             <F N="../src/SynPSG.Windows.RdpClientName.dbl"/>
-            <F N="../src/SynPSG.Windows.RichtClickToClipboard.dbl"/>
+            <F N="../src/SynPSG.Windows.Report.dbl"/>
+            <F N="../src/SynPSG.Windows.RightClickToClipboard.dbl"/>
             <F N="../src/SynPSG.Windows.WinAppNoReSize.dbl"/>
             <F N="../src/SynPSG.Windows.WinAppOneInstance.dbl"/>
             <F N="../src/SynPSG.Windows.WinBeep.dbl"/>
             <F N="../src/SynPSG.Windows.WinButtonAnywhere.dbl"/>
-            <F N="../src/SynPSG.Windows.WinClipBoard.dbl"/>
             <F N="../src/SynPSG.Windows.WinDir.dbl"/>
             <F N="../src/SynPSG.Windows.WinFileCopy.dbl"/>
             <F N="../src/SynPSG.Windows.WinFileTime.dbl"/>
@@ -225,7 +239,6 @@
             <F N="../src/SynPSG.Windows.WinSysPath.dbl"/>
             <F N="../src/SynPSG.Windows.WinTempDir.dbl"/>
             <F N="../src/SynPSG.Windows.WinTempFile.dbl"/>
-            <F N="../src/SynPSG.xfServerPlusAPI.dbl"/>
         </Folder>
         <Folder
             Name="Header Files"

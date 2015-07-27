@@ -1,4 +1,3 @@
-.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       MemoryStream.dbc
@@ -34,6 +33,9 @@
 ;;              indicates your acceptance of these terms.
 ;;
 ;;***********************************************************************************
+
+.ifndef DBLNET
+
 import SynPSG.System.IO
 
 namespace SynPSG.System.IO
@@ -577,4 +579,5 @@ namespace SynPSG.System.IO
     endclass
 
 endnamespace
+
 .endc

@@ -1,4 +1,3 @@
-.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       Convert.dbc
@@ -34,6 +33,8 @@
 ;;              indicates your acceptance of these terms.
 ;;
 ;;***********************************************************************************
+
+.ifndef DBLNET
 
 namespace SynPSG.System
 
@@ -340,4 +341,5 @@ namespace SynPSG.System
     endclass
 
 endnamespace
+
 .endc

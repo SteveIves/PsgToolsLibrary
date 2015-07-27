@@ -1,4 +1,3 @@
-.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       NetworkStream.dbc
@@ -34,6 +33,9 @@
 ;;              indicates your acceptance of these terms.
 ;;
 ;;***********************************************************************************
+
+.ifndef DBLNET
+
 import SynPSG.System.Net
 import SynPSG.System.Net.Sockets
 
@@ -239,4 +241,5 @@ namespace SynPSG.System.Net.Sockets
     endclass
 
 endnamespace
+
 .endc

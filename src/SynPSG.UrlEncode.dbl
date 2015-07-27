@@ -1,19 +1,19 @@
 ;-------------------------------------------------------------------------------
 ;
-;Routine:		UrlEncode
+;Routine:	UrlEncode
 ;
-;Author:		Steve Ives (Synergex Professional Services Group)
+;Author:	Steve Ives (Synergex Professional Services Group)
 ;
-;Platforms:		All Synergy-supported platforms
+;Platforms:	All Synergy-supported platforms
 ;
-;Revisions:		Version	Date			Comment
-;				1.0		23 Jan 2002		Original version
+;Revisions:	Version	Date		Comment
+;		1.0	23 Jan 2002	Original version
 ;
-;Diclaimer:		This code is supplied as seen and without warranty or support.
-;				You may use and redistribute this code as you wish, but doing
-;				so is entirely your own risk. Neither the author or Synergex
-;				accept responsability for any loss or damage which may result
-;				from the use of this code.
+;Diclaimer:	This code is supplied as seen and without warranty or support.
+;		You may use and redistribute this code as you wish, but doing
+;		so is entirely your own risk. Neither the author or Synergex
+;		accept responsability for any loss or damage which may result
+;		from the use of this code.
 ;
 ;-------------------------------------------------------------------------------
 ;
@@ -46,14 +46,14 @@ namespace SynPSG
 
 		.align
 		stack record
-			mh				,i4			;Memory handle
-			mc				,i4			;Memory content pointer
-			count			,i4			;Loop counter
-			dchr			,d3			;ASCII character number (demimal)
+			mh		,i4			;Memory handle
+			mc		,i4			;Memory content pointer
+			count		,i4			;Loop counter
+			dchr		,d3			;ASCII character number (demimal)
 		endrecord
 
 		structure chr
-							,a1
+					,a1
 		endstructure
 
 	proc

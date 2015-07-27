@@ -1,0 +1,73 @@
+
+import system
+import synpsg.system
+import synpsg
+
+namespace SynPSG
+
+	public static class DateTimeTools
+		
+		;;; <summary>
+		;;; Returns the date in MM/DD/YYYY format
+		;;; </summary>
+		public static method GetFormattedDateMMDDYYYY, string
+			record 
+				now, a20
+			endrecord
+		proc
+			now = %datetime
+			mreturn now(5:2)+"/"+now(7:2)+"/"+now(1:4)
+		endmethod
+
+		;;; <summary>
+		;;; Returns the date in DD/MM/YYYY format
+		;;; </summary>
+		public static method GetFormattedDateDDMMYYYY, string
+			record 
+				now, a20
+			endrecord
+		proc
+			now = %datetime
+			mreturn now(7:2)+"/"+now(5:2)+"/"+now(1:4)
+		endmethod
+
+		;;; <summary>
+		;;; Returns the time in HH:MM format
+		;;; </summary>
+		public static method GetFormattedTimeHHMM, string
+			record 
+				now, a20
+			endrecord
+		proc
+			now = %datetime
+			mreturn now(9:2)+":"+now(11:2)
+		endmethod
+
+		;;; <summary>
+		;;; Returns the time in HH:MM:SS format
+		;;; </summary>
+		public static method GetFormattedTimeHHMMSS, string
+			record 
+				now, a20
+			endrecord
+		proc
+			now = %datetime
+			mreturn now(9:2)+":"+now(11:2)+":"+now(13:2)
+		endmethod
+		
+		;;; <summary>
+		;;; Returns the date and time in time in XXXX-XX-XX XX.XX.XX format
+		;;; </summary>
+		public static method GetTempFilePrefix, string
+			record 
+				now, a20
+			endrecord
+		proc
+			now = %datetime
+			mreturn %string(^d(now(1:14)),"XXXX-XX-XX XX.XX.XX")
+		endmethod
+		
+		
+	endclass
+	
+endnamespace
