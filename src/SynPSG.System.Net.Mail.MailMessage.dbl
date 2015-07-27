@@ -1,3 +1,4 @@
+.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       MailMessage.dbc
@@ -245,3 +246,4 @@ namespace SynPSG.System.Net.Mail
     endclass
 
 endnamespace
+.endc

@@ -1,3 +1,4 @@
+.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       AttachmentBase.dbc
@@ -39,7 +40,7 @@ namespace SynPSG.System.Net.Mail
 
     public abstract class AttachmentBase
 
-        private mFileName       ,string
+        protected mFileName       ,string
         private mContentId      ,string
         private mContentIdCount ,integer
         private mContentStream  ,@Stream
@@ -81,10 +82,16 @@ namespace SynPSG.System.Net.Mail
             if (fileName == ^null || fileName == "")
                 throw new ArgumentException("The parameter 'fileName' cannot be an empty string.")
             mContentStream = New FileStream(fileName,FileMode.Open)
-            mFileName = fileName
+	    begin
+		    ;Set mFileName to the basic file name and extension
+		    data fname, a128
+		    data fext, a32
+		    xcall PARSE(fileName,,,,,fname,fext)
+		    mFileName = %atrim(fname) + %atrim(fext)
+	    end
             mContentType = new ContentType()
             mTransferEncoding = SynPSG.Net.Mime.TransferEncoding.Base64
-            mContentId = %hex(%jbno)+%string(mContentIdCount,'XXXX')
+            mContentId = %hex(%jbno)+"_"+%string(mContentIdCount,'XXXX')
         endmethod
 
         ;;********************************************************************
@@ -226,3 +233,5 @@ namespace SynPSG.System.Net.Mail
         endproperty
     endclass
 endnamespace
+
+.endc

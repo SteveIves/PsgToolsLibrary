@@ -1,3 +1,4 @@
+.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       Attachment.dbc
@@ -153,11 +154,11 @@ namespace SynPSG.System.Net.Mail
         public property Name,   string
             method get
             proc
-                mreturn parent.ContentType.Name
+                mreturn mFileName
             endmethod
             method set
             proc
-                parent.ContentType.Name = value
+                mFileName = value
             endmethod
         endproperty
 
@@ -178,3 +179,5 @@ namespace SynPSG.System.Net.Mail
 
     endclass
 endnamespace
+
+.endc

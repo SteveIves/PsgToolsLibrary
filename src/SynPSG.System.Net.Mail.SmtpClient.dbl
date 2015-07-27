@@ -1,10 +1,28 @@
+.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       SmtpClient.dbc
 ;;
 ;; Type:        Class
 ;;
-;; Description:
+;; Description:	Communictates with an SMTP server in order to send email
+;;
+;; IMPORTANT:   Just lie the underlying .NET Framework class, this class
+;;              supports using the "SMTP Service Extension for Secure SMTP
+;;              over Transport Layer Security" as defined in RFC 3207.
+;;              In this mode, the SMTP session begins on an unencrypted
+;;              channel, then a STARTTLS command is issued by the client
+;;              to the server to switch to secure communication using SSL.
+;;              See RFC 3207 published by the Internet Engineering Task
+;;              Force (IETF) for more information.”
+;;
+;;      	Problem is this is NOT the type of SSL that is used by
+;;              many ISPs, who frequently use an alternate connection
+;;              method is where an SSL session is established up front
+;;              before any protocol commands are sent. This connection
+;;              method is sometimes called SMTP/SSL, SMTP over SSL, or
+;;              SMTPS and by default uses port 465. This alternate
+;;              connection method using SSL is not currently supported.
 ;;
 ;; Author:      Tod Phillips, Synergex Professional Services Group
 ;;
@@ -67,7 +85,7 @@ namespace SynPSG.System.Net.Mail
         public method SmtpClient
             in host     ,string
         proc
-            if (host.length == 0) then
+            if ((host==^null) || (host.length==0)) then
                 mHost = "localhost"
             else
                 mHost = host
@@ -81,13 +99,11 @@ namespace SynPSG.System.Net.Mail
             in host     ,string
             in port     ,integer
         proc
-            if (host.length == 0)
-            then
+            if ((host==^null) || (host.length==0)) then
                 mHost = "localhost"
             else
                 mHost = host
-            if (port <= 0)
-            then
+            if (port <= 0) then
                 mPort = 25
             else
                 mPort = port
@@ -195,8 +211,7 @@ namespace SynPSG.System.Net.Mail
             if (message.To.Count == 0)
                 throw new applicationexception("No 'to' addresses specified.")
 
-            if (message.Sender!=^null && message.Sender.Address.Length>0 && message.Sender.Address!=message.From.Address)
-            then
+            if (message.Sender!=^null && message.Sender.Address.Length>0 && message.Sender.Address!=message.From.Address) then
             begin
                 m_senderHost = message.Sender.Host
                 m_senderAddress = message.Sender.Address
@@ -238,8 +253,8 @@ namespace SynPSG.System.Net.Mail
                 buff = "EHLO "+m_senderHost+CRLF
             else
                 buff = "HELO "+m_senderHost+CRLF
-            mNStream.Write(buff,0,buff.Length)
 
+            mNStream.Write(buff,0,buff.Length)
             getSmtpLine()
             CheckResponseCode(220)
 
@@ -266,8 +281,8 @@ namespace SynPSG.System.Net.Mail
 
                 ;; get additional responses after logon
                 while(mRespContinuation==true)
-            begin
-                getSmtpLine()
+                begin
+                    getSmtpLine()
                     CheckResponseCode(250)
                 end
             end
@@ -350,9 +365,46 @@ namespace SynPSG.System.Net.Mail
             for ctr from 1 thru message.To.Count
             begin
                 buff = "RCPT TO:<"+message.To[ctr-1].Address+">"+CRLF
-                mNStream.Write(buff,0,buff.Length)
+                mNStream.Write(buff,0,buff.Length)	
                 getSmtpLine()
-                checkResponseCode(0)
+		
+		;----------------------------------------------------------------------------------
+		;;This code was added by Steve Ives because this behavior was seen in some
+		;;SMTP servers requiring authentication (e.g. the Arvixe servers).
+		if (mRespStr=="SMTP authentication is required.") ;530
+		begin
+			buff = 'auth login'+CRLF
+			mNStream.Write(buff,0,buff.Length)
+
+			;;get username prompt
+			getSmtpLine()
+			checkResponseCode(334)
+
+			;;base64 encrypted username
+			buff = Convert.ToBase64String(AsciiEncoding.GetBytes(Credentials.Username),SynPSG.Base64FormattingOptions.None)+CRLF
+			mNStream.Write(buff,0,buff.Length)
+
+			;;get password prompt
+			getSmtpLine()
+			checkResponseCode(334)
+
+			;;base64 encrypted password
+			buff = Convert.ToBase64String(AsciiEncoding.GetBytes(Credentials.Password),SynPSG.Base64FormattingOptions.None)+CRLF
+			mNStream.Write(buff,0,buff.Length)
+			getSmtpLine()
+			
+			;Should be 235 "authenticated."
+			checkResponseCode(235)
+			
+			;;Now we need to send the RCPT TO again because the last one
+			;;wasn't processed because of the authentication request.
+			buff = "RCPT TO:<"+message.To[ctr-1].Address+">"+CRLF
+			mNStream.Write(buff,0,buff.Length)	
+			getSmtpLine()
+		end
+
+		checkResponseCode(0)
+		
             end
 
             ;;Send cc list
@@ -377,8 +429,7 @@ namespace SynPSG.System.Net.Mail
             mNStream.Write(buff,0,buff.Length)
 
             ;;Sender
-            if (message.From.DisplayName)
-            then
+            if (message.From.DisplayName) then
                 buff = 'From: "'+message.From.DisplayName+'" <'+message.From.Address+'>'+CRLF
             else
                 buff = "From: "+message.From.Address+CRLF
@@ -390,8 +441,7 @@ namespace SynPSG.System.Net.Mail
             begin
                 if (ctr>1)
                     buff = String.Concat(buff, ',')
-                if (message.To[ctr-1].DisplayName)
-                then
+                if (message.To[ctr-1].DisplayName) then
                     buff = String.Concat(buff, ' "'+message.To[ctr-1].DisplayName+'" <'+message.To[ctr-1].Address+'>')
                 else
                     buff = String.Concat(buff, ' '+message.To[ctr-1].Address)
@@ -407,8 +457,7 @@ namespace SynPSG.System.Net.Mail
                 begin
                     if (ctr>1)
                         buff = String.Concat(buff, ',')
-                    if (message.CC[ctr-1].DisplayName)
-                    then
+                    if (message.CC[ctr-1].DisplayName) then
                         buff = String.Concat(buff, ' "'+message.CC[ctr-1].DisplayName+'" <'+message.CC[ctr-1].Address+'>')
                     else
                         buff = String.Concat(buff, " "+message.CC[ctr-1].Address)
@@ -425,8 +474,7 @@ namespace SynPSG.System.Net.Mail
                 begin
                     if (ctr>1)
                         buff = String.Concat(buff, ',')
-                    if (message.Bcc[ctr-1].DisplayName)
-                    then
+                    if (message.Bcc[ctr-1].DisplayName) then
                         buff = String.Concat(buff, ' "'+message.Bcc[ctr-1].DisplayName+'" <'+message.Bcc[ctr-1].Address+'>')
                     else
                         buff = String.Concat(buff, " "+message.Bcc[ctr-1].Address)
@@ -438,8 +486,7 @@ namespace SynPSG.System.Net.Mail
             ;;Reply to
             if (message.ReplyTo!=^null)
             begin
-                if (message.ReplyTo.DisplayName.Length>0)
-                then
+                if (message.ReplyTo.DisplayName.Length>0) then
                     buff = 'Reply-To: "'+message.ReplyTo.DisplayName+'" <'+message.ReplyTo.Address+'>'+CRLF
                 else
                     buff = "Reply-To: "+message.ReplyTo.Address+CRLF
@@ -468,8 +515,7 @@ namespace SynPSG.System.Net.Mail
                 mNStream.Write(CRLF,0,2)
                 buff = '--_NextPart_'+%hex(%jbno)+CRLF
                 mNStream.Write(buff,0,buff.Length)
-                if (message.IsBodyHtml)
-                then
+                if (message.IsBodyHtml) then
                     buff = 'Content-Type: text/html; charset="iso-8859-1"'+CRLF
                 else
                     buff = 'Content-Type: text/plain; charset="iso-8859-1"'+CRLF
@@ -484,15 +530,17 @@ namespace SynPSG.System.Net.Mail
 
             for ctr from 1 thru message.Attachments.Count
             begin
+		data atch, @Attachment, message.Attachments[ctr-1]
+		    
                 mNStream.Write(CRLF,0,2)
                 buff = '--_NextPart_'+%hex(%jbno)+CRLF
                 mNStream.Write(buff,0,buff.Length)
-                buff = 'Content-Type: '+message.Attachments[ctr-1].ContentType.ToString()+CRLF
+                buff = 'Content-Type: '+atch.ContentType.ToString()+CRLF
                 mNStream.Write(buff,0,buff.Length)
-                buff = 'Content-Disposition: '+message.Attachments[ctr-1].ContentDisposition.DispositionType+CRLF
+                buff = 'Content-Disposition: '+atch.ContentDisposition.DispositionType + '; filename="'+atch.Name+'"'+CRLF
                 mNStream.Write(buff,0,buff.Length)
                 buff = 'Content-Transfer-Encoding:'
-                using message.Attachments[ctr-1].TransferEncoding select
+                using atch.TransferEncoding select
                 (TransferEncoding.Base64),
                     buff = String.Concat(buff,' base64')
                 (TransferEncoding.QuotedPrintable),
@@ -505,11 +553,11 @@ namespace SynPSG.System.Net.Mail
                 mNStream.Write(CRLF,0,2)
                 repeat
                 begin
-                    m_data_len = ((FileStream)message.Attachments[ctr-1].ContentStream).Read(m_data,0,^size(m_data))
+                    m_data_len = ((FileStream)atch.ContentStream).Read(m_data,0,^size(m_data))
                     ;; Check for EndOfFile condition
                     if (!m_data_len)
                         exitloop
-                    using message.Attachments[ctr-1].TransferEncoding select
+                    using atch.TransferEncoding select
                     (TransferEncoding.Base64),
                     begin
                         data m_convString    ,string
@@ -535,7 +583,7 @@ namespace SynPSG.System.Net.Mail
             mNStream.Write(buff,0,buff.Length)
 
             getSmtpLine()
-            checkResponseCode(250)
+            checkResponseCode(250)		;;HERE WE'RE GETTING a 503 "Must have sender and recipient first." when authenticating 
 
             mreturn
         endmethod
@@ -613,8 +661,7 @@ namespace SynPSG.System.Net.Mail
             (300 thru 399),
                 mreturn ;; ok intermeditate reply
             (421),
-                if (mRespStr.Length>0)
-                then
+                if (mRespStr.Length>0) then
                     mErrMsg = mRespStr
                 else
                     mErrMsg = "Domain Service not available"
@@ -635,8 +682,7 @@ namespace SynPSG.System.Net.Mail
             (504),
                 mErrMsg = "Command paramater not implemented."
             (521),
-                if (mRespStr.Length>0)
-                then
+                if (mRespStr.Length>0) then
                     mErrMsg = mRespStr
                 else
                     mErrMsg = "Domain does not accept mail."
@@ -645,8 +691,7 @@ namespace SynPSG.System.Net.Mail
             (550),
                 mErrMsg = "Requested action not taken: mailbox unavailable"
             (551),
-                if (mRespStr.Length>0)
-                then
+                if (mRespStr.Length>0) then
                     mErrMsg = mRespStr
                 else
                     mErrMsg = "User not local."
@@ -659,7 +704,7 @@ namespace SynPSG.System.Net.Mail
             (560),
                 mErrMsg = "Must issue STARTTLS command first"
             (),
-                mErrMsg = "Invalid orUnknown SMTP response "+%string(mRespCode)
+                mErrMsg = "Unrecognized SMTP response "+%string(mRespCode)
             endusing
 
             if (mErrMsg.Length)
@@ -675,3 +720,5 @@ namespace SynPSG.System.Net.Mail
     endclass
 
 endnamespace
+
+.endc
