@@ -1,4 +1,3 @@
-
 namespace SynPSG.VmsCompatibility
 
 	function sys$gettim		,^val
@@ -14,5 +13,3 @@ namespace SynPSG.VmsCompatibility
 	endfunction
 
 endnamespace
-
-
