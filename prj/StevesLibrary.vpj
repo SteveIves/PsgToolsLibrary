@@ -199,6 +199,7 @@
             <F N="../src/SynPSG.VmsCompatibility.SYS$ASCTIM.DBL"/>
             <F N="../src/SynPSG.VmsCompatibility.SYS$BINTIM.DBL"/>
             <F N="../src/SynPSG.VmsCompatibility.SYS$GETTIM.DBL"/>
+            <F N="../src/SynPSG.Windows.RdpClientName.dbl"/>
             <F N="../src/SynPSG.Windows.RichtClickToClipboard.dbl"/>
             <F N="../src/SynPSG.Windows.WinAppNoReSize.dbl"/>
             <F N="../src/SynPSG.Windows.WinAppOneInstance.dbl"/>
@@ -224,6 +225,7 @@
             <F N="../src/SynPSG.Windows.WinSysPath.dbl"/>
             <F N="../src/SynPSG.Windows.WinTempDir.dbl"/>
             <F N="../src/SynPSG.Windows.WinTempFile.dbl"/>
+            <F N="../src/SynPSG.xfServerPlusAPI.dbl"/>
         </Folder>
         <Folder
             Name="Header Files"

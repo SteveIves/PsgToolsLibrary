@@ -182,6 +182,8 @@
             <F N="../src/TestPrograms/ScheduledTasksSummary.dbl"/>
             <F N="../src/TestPrograms/SelectExample.dbl"/>
             <F N="../src/TestPrograms/SevenZipTest.dbl"/>
+            <F N="../src/TestPrograms/SmtpClient.dbl"/>
+            <F N="../src/TestPrograms/SmtpClient_Authenticated.dbl"/>
             <F N="../src/TestPrograms/SparseSelect.dbl"/>
             <F N="../src/TestPrograms/WinDirTest.dbl"/>
             <F N="../src/TestPrograms/WindowsService.dbl"/>

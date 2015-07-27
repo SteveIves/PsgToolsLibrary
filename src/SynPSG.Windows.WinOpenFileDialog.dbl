@@ -1,3 +1,4 @@
+.ifndef DBLNET
 ;;*****************************************************************************
 ;;
 ;; Title:       WinOpenFileDialog.dbl
@@ -66,4 +67,4 @@ namespace SynPSG.Windows
 	endfunction
 	
 endnamespace
-
+.endc

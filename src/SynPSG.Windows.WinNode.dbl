@@ -1,14 +1,14 @@
 ;****************************************************************************
 ;
-; Title:		WinNode.dbl
+; Title:        WinNode.dbl
 ;
-; Author:		Steve Ives (Synergex Professional Services Group)
+; Author:       Steve Ives (Synergex Professional Services Group)
 ;
-; Date:			19th February 1999
+; Date:         19th February 1999
 ;
 ; Description:	Retrieve the network node name of the PC
 ;
-; Platforms:	32-bit Microsoft Windows platforms only.
+; Platforms:    Windows only
 ;
 ;****************************************************************************
 ;

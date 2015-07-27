@@ -1,3 +1,4 @@
+.ifndef DBLNET
 ;****************************************************************************
 ;
 ; Title:		WinFileCopy.dbl
@@ -77,4 +78,4 @@ namespace SynPSG.Windows
 	endfunction
 		
 endnamespace
-
+.endc

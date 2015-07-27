@@ -731,7 +731,7 @@ namespace SynPSG.Windows
 			mreturn tasks
 
 		addTask,
-			if ((status == ^null) || (tsk.Status == status))
+			if (tsk.Status == status)
 				tasks.Add(tsk)
 			return
 
