@@ -1,0 +1,65 @@
+;****************************************************************************
+;
+; Title:	RdpClientName.dbl
+;
+; Author:	Steve Ives (Synergex Professional Services Group)
+;
+; Date:		12th January 1999
+;
+; Description:	When logged in via RDP this function returns the name of the
+;               node that is running the RDP client. If not logged into a
+;               terminal server then a null string is returned
+;
+;****************************************************************************
+;
+; This code is supplied as seen and without warranty or support, and is used
+; at your own risk. Neither the author or Synergex accept any responsability
+; for any loss or damage which may result from the use of this code.
+;
+;****************************************************************************
+;
+
+namespace SynPSG.Windows
+
+	function RdpClientName, string
+		record 
+			dll, D_ADDR
+			hserver		,i4
+			sessionid	,i4
+			request		,i4
+			bufadr		,D_ADDR
+			buflen		,i4
+			result		,boolean
+			name		,string
+		endrecord
+		structure oneCharacter
+					,a1
+		endstructure
+	proc
+		hserver = 0
+		sessionid = -1
+		request = 10
+		name = ""
+
+		dll = %dll_open("Wtsapi32.dll")
+		result = %dll_call(dll,DLL_TYPE_WINAPI,"WTSQuerySessionInformationA",
+		&	hserver,
+		&	sessionid,
+		&	request,
+		&	^addr(bufadr),
+		&	^addr(buflen))
+		xcall dll_close(dll)
+
+		if (result && buflen > 1)
+		begin
+			data mh, i4, %mem_proc(DM_REG,buflen-1,bufadr)
+			name = ^m(oneCharacter(1:buflen-1),mh)
+			mh = %mem_proc(DM_FREE,mh)
+		end
+
+		freturn name
+		
+	endfunction
+	
+endnamespace
+
