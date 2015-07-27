@@ -10,101 +10,179 @@ import synpsg.system.io
 
 namespace SynPSG
 
-	public class FileTools
+    public class FileTools
 
-		public static method ExpandLogicalInFileSpec,	string
-			required in fileSpec,			string
-			endparams
-			stack record 
-				colon,				int
-				file,				string
-				path,				string
-				translation,			a256
-				length,				i4
-			endrecord
-		proc
-			;;This routine assumes a file spec like LOGICAL:file.ext
-			;;and returns D:\path\to\file.ext
+        public static method ExpandLogicalInFileSpec,   string
+            required in fileSpec,                       string
+            endparams
+            stack record
+                colon,                                  int
+                file,                                   string
+                path,                                   string
+                translation,                            a256
+                length,                                 i4
+            endrecord
+        proc
+            ;;This routine assumes a file spec like LOGICAL:file.ext
+            ;;and returns D:\path\to\file.ext
 
-			if ((colon=%instr(1,fileSpec,":")) && (!%instr(1,fileSpec,"\"))) then
-			begin
-				;;We have a : and no \
-				
-				xcall getlog(fileSpec(1:colon-1),translation,length)
-				path = %atrim(translation)
+            if ((colon=%instr(1,fileSpec,":")) && (!%instr(1,fileSpec,"\"))) then
+            begin
+                ;;We have a : and no \
 
-				;;Looks like we have a logical name, but is it JUST a logical name, or is there also a file name?
-				if (colon==%trim(fileSpec)) then 
-				begin
-					;;Just a logical, just return the translation
-					mreturn path
-				end
-				else
-				begin
-					;;Also a file spec
-					if (path(%trim(path):1)!="\")
-						path = path + "\"
-					file = fileSpec(colon+1,%trim(fileSpec))
-					mreturn path + file
-				end
-			end
-			else
-			begin
-				;;No : or both : and \ 
-				;;Don't mess with it!
-				mreturn fileSpec.Trim()
-			end
+                xcall getlog(fileSpec(1:colon-1),translation,length)
+                path = %atrim(translation)
 
-		endmethod
-		
+                ;;Looks like we have a logical name, but is it JUST a logical name, or is there also a file name?
+                if (colon==%trim(fileSpec)) then
+                begin
+                    ;;Just a logical, just return the translation
+                    mreturn path
+                end
+                else
+                begin
+                    ;;Also a file spec
+                    if (path(%trim(path):1)!="\")
+                        path = path + "\"
+                    file = fileSpec(colon+1,%trim(fileSpec))
+                    mreturn path + file
+                end
+            end
+            else
+            begin
+                ;;No : or both : and \
+                ;;Don't mess with it!
+                mreturn fileSpec.Trim()
+            end
+
+        endmethod
+
+        ;;; <summary>
+        ;;; Loads a file into a dynamic memory handle
+        ;;; </summary>
+        ;;; <param name="a_file"></param>
+        ;;; <param name="a_mh"></param>
+        ;;; <returns>true = success</returns>
+        public static method FileToHandle,  boolean
+            required in    a_file,          a           ;File name to load (IN)
+            required inout a_mh,            D_HANDLE    ;Memory handle (IN/OUT)
+            endparams
+
+            stack record
+                ok          ,boolean        ;Routine return value
+                ch          ,i4             ;Input file channel
+                blocks      ,i4             ;Block counter
+                chars       ,i4             ;Size of last block (bytes)
+            endrecord
+
+            structure block
+                            ,a32768         ;Block size - how many bytes to read at once.
+                                            ;Must be less than 64K
+            endstructure
+
+            stack record avars
+                buf         ,a^size(block)  ;IO Buffer
+            endrecord
+
+        proc
+            ok = true
+
+            ;Open input file
+            open(ch=0,u,a_file) [ERR=err]
+
+            ;Error checking for file open
+            if (false)
+            begin
+                ;Failed to open file
+        err,    ok = false
+            end
+
+            if (ok)
+            begin
+                if (a_mh) then
+                    clear ^i(^m(a_mh))
+                else
+                    a_mh = %mem_proc(DM_ALLOC+DM_STATIC,1)
+
+                ;Read data from file in "block size" chunks
+                blocks = 0
+                repeat
+                begin
+                    clear buf
+                    gets(ch,buf,ef)
+                    blocks+=1
+                    a_mh = %mem_proc(DM_RESIZ,^size(block)*blocks,a_mh)
+                    ^m(block[blocks],a_mh)=buf
+                end
+
+                ;We hit EOF, save away the final buffer of data
+        ef,     if (chars=%rsize)
+                begin
+                    blocks+=1
+                    a_mh = %mem_proc(DM_RESIZ,^size(block)*blocks,a_mh)
+                    ^m(block[blocks],a_mh)=buf
+
+                    ;Resize handle to exact size of file.
+                    a_mh = %mem_proc(DM_RESIZ,((^size(block)*(blocks-1))+(chars)),a_mh)
+                end
+
+            end
+
+            if (ch && %chopen(ch))
+                close ch
+
+            mreturn ok
+
+        endmethod
+
 .ifndef OS_VMS
-		public static method UnloadIsamFile, boolean
-			required in  isamFile, string
-			required in  outputFile, string
-			optional out errtxt, string
-			endparams
-			stack record 
-				pipe, 		i4
-				buffer,		a256
-				command,	string
-				err, 		string
-			endrecord
-		proc
-			err = ""
+        public static method UnloadIsamFile, boolean
+            required in  isamFile, string
+            required in  outputFile, string
+            optional out errtxt, string
+            endparams
+            stack record
+                pipe,       i4
+                buffer,     a256
+                command,    string
+                err,        string
+            endrecord
+        proc
+            err = ""
 
-			;;If the output file exists, delete it
-			xcall delet(outputFile)
+            ;;If the output file exists, delete it
+            xcall delet(outputFile)
 
-			;;Define the fconvert command
-			command = '|fconvert -ii -n "' + ExpandLogicalInFilespec(isamFile) + '" -ot -f "' + ExpandLogicalInFilespec(outputFile) + '"'
+            ;;Define the fconvert command
+            command = '|fconvert -ii -n "' + ExpandLogicalInFilespec(isamFile) + '" -ot -f "' + ExpandLogicalInFilespec(outputFile) + '"'
 
-			;;Execute the command file with "open pipe"
-			open(pipe=0,i,command)
+            ;;Execute the command file with "open pipe"
+            open(pipe=0,i,command)
 
-			;;Wait until the command has completed
-			repeat
-			begin
-				sleep 0.1
-				reads(pipe,buffer,end_pipe)
-				if (buffer)
-				begin
-					if (err.Length > 0)
-						err = err + ", "
-					err = err + %atrim(buffer)
-				end
-			end
+            ;;Wait until the command has completed
+            repeat
+            begin
+                sleep 0.1
+                reads(pipe,buffer,end_pipe)
+                if (buffer)
+                begin
+                    if (err.Length > 0)
+                        err = err + ", "
+                    err = err + %atrim(buffer)
+                end
+            end
 
-		end_pipe,
-			close pipe
+        end_pipe,
+            close pipe
 
-			if (^passed(errtxt))
-				errtxt = err
+            if (^passed(errtxt))
+                errtxt = err
 
-			mreturn ((File.Exists(outputFile)) && (err.Length == 0))
+            mreturn ((File.Exists(outputFile)) && (err.Length == 0))
 
-		endmethod
+        endmethod
 .endc
-	endclass
-	
+    endclass
+
 endnamespace
 
