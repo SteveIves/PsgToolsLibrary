@@ -1,3 +1,4 @@
+.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       Convert.dbc
@@ -339,3 +340,4 @@ namespace SynPSG.System
     endclass
 
 endnamespace
+.endc

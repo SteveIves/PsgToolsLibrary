@@ -1,3 +1,4 @@
+.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       File.dbl
@@ -77,5 +78,4 @@ namespace SynPSG.System.IO
 	endclass
 	
 endnamespace
-
-
+.endc

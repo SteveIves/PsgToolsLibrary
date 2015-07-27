@@ -1,3 +1,4 @@
+.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       MemoryStream.dbc
@@ -576,3 +577,4 @@ namespace SynPSG.System.IO
     endclass
 
 endnamespace
+.endc

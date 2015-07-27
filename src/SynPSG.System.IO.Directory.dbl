@@ -1,3 +1,4 @@
+.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       Directory.dbl
@@ -483,5 +484,4 @@ namespace SynPSG.System.IO
 .endc
 	
 endnamespace
-
-
+.endc

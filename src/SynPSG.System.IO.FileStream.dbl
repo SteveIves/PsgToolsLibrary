@@ -1,3 +1,4 @@
+.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       FileStream.dbc
@@ -461,3 +462,4 @@ namespace SynPSG.System.IO
     endclass
 
 endnamespace
+.endc

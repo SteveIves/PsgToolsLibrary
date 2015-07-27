@@ -1,3 +1,4 @@
+.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       ASCIIEncoding.dbc
@@ -81,3 +82,4 @@ namespace SynPSG.System.Text.Encoding
     endclass
 
 endnamespace
+.endc

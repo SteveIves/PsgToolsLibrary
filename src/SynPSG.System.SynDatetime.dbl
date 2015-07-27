@@ -1,3 +1,4 @@
+.ifndef DBLNET
 ;;**********************************************************************
 ;;
 ;; Title:       SynDateTime.dbc
@@ -850,4 +851,4 @@ namespace SynPSG.System
    endclass
 
 endnamespace
-
+.endc
