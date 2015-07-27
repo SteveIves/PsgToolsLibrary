@@ -135,8 +135,6 @@
             <F N="../src/SynPSG.DataServer.dbl"/>
             <F N="../src/SynPSG.DateTimeTools.dbl"/>
             <F N="../src/SynPSG.FileTools.dbl"/>
-            <F N="../src/SynPSG.FormatDate.dbl"/>
-            <F N="../src/SynPSG.FormatTime.dbl"/>
             <F N="../src/SynPSG.FtpClient.dbl"/>
             <F N="../src/SynPSG.get_precision.dbl"/>
             <F N="../src/SynPSG.HtmlEncode.dbl"/>

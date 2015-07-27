@@ -151,6 +151,178 @@ namespace SynPSG
 
         endmethod
 
+        ;;; <summary>
+        ;;; Formats a numeric date and returns a string.
+        ;;; </summary>
+        ;;; <param name="a_date"></param>
+        ;;; <param name="a_seperator"></param>
+        ;;; <param name="a_european"></param>
+        ;;; <returns></returns>
+        public static method FormatDate,    string
+            optional in a_date,             n   ;Date to format
+                                                ;   YYYYMMDD    ->  MM/DD/YYYY
+                                                ;   YYMMDD      ->  MM/DD/YY
+                                                ;   YYPP        ->  PP/YY
+            optional in a_seperator,        a   ;Seperator character (default /)
+            optional in a_european,         n   ;European formatting (DD/DD/YYYY or DD/MM/YY)
+            endparams
+
+            stack record
+                retval      ,a10
+                sepchr      ,a1
+            endrecord
+
+        proc
+
+            clear retval
+
+            sepchr = "/"
+            if (^passed(a_seperator).and.a_seperator)
+                sepchr = a_seperator
+
+            if (a_date)
+            begin
+                using ^size(a_date) select
+                (4), call format4
+                (6), call format6
+                (8), call format8
+                endusing
+            end
+
+            mreturn %atrim(retval)
+
+        format4,
+
+            retval=^a(a_date(3:2))+sepchr+^a(a_date(1:2))
+            return
+
+        format6,
+
+            if (^passed(a_european)&&(a_european)) then
+                retval=^a(a_date(5:2))+sepchr+^a(a_date(3:2))+sepchr+^a(a_date(1:2))
+            else
+                retval=^a(a_date(3:2))+sepchr+^a(a_date(5:2))+sepchr+^a(a_date(1:2))
+            return
+
+        format8,
+
+            if (^passed(a_european)&&(a_european)) then
+                retval=^a(a_date(7:2))+sepchr+^a(a_date(5:2))+sepchr+^a(a_date(1:4))
+            else
+                retval=^a(a_date(5:2))+sepchr+^a(a_date(7:2))+sepchr+^a(a_date(1:4))
+            return
+
+        endmethod
+
+        ;;; <summary>
+        ;;; Formats a numeric time to a string
+        ;;; </summary>
+        ;;; <param name="a_time"></param>
+        ;;; <param name="a_ampm"></param>
+        ;;; <param name="a_noseconds"></param>
+        ;;; <returns></returns>
+        public static method FormatTime,    string
+            a_time,                         n       ;Input time (HHMMSS or HHMM)
+            a_ampm,                         n       ;Output AM/PM format
+            a_noseconds,                    n       ;For D8 dates, don't include seconds
+            endparams
+
+            stack record avars
+                retval      ,a11
+                ampm        ,d1
+                pm          ,d1
+                d6time      ,d6
+                d4time      ,d4
+            endrecord
+
+        proc
+
+            clear avars
+
+            using ^size(a_time) select
+            (4),
+                call format4
+            (6),
+                call format6
+            endusing
+
+            mreturn %atrim(retval)
+
+        format4,
+
+            d4time = a_time
+
+            if (^passed(a_ampm) && a_ampm)
+            begin
+                ampm = 1
+                using (d4time(1:2)) select
+                (0),
+                    d4time(1:2) += 12
+                (1 thru 11),
+                    nop
+                (12),
+                    pm = 1
+                (13 thru 23),
+                begin
+                    d4time(1:2) -= 12
+                    pm = 1
+                end
+                endusing
+            end
+
+            if (ampm) then
+                if (pm) then
+                    retval = d4time, "ZX:XX PM" [LEFT]
+                else
+                    retval = d4time, "ZX:XX AM" [LEFT]
+            else
+                retval = d4time, "XX:XX" [LEFT]
+
+            return
+
+        format6,
+
+            d6time = a_time
+
+            if (^passed(a_ampm) && a_ampm)
+            begin
+                ampm = 1
+                using (d6time(1:2)) select
+                (0),
+                    d6time(1:2) += 12
+                (1 thru 11),
+                    nop
+                (12),
+                    pm = 1
+                (13 thru 23),
+                begin
+                    d6time(1:2) -= 12
+                    pm = 1
+                end
+                endusing
+            end
+
+            if (ampm) then
+                if (pm) then
+                    if (^passed(a_noseconds) && a_noseconds) then
+                        retval = d6time(1:4), "ZX:XX PM" [LEFT]
+                    else
+                        retval = d6time, "ZX:XX:XX PM" [LEFT]
+                else
+                    if (^passed(a_noseconds)&& a_noseconds) then
+                        retval = d6time(1:4), "ZX:XX AM" [LEFT]
+                    else
+                        retval = d6time, "ZX:XX:XX AM" [LEFT]
+            else
+                if (^passed(a_noseconds)&& a_noseconds) then
+                    retval = d6time(1:4), "XX:XX" [LEFT]
+                else
+                    retval = d6time, "XX:XX:XX" [LEFT]
+
+            return
+
+        endmethod
+
         ;; <summary>
         ;;; Returns the date in MM/DD/YYYY format
         ;;; </summary>
