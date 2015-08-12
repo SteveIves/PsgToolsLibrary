@@ -45,6 +45,7 @@
 .ifdef D_GUI
 
 import system
+import synpsg
 import synpsg.windows
 
 namespace SynPSG.Windows
@@ -69,79 +70,120 @@ namespace SynPSG.Windows
 	    cols	,i4
 	    rowdata	,a256
 	    mh	,D_ADDR
+	    pos, i4
+	    startPos, i4
+	    endPos, int
+	    clipboard, @Clipboard
        endrecord
 
 	structure achar
 		    ,a1
 	endstructure
     proc
-	    if (click_info & D_AREA_CLIENT) then
-	      begin
-		;;Get the dimensions of the window
-		rows = %w_info(WIF_ROWS,window_id)
-		cols = %w_info(WIF_COLS,window_id)
-		
-		;;Allocate a buffer to store all the data from the window
-		mh = %mem_proc(DM_ALLOC,rows*cols)
+        if (click_info & D_AREA_CLIENT)
+        begin
+            ;;Get the dimensions of the window
+            rows = %w_info(WIF_ROWS,window_id)
+            cols = %w_info(WIF_COLS,window_id)
 
-		;;Get the data from the window
-		xcall w_info(WI_XFR, window_id, WIX_DGET, ^m(mh))
+            ;;Allocate a buffer to store all the data from the window
+            mh = %mem_proc(DM_ALLOC,rows*cols)
 
-		;;Get the data for the row that was clicked
-		rowdata = ^m(achar(((cell_row-1)*cols)+1:cols),mh)
-		mh = %mem_proc(DM_FREE,mh)
-		
-		;;Make sure there was data under the cursor (A-Z, a-z, 0-9)
-		using (%decml(rowdata(cell_col:1))) select
-		(48 thru 57, 65 thru 90, 97 thru 122),
-		  begin
-		    ;;Look for the start of a word, or beginning of line
-		    data pos, i4
-		    data startPos, i4, 1
-		    data endPos, int,  cols
-		    data clipboard, @Clipboard
-		    
-		    for pos from cell_col-1 thru 1 by -1
-		      begin
-			using %decml(rowdata(pos:1)) select
-			(48 thru 57, 65 thru 90, 97 thru 122),
-			    nop
-			(),
-			begin
-			  startPos = pos+1
-			  exitloop
-			end
-			endusing
-		      end
-		    ;;Look for the end of the word
-		    for pos from cell_col+1 thru cols
-		      begin
-			using %decml(rowdata(pos:1)) select
-			(48 thru 57, 65 thru 90, 97 thru 122),
-			    nop
-			(),
-			begin
-			  endPos = pos-1
-			  exitloop
-			end
-			endusing
-		      end
+            ;;Get the data from the window
+            xcall w_info(WI_XFR, window_id, WIX_DGET, ^m(mh))
 
-		    clipboard = new Clipboard()
-		    clipboard.Copy(rowdata(startPos,endPos))
-		    clear clipboard
-		    
-		    ;TODO: Comment these two lines out if you don't want to "beep" on copy
-		    xcall w_disp(window_id,WD_BELL)
-		    xcall w_updt
-		    
-		  end
-		endusing
-		
-		freturn false
-	      end
-	    else
-	      freturn true
+            if (click_info & D_KEY_CONTROL) then 
+            begin
+		data tmpchn, i4, 0
+                data cbdata, string, ""
+		data tmpFile, string
+		data ok, boolean
+		xcall e_enter
+                clipboard = new Clipboard()
+                for pos from 1 thru rows
+                begin
+                    cbdata = cbdata + ^m(achar(((pos-1)*cols)+1:cols),mh)
+                    if (pos<cols)
+                        cbdata = cbdata + %char(13) + char(10)
+                end
+                clipboard.Copy(cbdata)
+                clear clipboard
+		;;
+		tmpfile = DateTimeTools.GetTempFilePrefix() + " Screen Capture.txt"
+		xcall u_open(tmpchn,"o:s",tmpfile)
+		writes(tmpchn,cbdata)
+		xcall u_close(tmpchn)
+		try 
+		begin
+			lpque(tmpfile)
+			ok = true
+		end
+		catch (ex)
+		begin
+			ok = false
+		end
+		endtry
+		xcall delet(tmpfile)
+		xcall e_exit
+		if (ok) then 
+			xcall e_sect("Screen capture sent to default printer",D_INFO,D_LEFT,D_CLEAR)
+		else
+			xcall e_sect("Failed to print screen capture!",D_INFO,D_LEFT,D_CLEAR)
+            end
+            else
+            begin
+                ;;Get the data for the row that was clicked
+                rowdata = ^m(achar(((cell_row-1)*cols)+1:cols),mh)
+
+                ;;Make sure there was data under the cursor (A-Z, a-z, 0-9)
+                using (%decml(rowdata(cell_col:1))) select
+                (48 thru 57, 65 thru 90, 97 thru 122),
+                begin
+                    ;;Look for the start of a word, or beginning of line
+                    startPos = 1
+                    endPos = cols
+
+                    for pos from cell_col-1 thru 1 by -1
+                    begin
+                        using %decml(rowdata(pos:1)) select
+                        (48 thru 57, 65 thru 90, 97 thru 122),
+                            nop
+                        (),
+                        begin
+                            startPos = pos+1
+                            exitloop
+                        end
+                        endusing
+                    end
+                    ;;Look for the end of the word
+                    for pos from cell_col+1 thru cols
+                    begin
+                        using %decml(rowdata(pos:1)) select
+                        (48 thru 57, 65 thru 90, 97 thru 122),
+                            nop
+                        (),
+                        begin
+                            endPos = pos-1
+                            exitloop
+                        end
+                        endusing
+                    end
+
+                    clipboard = new Clipboard()
+                    clipboard.Copy(rowdata(startPos,endPos))
+                    clear clipboard
+                end
+                endusing
+            end
+
+            mh = %mem_proc(DM_FREE,mh)
+
+            ;TODO: Comment these two lines out if you don't want to "beep" on copy
+            ;xcall w_disp(window_id,WD_BELL)
+            ;xcall w_updt
+        end
+
+        freturn false
 
     endfunction
     

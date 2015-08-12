@@ -1,0 +1,17 @@
+
+namespace SynPSG
+
+    subroutine GoToUserFolder
+    proc
+
+        ;;Add code here (%syn_setdir) if you need to ensure that user
+        ;;processes are in a specific location at runtime.
+
+        ;;This method is called by SynPSG.UI.OpenTerminal
+
+
+        xreturn
+
+    endsubroutine
+
+endnamespace

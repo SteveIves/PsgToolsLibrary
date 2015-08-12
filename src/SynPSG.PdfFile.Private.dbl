@@ -244,7 +244,7 @@ namespace SynPSG
 		;;--------------------------------------------------------------------------------
 		;;
 
-		private method resetLineColor, void
+		private method resetStrokeColor, void
 		proc
 			pg.SetRGBStroke(lineRed,lineGreen,lineBlue)
 		endmethod
@@ -252,7 +252,7 @@ namespace SynPSG
 		;;--------------------------------------------------------------------------------
 		;;
 
-		private method resetTextColor , void
+		private method resetFillColor , void
 		proc
 			pg.SetRGBFill(textRed,textGreen,textBlue)
 		endmethod
@@ -4321,7 +4321,7 @@ namespace SynPSG
 		;;--------------------------------------------------------------------------------
 		;;
 		
-		private method setCustomLineColor, void
+		private method setCustomStrokeColor, void
 			required in aColor, PdfColor
 			record 
 				tmpRed, float
@@ -4336,7 +4336,7 @@ namespace SynPSG
 		;;--------------------------------------------------------------------------------
 		;;
 
-		private method setCustomTextColor, void
+		private method setCustomFillColor, void
 			required in aColor, PdfColor
 			record 
 				tmpRed, float
@@ -4360,8 +4360,8 @@ namespace SynPSG
 				pg.SetRGBFill(pageBackgroundRed,pageBackgroundGreen,pageBackgroundBlue)
 				pg.Rectangle((float)0,(float)0,(float)(this.Width*1.0),(float)(this.Height*1.0))
 				pg.FillStroke()
-				resetTextColor()
-				resetLineColor()
+				resetFillColor()
+				resetStrokeColor()
 			end
 		endmethod
 

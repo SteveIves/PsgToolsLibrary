@@ -1,0 +1,188 @@
+
+import system
+import synpsg.system
+import synpsg
+import HPdf
+
+main PdfFileTest
+
+    record
+        pdf, @PdfFile
+        printer, string
+        font, a40
+        awidth, a3
+        width, i4
+        acenter, a1
+        center, boolean
+        mode, a1
+        amargin, a4
+        margin, float
+        orientation, PdfOrientation
+        errorMessage, string
+        buffer1, a150, "                                                                                                   1         1         1         1         1         1"
+        buffer2, a150, "         1         2         3         4         5         6         7         8         9         0         1         2         3         4         5"
+        buffer3, a150, "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+        ix, int
+        iy, int
+        bold, boolean
+    endrecord
+
+proc
+    UI.OpenTerminal("Test Program for PdfFile Class")
+
+    repeat
+    begin
+        UI.PositionCursor(1,1)
+        UI.ClearToEndOfScreen()
+        UI.DisplayText("Minimum number of columns      : ")
+        UI.EnterField(awidth)
+
+        if (!awidth)
+            exitloop
+
+        try
+        begin
+            width = %integer(awidth)
+        end
+        catch (ex)
+        begin
+            nextloop
+        end
+        endtry
+
+        repeat
+        begin
+            UI.PositionCursorAndClearLine(2,1)
+            UI.DisplayText("(P)ortrait or (L)andscape  [P] : ")
+            UI.EnterField(mode)
+            if (!mode || mode=="P") then
+            begin
+                UI.DisplayTextAt(2,34,"Portrait")
+                orientation = PdfOrientation.Portrait
+                exitloop
+            end
+            else if (mode=="L")
+            begin
+                UI.DisplayTextAt(2,34,"Landscape")
+                orientation = PdfOrientation.Landscape
+                exitloop
+            end
+        end
+
+        repeat
+        begin
+            UI.PositionCursorAndClearLine(3,1)
+            UI.DisplayText("Margin (inches)         [0.16] : ")
+            UI.EnterField(amargin)
+
+            if (!amargin)
+                amargin = "0.16"
+
+            try
+            begin
+                margin = amargin
+                UI.DisplayTextAt(3,35,%string(margin,"X.XX"))
+                exitloop
+            end
+            catch (ex)
+            begin
+
+            end
+            endtry
+        end
+
+        repeat
+        begin
+            UI.PositionCursorAndClearLine(4,1)
+            UI.DisplayText("Center requested columns   [Y] : ")
+            UI.EnterField(acenter)
+            if (!acenter || acenter=="Y") then
+            begin
+                UI.DisplayTextAt(4,34,"Yes")
+                center = true
+                exitloop
+            end
+            else if (acenter=="N")
+            begin
+                UI.DisplayTextAt(4,34,"No")
+                center = false
+                exitloop
+            end
+        end
+
+        UI.PositionCursor(6,1)
+        UI.ClearToEndOfScreen()
+
+        pdf = new PdfFile(orientation,margin,margin,margin,margin,3,2)
+
+        if (pdf.Initialize("SYS$LOGIN:","PDF Test",width,,center)) then
+        begin
+
+            if (width > 99) then
+            begin
+                pdf.HeaderText[1] = buffer1(1:pdf.Columns)
+                pdf.HeaderText[2] = buffer2(1:pdf.Columns)
+                pdf.HeaderText[3] = buffer3(1:pdf.Columns)
+            end
+            else
+            begin
+                pdf.HeaderText[1] = buffer2(1:pdf.Columns)
+                pdf.HeaderText[2] = buffer3(1:pdf.Columns)
+                pdf.HeaderText[3] = ""
+            end
+
+            pdf.FooterText[1] = "Page footer 1"
+            pdf.FooterText[2] = "Page footer 2"
+
+            UI.DisplayText("Orientation          : ")
+            if (pdf.Orientation == PdfOrientation.Portrait) then
+                UI.DisplayLine("Portrait")
+            else
+                UI.DisplayLine("Landscape")
+
+            UI.DisplayLine("Left margin          : " + %string(pdf.LeftMargin,'X.XX"'))
+            UI.DisplayLine("Top margin           : " + %string(pdf.TopMargin,'X.XX"'))
+            UI.DisplayLine("Right margin         : " + %string(pdf.RightMargin,'X.XX"'))
+            UI.DisplayLine("Bottom margin        : " + %string(pdf.BottomMargin,'X.XX"'))
+            UI.DisplayLine("Selected font size   : " + %string(pdf.FontSize))
+            UI.DisplayLine("Requested columns    : " + %string(pdf.RequestedColumns))
+            UI.DisplayLine("Actual columns       : " + %string(pdf.Columns))
+            UI.DisplayLine("Total rows per page  : " + %string(pdf.HeaderRows+pdf.Rows+pdf.FooterRows))
+            UI.DisplayLine(" - Header rows       : " + %string(pdf.HeaderRows))
+            UI.DisplayLine(" - Body   rows       : " + %string(pdf.Rows))
+            UI.DisplayLine(" - Footer rows       : " + %string(pdf.FooterRows))
+
+            for ix from 1 thru %integer(pdf.Rows)
+                pdf.PrintText(ix,1,"Text explicitly positioned at " + %string(ix) + ",1")
+
+            pdf.NewPage()
+
+            iy = 0
+            bold = false
+            for ix from 1 thru %integer(pdf.Rows * 2.5)
+            begin
+                pdf.PrintText("Text written a line at a time. Row " + %string(ix),bold)
+                if ((iy += 1)==5)
+                begin
+                    pdf.DrawLine(true,5,PDfColor.AppleGreen)
+                    iy = 0
+                end
+                bold = !bold
+            end
+
+            pdf.Preview()
+
+            UI.DisplayLine("")
+            UI.DisplayText("Press a key: ")
+            UI.AcceptAsCharacter()
+        end
+        else
+            UI.DisplayLine("Failed to initialize PDF file!")
+    end
+
+    UI.CloseTerminal()
+
+    stop
+
+endmain
+

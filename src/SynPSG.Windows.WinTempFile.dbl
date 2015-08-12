@@ -54,49 +54,67 @@ namespace SynPSG.Windows
 			status		,i4
 			path		,a256
 			prefix		,a4
-			file		,a256	
+			file		,a256
+			outfile		,string
 		endrecord
 
 	.proc
 
-		onerror error
-		
-		;Open kernel32.dll
-		dll_handle = %dll_open("kernel32.dll")
+		try 
+		begin
+			;Open kernel32.dll
+			dll_handle = %dll_open("kernel32.dll")
 
-		;Setup argument 1 - path (null terminated string)
-		xcall fill(%char(0),path)
-		if (^passed(a_path)&&a_path) then
-			path(1:%trim(a_path)) = a_path
-		else
-			path(1:1)="."
-		
-		;Setup argument 2 - file prefix (null terminated string)
-		xcall fill(%char(0),prefix)
-		if (^passed(a_prefix)&&a_prefix&&(%trim(a_prefix)==3)) then
-			prefix(1:3) = a_prefix
-		else
-			prefix(1:3)="tmp"
+			;Setup argument 1 - path (null terminated string)
+			xcall fill(%char(0),path)
+			if (^passed(a_path)&&a_path) then
+				path(1:%trim(a_path)) = a_path
+			else
+			begin
+				data tempDir, string
+				tempDir = Environment.GetEnvironmentVariable("TEMP").Trim()
+				if (!tempDir.EndsWith("\"))
+					tempDir = tempDir + "\"
+				path(1:tempDir.Length) = tempDir
+			end
 
-		;Setup argument 3 - unique number
-		unique = 0
-		
-		;Setup argument 4 - returned file name (null terminated string)
-		xcall fill(%char(0),file)
+			;Setup argument 2 - file prefix (null terminated string)
+			xcall fill(%char(0),prefix)
+			if (^passed(a_prefix)&&a_prefix&&(%trim(a_prefix)==3)) then
+				prefix(1:3) = a_prefix
+			else
+				prefix(1:3)="tmp"
 
-		;Make the call
-		status = %dll_call(dll_handle,DLL_TYPE_WINAPI,"GetTempFileNameA",path,prefix,unique,file)
+			;Setup argument 3 - unique number
+			unique = 0
 
-		;If the call failed, clear out the return data
-		if (!status)
-			clear file
+			;Setup argument 4 - returned file name (null terminated string)
+			xcall fill(%char(0),file)
 
-		;Close the DLL
-		dll_handle = %dll_close(dll_handle)
+			;Make the call
+			status = %dll_call(dll_handle,DLL_TYPE_WINAPI,"GetTempFileNameA",path,prefix,unique,file)
 
-	Error,
+			;If the call failed, clear out the return data
+			if (status) then 
+			begin
+				data pos, int, %instr(1,file,%char(0))
+				outfile = file(1:pos-1)
+			end
+			else
+				outfile = ""
+		end
+		catch (ex)
+		begin
+			outfile = ""
+		end
+		finally
+		begin
+			;Close the DLL
+			dll_handle = %dll_close(dll_handle)
+		end
+		endtry
 
-		freturn %atrim(file)
+		freturn outfile
 
 	endfunction
 

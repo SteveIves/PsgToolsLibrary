@@ -1,0 +1,153 @@
+
+import system
+import synpsg
+import synpsg.system
+import synpsg.windows
+
+main ReportClassTest
+
+    record
+        printer, string
+        font, a40
+        awidth, a3
+        width, i4
+        mode, a1
+        amargin, a4
+        margin, d3.2
+        orientation, ReportOrientation
+        rpt, @Report
+        errorMessage, string
+        buffer1, a150, "                                                                                                   1         1         1         1         1         1"
+        buffer2, a150, "         1         2         3         4         5         6         7         8         9         0         1         2         3         4         5"
+        buffer3, a150, "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+        ix, int
+    endrecord
+
+proc
+    UI.OpenTerminal("Program Caption")
+
+    repeat
+    begin
+        UI.PositionCursor(1,1)
+        UI.ClearToEndOfScreen()
+        UI.DisplayText("Minimum page width             : ")
+        UI.EnterField(awidth)
+
+        if (!awidth)
+            exitloop
+
+        try
+        begin
+            width = %integer(awidth)
+        end
+        catch (ex)
+        begin
+            nextloop
+        end
+        endtry
+
+        UI.DisplayTextAt(2,1,"Font name     [Lucida Console] : ")
+        UI.EnterField(font)
+        if (!font)
+            UI.DisplayTextAt(2,34,"Lucida Console")
+
+        repeat
+        begin
+            UI.PositionCursorAndClearLine(3,1)
+            UI.DisplayText("(P)ortrait or (L)andscape [P]  : ")
+            UI.EnterField(mode)
+            if (!mode || mode=="P") then
+            begin
+                UI.DisplayTextAt(3,34,"Portrait")
+                orientation = ReportOrientation.Portrait
+                exitloop
+            end
+            else if (mode=="L")
+            begin
+                UI.DisplayTextAt(3,34,"Landscape")
+                orientation = ReportOrientation.Landscape
+                exitloop
+            end
+        end
+
+        repeat
+        begin
+            UI.PositionCursorAndClearLine(4,1)
+            UI.DisplayText("Margin (all round, in inches)  : ")
+            UI.EnterField(amargin)
+
+            if (!amargin)
+            begin
+                margin = 0
+                exitloop
+            end
+
+            try
+            begin
+                margin = amargin
+                exitloop
+            end
+            catch (ex)
+            begin
+
+            end
+            endtry
+        end
+
+        UI.PositionCursor(6,1)
+        UI.ClearToEndOfScreen()
+
+        rpt = new Report("Test Report","Test Report",true)
+
+        if (width > 99) then
+        begin
+            rpt.PageHeader.Add((string)buffer1(1:width))
+            rpt.PageHeader.Add((string)buffer2(1:width))
+            rpt.PageHeader.Add((string)buffer3(1:width))
+        end
+        else
+        begin
+            rpt.PageHeader.Add((string)buffer2(1:width))
+            rpt.PageHeader.Add((string)buffer3(1:width))
+            rpt.PageHeader.Add((string)"")
+        end
+
+        rpt.PageFooter.Add((string)"Page footer 1")
+        rpt.PageFooter.Add((string)"Page footer 2")
+
+        if (rpt.Initialize(orientation,width,margin,margin,margin,margin,font,20,,,,true,errorMessage)) then
+        begin
+            UI.DisplayLine("Selected printer    : " + rpt.PrinterName)
+            UI.DisplayText("Orientation         : ")
+            if (rpt.PageOrientation == ReportOrientation.Portrait) then
+                UI.DisplayLine("Portrait")
+            else
+                UI.DisplayLine("Landscape")
+
+            UI.DisplayLine("Left margin          : " + %string(rpt.LeftMargin,"X.XX"))
+            UI.DisplayLine("Top margin           : " + %string(rpt.TopMargin,"X.XX"))
+            UI.DisplayLine("Right margin         : " + %string(rpt.RightMargin,"X.XX"))
+            UI.DisplayLine("Bottom margin        : " + %string(rpt.BottomMargin,"X.XX"))
+            UI.DisplayLine("Font size            : " + %string(rpt.FontSize))
+            UI.DisplayLine("Requested page width : " + %string(rpt.RequestedPageWidth))
+            UI.DisplayLine("Actual page width    : " + %string(rpt.ActualPageWidth))
+            UI.DisplayLine("Page total rows      : " + %string(rpt.TotalRows))
+            UI.DisplayLine("Page header rows     : " + %string(rpt.PageHeader.Count))
+            UI.DisplayLine("Page body   rows     : " + %string(rpt.PageBodyRows))
+            UI.DisplayLine("Page footer rows     : " + %string(rpt.PageFooter.Count))
+
+            for ix from 1 thru %integer(rpt.PageBodyRows * 2.5)
+                rpt.PrintText("BODY ROW " + %string(ix))
+
+            rpt.Preview()
+        end
+        else
+            UI.DisplayLine(errorMessage)
+    end
+
+    UI.CloseTerminal()
+
+    stop
+
+endmain
+

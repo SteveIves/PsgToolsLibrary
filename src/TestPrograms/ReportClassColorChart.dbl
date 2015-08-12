@@ -1,0 +1,4064 @@
+
+import system
+import synpsg
+import synpsg.system
+import synpsg.windows
+
+main ReportClassColorChart
+    record
+        rpt, @Report
+        errmsg, string
+    endrecord
+proc
+    UI.OpenTerminal()
+
+    rpt = new Report("SynPSG.ReportColor Enumeration","SynPSG.ReportColor Enumeration",true)
+    rpt.PageHeader.Add((string)"SynPSG.ReportColor Enumeration")
+    rpt.PageHeader.Add((string)"")
+
+    if (!rpt.Initialize(,35,0.25,0.25,0.25,0.25,,,,,,true,errmsg))
+    begin
+        UI.ErrorMessage("Print Failed",errmsg)
+        UI.CloseTerminal()
+        stop
+    end
+
+    rpt.NewPage()
+
+    rpt.BackgroundColor = ReportColor.AirForceblue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  AirForceblue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.AliceBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  AliceBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.AlizarinCrimson
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  AlizarinCrimson")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Almond
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Almond")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Amaranth
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Amaranth")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Amber
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Amber")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.AmericanRose
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  AmericanRose")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Amethyst
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Amethyst")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.AndroidGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  AndroidGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.AntiFlashWhite
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  AntiFlashWhite")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.AntiqueBrass
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  AntiqueBrass")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.AntiqueFuchsia
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  AntiqueFuchsia")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.AntiqueWhite
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  AntiqueWhite")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Ao
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Ao")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.AppleGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  AppleGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Apricot
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Apricot")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Aqua
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Aqua")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Aquamarine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Aquamarine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ArmyGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ArmyGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Arsenic
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Arsenic")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ArylideYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ArylideYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.AshGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  AshGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Asparagus
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Asparagus")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.AtomicTangerine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  AtomicTangerine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Auburn
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Auburn")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Aureolin
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Aureolin")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.AuroMetalSaurus
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  AuroMetalSaurus")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Awesome
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Awesome")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Azure
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Azure")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.AzureMist
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  AzureMist")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BabyBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BabyBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BabyBlueEyes
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BabyBlueEyes")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BabyPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BabyPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BallBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BallBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BananaMania
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BananaMania")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BananaYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BananaYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BattleShipGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BattleShipGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Bazaar
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Bazaar")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BeauBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BeauBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Beaver
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Beaver")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Beige
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Beige")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Bisque
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Bisque")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Bistre
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Bistre")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BitterSweet
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BitterSweet")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Black
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Black")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BlanchedAlmond
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BlanchedAlmond")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BleudeFrance
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BleudeFrance")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BlizzardBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BlizzardBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Blond
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Blond")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Blue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Blue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BlueBell
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BlueBell")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BlueGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BlueGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BlueGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BlueGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BlueViolet
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BlueViolet")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Blush
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Blush")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Bole
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Bole")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BondiBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BondiBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BostonUniversityRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BostonUniversityRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BrandeisBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BrandeisBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Brass
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Brass")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BrickRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BrickRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BrightCerulean
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BrightCerulean")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BrightGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BrightGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BrightLavender
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BrightLavender")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BrightMaroon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BrightMaroon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BrightPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BrightPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BrightTurquoise
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BrightTurquoise")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BrightUbe
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BrightUbe")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BrilliantLavender
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BrilliantLavender")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BrillianRrose
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BrillianRrose")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BrinkPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BrinkPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BritishRacingGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BritishRacingGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Bronze
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Bronze")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Brown
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Brown")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BubbleGum
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BubbleGum")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Bubbles
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Bubbles")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Buff
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Buff")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BulgarianRose
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BulgarianRose")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Burgundy
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Burgundy")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Burlywood
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Burlywood")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BurntOrange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BurntOrange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BurntSienna
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BurntSienna")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.BurntUmber
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  BurntUmber")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Byzantine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Byzantine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Byzantium
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Byzantium")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Cadet
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Cadet")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CadetBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CadetBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CadetGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CadetGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CadmiumGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CadmiumGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CadmiumOrange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CadmiumOrange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CadmiumRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CadmiumRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CadmiumYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CadmiumYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CalPolyPomonaGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CalPolyPomonaGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CambridgeBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CambridgeBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Camel
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Camel")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CamouflageGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CamouflageGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CanaryYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CanaryYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CandyAppleRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CandyAppleRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CandyPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CandyPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Capri
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Capri")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CaputMortuum
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CaputMortuum")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Cardinal
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Cardinal")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CaribbeanGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CaribbeanGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Carmine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Carmine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CarminePink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CarminePink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CarmineRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CarmineRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CarnationPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CarnationPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Carnelian
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Carnelian")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CarolinaBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CarolinaBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CarrotOrange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CarrotOrange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Ceil
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Ceil")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Celadon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Celadon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CelestialBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CelestialBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Cerise
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Cerise")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CerisePink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CerisePink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Cerulean
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Cerulean")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CeruleanBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CeruleanBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CGBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CGBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CGRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CGRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Chamoisee
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Chamoisee")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Champagne
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Champagne")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Charcoal
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Charcoal")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Chartreuse
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Chartreuse")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CherryBlossomPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CherryBlossomPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Chestnut
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Chestnut")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Chocolate
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Chocolate")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ChromeYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ChromeYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Cinereous
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Cinereous")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Cinnabar
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Cinnabar")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Cinnamon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Cinnamon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Citrine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Citrine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ClassicRose
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ClassicRose")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Cobalt
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Cobalt")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Coffee
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Coffee")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ColumbiaBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ColumbiaBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CoolBlack
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CoolBlack")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CoolGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CoolGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Copper
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Copper")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CopperRose
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CopperRose")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Coquelicot
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Coquelicot")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Coral
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Coral")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CoralPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CoralPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CoralRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CoralRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Cordovan
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Cordovan")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Corn
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Corn")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CornFlowerBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CornFlowerBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CornSilk
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CornSilk")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CosmicLatte
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CosmicLatte")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CottonCandy
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CottonCandy")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Cream
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Cream")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Crimson
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Crimson")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.CrimsonGlory
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  CrimsonGlory")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Cyan
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Cyan")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Daffodil
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Daffodil")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Dandelion
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Dandelion")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkBrown
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkBrown")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkByzantium
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkByzantium")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkCandyapplered
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkCandyapplered")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkCerulean
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkCerulean")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkChampagne
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkChampagne")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkChestnut
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkChestnut")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkCoral
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkCoral")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkCyan
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkCyan")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkElectricBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkElectricBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkGoldenRod
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkGoldenRod")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkJungleGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkJungleGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkKhaki
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkKhaki")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkLava
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkLava")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkLavender
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkLavender")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkMagenta
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkMagenta")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkMidnightBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkMidnightBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkOliveGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkOliveGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkOrange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkOrange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkOrchid
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkOrchid")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkPastelBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkPastelBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkPastelGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkPastelGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkPastelPurple
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkPastelPurple")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkPastelRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkPastelRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkPowderBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkPowderBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkRaspberry
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkRaspberry")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkSalmon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkSalmon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkScarlet
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkScarlet")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkSeaGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkSeaGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkSienna
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkSienna")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkSlateBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkSlateBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkSlateGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkSlateGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkspringGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkspringGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkTan
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkTan")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkTangerine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkTangerine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkTerracotta
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkTerracotta")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkTurquoise
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkTurquoise")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DarkViolet
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DarkViolet")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DartMouthGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DartMouthGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DavysGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DavysGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DebianRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DebianRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DeepCarmine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DeepCarmine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DeepCarminepink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DeepCarminepink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DeepcarrotOrange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DeepcarrotOrange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Deepcerise
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Deepcerise")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Deepchampagne
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Deepchampagne")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Deepchestnut
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Deepchestnut")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DeepFuchsia
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DeepFuchsia")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DeepJunglegreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DeepJunglegreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DeepLilac
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DeepLilac")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DeepMagenta
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DeepMagenta")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DeepPeach
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DeepPeach")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DeepPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DeepPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Deepsaffron
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Deepsaffron")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Denim
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Denim")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DesertSand
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DesertSand")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DimGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DimGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DodgerBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DodgerBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DogWoodRose
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DogWoodRose")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DollarBill
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DollarBill")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Drab
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Drab")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.DukeBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  DukeBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.EarthYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  EarthYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.EggPlant
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  EggPlant")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.EggShell
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  EggShell")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.EgyptianBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  EgyptianBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ElectricBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ElectricBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ElectricCrimson
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ElectricCrimson")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ElectricGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ElectricGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ElectricIndigo
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ElectricIndigo")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ElectricLime
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ElectricLime")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ElectricPurple
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ElectricPurple")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ElectricUltraMarine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ElectricUltraMarine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ElectricViolet
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ElectricViolet")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ElectricYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ElectricYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Emerald
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Emerald")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.EtonBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  EtonBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FaluRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FaluRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Fandango
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Fandango")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FashionFuchsia
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FashionFuchsia")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Fawn
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Fawn")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Feldgrau
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Feldgrau")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FernGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FernGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FerrariRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FerrariRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FieldDrab
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FieldDrab")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FireBrick
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FireBrick")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FireEngineRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FireEngineRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Flame
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Flame")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FlamingoPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FlamingoPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Flavescent
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Flavescent")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Flax
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Flax")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FloralWhite
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FloralWhite")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Folly
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Folly")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ForestGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ForestGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FrenchBeige
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FrenchBeige")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FrenchBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FrenchBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FrenchLilac
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FrenchLilac")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FrenchRose
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FrenchRose")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Fuchsia
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Fuchsia")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FuchsiaPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FuchsiaPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Fulvous
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Fulvous")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.FuzzyWuzzy
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  FuzzyWuzzy")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Gainsboro
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Gainsboro")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Gamboge
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Gamboge")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.GhostWhite
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  GhostWhite")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Ginger
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Ginger")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Glaucous
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Glaucous")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Gold
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Gold")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.GoldenBrown
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  GoldenBrown")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.GoldenPoppy
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  GoldenPoppy")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.GoldenRod
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  GoldenRod")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.GoldenYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  GoldenYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.GrannySmithApple
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  GrannySmithApple")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Gray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Gray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.GrayAsparagus
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  GrayAsparagus")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Green
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Green")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.GreenYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  GreenYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Grullo
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Grullo")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.GuppieGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  GuppieGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Halayaube
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Halayaube")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.HanBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  HanBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.HanPurple
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  HanPurple")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Harlequin
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Harlequin")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.HarvardCrimson
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  HarvardCrimson")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.HarvestGold
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  HarvestGold")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Heliotrope
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Heliotrope")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Honeydew
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Honeydew")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.HookersGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  HookersGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.HotMagenta
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  HotMagenta")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.HotPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  HotPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.HunterGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  HunterGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Iceberg
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Iceberg")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Icterine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Icterine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Inchworm
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Inchworm")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.IndiaGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  IndiaGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.IndianYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  IndianYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Indigo
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Indigo")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.InternationalKleinBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  InternationalKleinBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.InternationalOrange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  InternationalOrange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Iris
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Iris")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Isabelline
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Isabelline")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.IslamicGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  IslamicGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Ivory
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Ivory")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Jade
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Jade")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Jasmine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Jasmine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Jasper
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Jasper")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.JazzberryJam
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  JazzberryJam")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Jonquil
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Jonquil")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Junebud
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Junebud")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.JungleGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  JungleGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.KellyGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  KellyGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Khaki
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Khaki")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.KUCrimson
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  KUCrimson")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LanguidLavender
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LanguidLavender")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Lapislazuli
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Lapislazuli")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LaSalleGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LaSalleGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LaserLemon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LaserLemon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Lava
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Lava")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Lavender
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Lavender")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LavenderBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LavenderBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LavenderBlush
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LavenderBlush")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LavenderGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LavenderGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LavenderIndigo
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LavenderIndigo")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LavenderMagenta
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LavenderMagenta")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LavenderMist
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LavenderMist")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LavenderPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LavenderPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LavenderPurple
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LavenderPurple")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LavenderRose
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LavenderRose")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LawnGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LawnGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Lemon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Lemon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LemonChiffon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LemonChiffon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightApricot
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightApricot")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightBrown
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightBrown")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightCarminePink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightCarminePink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightCoral
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightCoral")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightCornFlowerBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightCornFlowerBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightCrimson
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightCrimson")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightCyan
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightCyan")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightFuchsiaPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightFuchsiaPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightGoldenrodYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightGoldenrodYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightKhaki
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightKhaki")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightMauve
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightMauve")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightPastelPurple
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightPastelPurple")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightSalmon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightSalmon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightSalmonPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightSalmonPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightSeaGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightSeaGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightSkyBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightSkyBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightSlateGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightSlateGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightTaupe
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightTaupe")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightThulianPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightThulianPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LightYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LightYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Lilac
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Lilac")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Lime
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Lime")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LimeGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LimeGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.LincolnGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  LincolnGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Linen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Linen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Liver
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Liver")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Lust
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Lust")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Magenta
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Magenta")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Magicmint
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Magicmint")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Magnolia
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Magnolia")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Mahogany
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Mahogany")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MajorelleBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MajorelleBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Malachite
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Malachite")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Manatee
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Manatee")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MangoTango
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MangoTango")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Maroon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Maroon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Mauve
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Mauve")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Mauvelous
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Mauvelous")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Mauvetaupe
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Mauvetaupe")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MayaBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MayaBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MeatBrown
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MeatBrown")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumAquaMarine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumAquaMarine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumMlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumMlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumCandyAppleRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumCandyAppleRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumCarmine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumCarmine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumChampagne
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumChampagne")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumElectricBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumElectricBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumJungleGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumJungleGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumLavenderMagenta
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumLavenderMagenta")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumOrchid
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumOrchid")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumPersianBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumPersianBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumPurple
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumPurple")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumRedViolet
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumRedViolet")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumSeaGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumSeaGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumSlateBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumSlateBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumSpringBud
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumSpringBud")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumSpringGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumSpringGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumTaupe
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumTaupe")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumTealBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumTealBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumTurquoise
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumTurquoise")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MediumVioletRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MediumVioletRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Melon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Melon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MidnightBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MidnightBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MidnightGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MidnightGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MikadoYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MikadoYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Mint
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Mint")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MintCream
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MintCream")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MintGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MintGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MistyRose
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MistyRose")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MoonStoneBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MoonStoneBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MordantRed19
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MordantRed19")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MossGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MossGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MountainMeadow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MountainMeadow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MountBattenPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MountBattenPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.MSUGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  MSUGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Mulberry
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Mulberry")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Mustard
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Mustard")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Myrtle
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Myrtle")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.NadeshikoPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  NadeshikoPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.NapierGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  NapierGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.NavajoWhite
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  NavajoWhite")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Navy
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Navy")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.NeonCarrot
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  NeonCarrot")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.NeonFuchsia
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  NeonFuchsia")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.NeonGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  NeonGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.NonPhotoBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  NonPhotoBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OceanBoatBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OceanBoatBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Ochre
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Ochre")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OldGold
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OldGold")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OldLace
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OldLace")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OldLavender
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OldLavender")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OldMauve
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OldMauve")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OldRose
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OldRose")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Olive
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Olive")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OliveDrab
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OliveDrab")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OliveDrab7
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OliveDrab7")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Olivine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Olivine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Onyx
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Onyx")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OperaNauve
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OperaNauve")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Orange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Orange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OrangePeel
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OrangePeel")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OrangeRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OrangeRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Orchid
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Orchid")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OUCrimsonRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OUCrimsonRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OuterSpace
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OuterSpace")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OutrageousOrange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OutrageousOrange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.OxfordBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  OxfordBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PakistanGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PakistanGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PalatinateBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PalatinateBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PalatinatePurple
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PalatinatePurple")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleBrown
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleBrown")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleCerulean
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleCerulean")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleChestnut
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleChestnut")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleCopper
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleCopper")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleCornFlowerBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleCornFlowerBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleGold
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleGold")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleGoldenRod
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleGoldenRod")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleMagenta
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleMagenta")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PalePink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PalePink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleRedViolet
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleRedViolet")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleRobinEggBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleRobinEggBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleSilver
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleSilver")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleSpringBud
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleSpringBud")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaleTaupe
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaleTaupe")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PansyPurple
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PansyPurple")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PapayaWhip
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PapayaWhip")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PastelBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PastelBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PastelBrown
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PastelBrown")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PastelGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PastelGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PastelGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PastelGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PastelMagenta
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PastelMagenta")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PastelOrange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PastelOrange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PastelPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PastelPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PastelPurple
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PastelPurple")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PastelRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PastelRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PastelViolet
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PastelViolet")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PastelYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PastelYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Patriarch
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Patriarch")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PaynesGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PaynesGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Peach
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Peach")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PeachOrange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PeachOrange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PeachPuff
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PeachPuff")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PeachYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PeachYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Pear
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Pear")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PearlAqua
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PearlAqua")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Peridot
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Peridot")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PersianBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PersianBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PersianGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PersianGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PersianIndigo
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PersianIndigo")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PersianOrange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PersianOrange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PersianPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PersianPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PersianPlum
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PersianPlum")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PersianRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PersianRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PersianRose
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PersianRose")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Persimmon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Persimmon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Phlox
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Phlox")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PhthaloBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PhthaloBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PhthaloGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PhthaloGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PiggyPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PiggyPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PineGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PineGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Pink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Pink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PinkPearl
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PinkPearl")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PinkSherbet
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PinkSherbet")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Pistachio
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Pistachio")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Platinum
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Platinum")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Plum
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Plum")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PortlandOrange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PortlandOrange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PowderBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PowderBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PrincetonOrange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PrincetonOrange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PrussianBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PrussianBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Puce
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Puce")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Pumpkin
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Pumpkin")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Purple
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Purple")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PurpleHeart
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PurpleHeart")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PurpleMountainMajesty
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PurpleMountainMajesty")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PurplePizzazz
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PurplePizzazz")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.PurpleTaupe
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  PurpleTaupe")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Quartz
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Quartz")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RadicalRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RadicalRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Raspberry
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Raspberry")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RaspberryPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RaspberryPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RaspberryRose
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RaspberryRose")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RawUmber
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RawUmber")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RazzleDazzleRose
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RazzleDazzleRose")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Razzmatazz
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Razzmatazz")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Red
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Red")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Redwood
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Redwood")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Regalia
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Regalia")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RichBlack
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RichBlack")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RichBrilliantLavender
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RichBrilliantLavender")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RichCarmine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RichCarmine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RichElectricBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RichElectricBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RichLavender
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RichLavender")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RichLilac
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RichLilac")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RichMaroon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RichMaroon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RifleGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RifleGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RobinEggBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RobinEggBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RoseBonBon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RoseBonBon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RoseEbony
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RoseEbony")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RoseGold
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RoseGold")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RosePink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RosePink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RoseQuartz
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RoseQuartz")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RoseTaupe
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RoseTaupe")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RoseWood
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RoseWood")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RossoCorsa
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RossoCorsa")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RosyBrown
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RosyBrown")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RoyalAzure
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RoyalAzure")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RoyalBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RoyalBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RoyalFuchsia
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RoyalFuchsia")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RoyalPurple
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RoyalPurple")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Ruby
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Ruby")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Ruddy
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Ruddy")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RuddyBrown
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RuddyBrown")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.RuddyPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  RuddyPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Rufous
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Rufous")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Russet
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Russet")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Rust
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Rust")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SacramentoStateGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SacramentoStateGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SaddleBrown
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SaddleBrown")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SafetyOrange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SafetyOrange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Saffron
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Saffron")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Salmon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Salmon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SalmonPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SalmonPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SandStorm
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SandStorm")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SandyBrown
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SandyBrown")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Sangria
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Sangria")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SapGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SapGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Sapphire
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Sapphire")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SatinSheenGold
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SatinSheenGold")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Scarlet
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Scarlet")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SchoolBusYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SchoolBusYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ScreaminGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ScreaminGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SeaGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SeaGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SealBrown
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SealBrown")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SeaShell
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SeaShell")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SelectiveYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SelectiveYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Sepia
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Sepia")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Shadow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Shadow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ShamrockGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ShamrockGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ShockingPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ShockingPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Sienna
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Sienna")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Silver
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Silver")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Sinopia
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Sinopia")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Skobeloff
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Skobeloff")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SkyBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SkyBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SkyMagenta
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SkyMagenta")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SlateBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SlateBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SlateGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SlateGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SmokeyTopaz
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SmokeyTopaz")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SmokyBlack
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SmokyBlack")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Snow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Snow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SpiroDiscoBall
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SpiroDiscoBall")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SplashedWhite
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SplashedWhite")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SpringBud
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SpringBud")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SteelBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SteelBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.SaintPatricksBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  SaintPatricksBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Straw
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Straw")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Sunglow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Sunglow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Tan
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Tan")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Tangelo
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Tangelo")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Tangerine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Tangerine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TangerineYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TangerineYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TaupeGray
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TaupeGray")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TeaGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TeaGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Teal
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Teal")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TealBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TealBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TealGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TealGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Tenne
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Tenne")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Terracotta
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Terracotta")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Thistle
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Thistle")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ThulianPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ThulianPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TickleMePink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TickleMePink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TiffanyBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TiffanyBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TigersEye
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TigersEye")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TimberWolf
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TimberWolf")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TitaniumYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TitaniumYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Tomato
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Tomato")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Toolbox
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Toolbox")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Topaz
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Topaz")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TractorRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TractorRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TropicalRainForest
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TropicalRainForest")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TrueBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TrueBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TuftsBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TuftsBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Tumbleweed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Tumbleweed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TurkishRose
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TurkishRose")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Turquoise
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Turquoise")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TurquoiseBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TurquoiseBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TurquoiseGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TurquoiseGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TuscanRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TuscanRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TwilightLavender
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TwilightLavender")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.TyrianPurple
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  TyrianPurple")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.UABlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  UABlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.UARed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  UARed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Ube
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Ube")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.UCLABlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  UCLABlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.UCLAGold
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  UCLAGold")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.UFOGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  UFOGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.UltraMarine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  UltraMarine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.UltraMarineBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  UltraMarineBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.UltraPink
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  UltraPink")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Umber
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Umber")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.UnitedNationsBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  UnitedNationsBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.UniversityOfCaliforniaGold
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  UniversityOfCaliforniaGold")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.UnmellowYellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  UnmellowYellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.UPMaroon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  UPMaroon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.UpsdellRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  UpsdellRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Urobilin
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Urobilin")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.UtahCrimson
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  UtahCrimson")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.VegasGold
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  VegasGold")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.VenetianRed
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  VenetianRed")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Verdigris
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Verdigris")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Veronica
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Veronica")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Violet
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Violet")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Viridian
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Viridian")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.VividAuburn
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  VividAuburn")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.VividBurgundy
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  VividBurgundy")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.VividCerise
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  VividCerise")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.VividTangerine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  VividTangerine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.VividViolet
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  VividViolet")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.WarmBlack
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  WarmBlack")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Wenge
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Wenge")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Wheat
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Wheat")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  White")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.WhiteSmoke
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  WhiteSmoke")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.WildBlueYonder
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  WildBlueYonder")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.WildStrawberry
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  WildStrawberry")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.WildWatermelon
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  WildWatermelon")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Wine
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Wine")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Wisteria
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Wisteria")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Xanadu
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Xanadu")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.YaleBlue
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  YaleBlue")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Yellow
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Yellow")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.YellowGreen
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  YellowGreen")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.YellowOrange
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  YellowOrange")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.Zaffre
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  Zaffre")
+    rpt.NewLine()
+
+    rpt.BackgroundColor = ReportColor.ZinnwalditeBrown
+    rpt.DisplayText("          ")
+    rpt.BackgroundColor = ReportColor.White
+    rpt.DisplayText("  ZinnwalditeBrown")
+    rpt.NewLine()
+
+    rpt.Preview()
+
+    UI.CloseTerminal()
+
+endmain

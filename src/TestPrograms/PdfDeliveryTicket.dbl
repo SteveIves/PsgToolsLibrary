@@ -1,0 +1,376 @@
+
+import system
+import synpsg
+import synpsg.system
+
+main TestDeliveryTicket
+    record
+        pdf,        @SynPSG.PdfFile
+        x1,     float
+        y1,     float
+        x2,     float
+        y2,     float
+        exeFolder,  string
+        arialNarrow,    string
+        arialNarrowBold,string
+    endrecord
+proc
+    UI.OpenTerminal("Delivery Ticket Test")
+
+    pdf = new SynPSG.PdfFile()
+    pdf.Initialize("TEMP:","Delivery Ticket")
+
+    ;;Load and embed custom fonts
+    exeFolder = Environment.GetEnvironmentVariable("EXE")
+    if (!exeFolder.EndsWith("\"))
+        exeFolder = exeFolder + "\"
+    arialNarrow     = pdf.LoadTrueTypeFont(exeFolder + "ARIALN.TTF")
+    arialNarrowBold = pdf.LoadTrueTypeFont(exeFolder + "ARIALNB.TTF")
+
+    ;;Top line titles
+    pdf.SelectFont(arialNarrowBold,22)
+    pdf.PrintTextAbsolute(36,729,"VAN DIEST SUPPLY COMPANY")
+    pdf.SelectFont(arialNarrowBold,14)
+    pdf.PrintTextAbsolute(459,740,"DELIVERY TICKET")
+    pdf.SelectFont(arialNarrowBold,9)
+    pdf.PrintTextAbsolute(477,731,"SHIPPING DOCUMENT")
+
+    ;;Small text below main title
+    pdf.SelectFont(arialNarrow,8)
+    pdf.PrintTextAbsolute(27,720,"DISTRIBUTOR OF AGRICULTURAL CHEMICALS")
+    pdf.PrintTextAbsolute(63,711,"PHONE (515) 832 2366")
+    pdf.PrintTextAbsolute(238.5,720,"P.O. BOX 610")
+    pdf.PrintTextAbsolute(216,711,"WEBSTER CITY, IA, 50595-0610")
+
+    ;;TICKET NO box (top)
+    pdf.DrawBoxAbsolute(481.5,729,598.5,702)
+    pdf.SelectFont(arialNarrow,8)
+    pdf.PrintTextAbsolute(502,706.5,"TICKET NO.")
+
+    ;;CUSTOMER NO. box
+    pdf.DrawBoxAbsolute(229.5,697.5,288,670.5,,PdfColor.LightPink,true)
+    pdf.SelectFont(arialNarrow,6)
+    pdf.PrintTextAbsolute(231,693,"CUSTOMER NO.")
+
+    ;;SHIP DATE box
+    pdf.DrawBoxAbsolute(x1=540,y1=697.5,x2=607.5,y2=670.5,,PdfColor.LightPink,true)
+    pdf.SelectFont(arialNarrow,6)
+    pdf.PrintTextAbsolute(542,693,"SHIP DATE")
+
+    ;;Main outer box
+    pdf.DrawBoxAbsolute(x1=5,y1=634.5,x2=607,y2=54)
+
+    ;;1st black bar
+    pdf.DrawBoxAbsolute(x1=5,y1=634.5,x2=607,y2=621,,PdfColor.Black,true)
+    ;;White Lines inside 1st black bar
+    pdf.StrokeColor = PdfColor.White
+    pdf.FillColor = PdfColor.White
+    pdf.DrawLineAbsolute(117,634.5,117,621)
+    pdf.DrawLineAbsolute(153,634.5,153,621)
+    pdf.DrawLineAbsolute(202.5,634.5,202.5,621)
+    pdf.DrawLineAbsolute(252,634.5,252,621)
+    pdf.DrawLineAbsolute(306,634.5,306,621)
+    pdf.DrawLineAbsolute(355.5,634.5,355.5,621)
+    pdf.DrawLineAbsolute(477,634.5,477,621)
+    ;;White text in 1st black bar
+    pdf.SelectFont(arialNarrow,6)
+    pdf.PrintTextAbsolute( 30,624,"CUSTOMER ORDER NUMBER")
+    pdf.PrintTextAbsolute(118,624,"SALES CODE")
+    pdf.PrintTextAbsolute(158,624,"CREDIT APPROV.")
+    pdf.PrintTextAbsolute(216,624,"TYPED BY")
+    pdf.PrintTextAbsolute(265,624,"LOADED BY")
+    pdf.PrintTextAbsolute(313,624,"CHECKED BY")
+    pdf.PrintTextAbsolute(385,624,"TRUCK/TRAILER NO.")
+    pdf.PrintTextAbsolute(535,624,"DRIVER")
+    pdf.StrokeColor = PdfColor.Black
+    pdf.FillColor = PdfColor.Black
+
+    ;;Vertical black Lines between the 1st and 2nd black bars
+    pdf.DrawLineAbsolute(117,621,117,598.5)
+    pdf.DrawLineAbsolute(153,621,153,598.5)
+    pdf.DrawLineAbsolute(202.5,621,202.5,598.5)
+    pdf.DrawLineAbsolute(252,621,252,598.5)
+    pdf.DrawLineAbsolute(306,621,306,598.5)
+    pdf.DrawLineAbsolute(355.5,621,355.5,598.5)
+    pdf.DrawLineAbsolute(477,621,477,598.5)
+
+    ;;2nd black bar
+    pdf.DrawBoxAbsolute(x1=5,y1=598.5,x2=607,y2=585,,PdfColor.Black,true)
+    ;;White Lines inside 2nd black bar
+    pdf.StrokeColor = PdfColor.White
+    pdf.FillColor = PdfColor.White
+    pdf.DrawLineAbsolute( 72,598.5, 72,585)     ;after NO OF PKGS
+    pdf.DrawLineAbsolute(130.5,598.5,130.5,585)     ;after PKG SIZE
+    pdf.DrawLineAbsolute(360,591.75,360,585)        ;before PRODUCT NO
+    pdf.DrawLineAbsolute(409.5,591.75,409.5,585)        ;before VER
+    pdf.DrawLineAbsolute(432,598.5,432,585)     ;before QUANTITY SHIPPED
+    pdf.DrawLineAbsolute(526.5,598.5,526.5,585)     ;before UNIT
+    pdf.DrawLineAbsolute(553.5,598.5,553.5,585)     ;before VAN DIEST ORDER NUMBER
+    pdf.DrawLineAbsolute(130.5,591.75,432,591.75)   ;Horizontal line in midle of black bar
+    ;;White text in 2nd black bar
+    pdf.SelectFont(arialNarrow,9)
+    pdf.PrintTextAbsolute(  7,588,"NO. OF PKGS.")
+    pdf.PrintTextAbsolute( 80,588,"PKG. SIZE")
+    pdf.SelectFont(arialNarrow,6)
+    pdf.PrintTextAbsolute(260,593,"DESCRIPTION")
+    pdf.PrintTextAbsolute(210,586,"PRODUCT NAME")
+    pdf.PrintTextAbsolute(365,586,"PRODUCT NO.")
+    pdf.PrintTextAbsolute(415,586,"VER.")
+    pdf.SelectFont(arialNarrow,9)
+    pdf.PrintTextAbsolute(443,588,"QUANTITY SHIPPED")
+    pdf.PrintTextAbsolute(533,588,"UNIT")
+    pdf.SelectFont(arialNarrow,6)
+    pdf.PrintTextAbsolute(563,592,"VAN DIEST")
+    pdf.PrintTextAbsolute(563,586,"ORDER NO.")
+    pdf.StrokeColor = PdfColor.Black
+    pdf.FillColor = PdfColor.Black
+
+    ;;Shaded lines in upper main box (top=576, bottom is 396, divided into 15 equal areas)
+    ;;So 15 rows of 12 pixels
+    pdf.DrawBoxAbsolute(x1=6,y1=578,x2=606,y2=567,,PdfColor.LightPink,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=554,x2=606,y2=543,,PdfColor.LightGray,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=530,x2=606,y2=519,,PdfColor.LightPink,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=506,x2=606,y2=495,,PdfColor.LightGray,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=482,x2=606,y2=471,,PdfColor.LightPink,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=458,x2=606,y2=447,,PdfColor.LightGray,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=434,x2=606,y2=423,,PdfColor.LightPink,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=410,x2=606,y2=399,,PdfColor.LightGray,true)
+
+    ;;Vertical lines between 2nd and 3rd black bars
+    pdf.DrawLineAbsolute(x1= 72,y1=585,x2= 72,y2=391.5) ;after NO OF PKGS
+    pdf.DrawLineAbsolute(x1=130.5,y1=585,x2=130.5,y2=391.5) ;after PKG size
+    pdf.DrawLineAbsolute(x1=360,y1=585,x2=360,y2=391.5) ;before PRODUCT NO
+    pdf.DrawLineAbsolute(x1=409.5,y1=585,x2=409.5,y2=391.5) ;before VER
+    pdf.DrawLineAbsolute(x1=432,y1=585,x2=432,y2=391.5) ;before QUANTITY SHIPPED
+    pdf.DrawLineAbsolute(x1=526.5,y1=585,x2=526.5,y2=391.5) ;before UNIT
+    pdf.DrawLineAbsolute(x1=553.5,y1=585,x2=553.5,y2=391.5) ;after UNIT
+
+    ;;3rd black bar
+    pdf.DrawBoxAbsolute(x1=5,y1=391.5,x2=607,y2=378,,PdfColor.Black,true)
+    ;;White Lines inside 3rd black bar
+    pdf.StrokeColor = PdfColor.White
+    pdf.FillColor = PdfColor.White
+    pdf.DrawLineAbsolute( 72,391.5, 72,378) ;after QUANTITY
+    pdf.DrawLineAbsolute(441,391.5,441,378) ;before WEIGHT
+    pdf.DrawLineAbsolute(495,391.5,495,378) ;after WEIGHT
+    ;;White text in 3rd black bar
+    pdf.SelectFont(arialNarrow,9)
+    pdf.PrintTextAbsolute( 20,381,"QUANTITY")
+    pdf.PrintTextAbsolute( 76,381,"UNIT")
+    pdf.DrawBoxAbsolute(x1=99,y1=391.5,x2=121.5,y2=378,,PdfColor.Red,true)  ;Red box for HM
+    pdf.PrintTextAbsolute(104,381,"HM")
+    pdf.PrintTextAbsolute(195,381,"HAZARDOUS MATERIAL SHIPPING DESCRIPTION")
+    pdf.SelectFont(arialNarrow,8)
+    pdf.PrintTextAbsolute(458,386,"WEIGHT")
+    pdf.SelectFont(arialNarrow,6)
+    pdf.PrintTextAbsolute(442,379,"SUB TO CORRECTION")
+    pdf.SelectFont(arialNarrow,9)
+    pdf.PrintTextAbsolute(505,381,"GUARANTEED ANALYSIS:")
+    pdf.StrokeColor = PdfColor.Black
+    pdf.FillColor = PdfColor.Black
+
+    ;;Shaded lines in lower main box (top=374, bottom is 122, divided into 21 equal areas)
+    ;;So 21 rows of 12 pixels
+    pdf.DrawBoxAbsolute(x1=6,y1=374,x2=494,y2=363,,PdfColor.LightPink,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=350,x2=494,y2=339,,PdfColor.LightGray,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=326,x2=494,y2=315,,PdfColor.LightPink,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=302,x2=494,y2=291,,PdfColor.LightGray,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=278,x2=494,y2=267,,PdfColor.LightPink,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=254,x2=494,y2=243,,PdfColor.LightGray,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=230,x2=494,y2=219,,PdfColor.LightPink,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=206,x2=494,y2=195,,PdfColor.LightGray,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=182,x2=494,y2=171,,PdfColor.LightPink,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=158,x2=494,y2=147,,PdfColor.LightGray,true)
+    pdf.DrawBoxAbsolute(x1=6,y1=134,x2=494,y2=123,,PdfColor.LightPink,true)
+
+    ;;Vertical lines between 3rd black bar and delivery instructions top line
+    pdf.DrawLineAbsolute(x1= 72,y1=378,x2= 72,y2=117)       ;after QUANTITY
+    pdf.DrawLineAbsolute(x1=99,y1=378,x2=99,y2=117,,PdfColor.Red)   ;before HM
+    pdf.DrawLineAbsolute(x1=121.5,y1=378,x2=121.5,y2=117,,PdfColor.Red) ;after HM
+    pdf.DrawLineAbsolute(x1=441,y1=378,x2=441,y2=117)       ;before WEIGHT
+    pdf.DrawLineAbsolute(x1=495,y1=378,x2=495,y2=117)       ;after WEIGHT
+
+    ;;GUARANTEED ANALYSIS
+    pdf.SelectFont(arialNarrow,8)
+    pdf.PrintTextAbsolute(508.5,364.5,"TOTAL NIT.")
+    pdf.DrawLineAbsolute(547,364.5,600,364.5)
+
+    pdf.PrintTextAbsolute(508.5,353.5,"AVAIL P2O5")
+    pdf.DrawLineAbsolute(547,353.5,600,353.5)
+
+    pdf.PrintTextAbsolute(508.5,342,"SOL K2O")
+    pdf.DrawLineAbsolute(547,342,600,342)
+
+    pdf.PrintTextAbsolute(508.5,331,"S")
+    pdf.DrawLineAbsolute(518,331,537,331)
+    pdf.PrintTextAbsolute(540,331,", ZN")
+    pdf.DrawLineAbsolute(555,331,600,331)
+
+    pdf.DrawLineAbsolute(508.5,319.5,600,319.5)
+
+    pdf.PrintTextAbsolute(508.5,309.5,"SPREAD                     ACRES")
+    pdf.DrawLineAbsolute(540,309.5,570,309.5)
+
+    pdf.PrintTextAbsolute(508.5,297,"AT              LBS. PER ACRE")
+    pdf.DrawLineAbsolute(522,297,539,297)
+
+    ;;Double horizontal lines before CERTIFICATION
+    pdf.DrawLineAbsolute(495,288,607,288)
+    pdf.DrawLineAbsolute(495,283.5,607,283.5)
+
+    pdf.SelectFont(arialNarrow,8)
+    pdf.PrintTextAbsolute(532,275,'CERTIFICATION')
+    pdf.PrintTextAbsolute(500,266,'"This is to certify that the above')
+    pdf.PrintTextAbsolute(500,259,'named materials are properly classi-')
+    pdf.PrintTextAbsolute(500,252,'fied, described, packaged, marked,')
+    pdf.PrintTextAbsolute(500,245,'and labelled, and are in proper con-')
+    pdf.PrintTextAbsolute(500,238,'dition for transportation, according')
+    pdf.PrintTextAbsolute(500,231,'to the applicable regulations of the')
+    pdf.PrintTextAbsolute(500,224,'Department of Transportation."')
+    pdf.SelectFont(arialNarrowBold,12)
+    pdf.PrintTextAbsolute(498,196,'X')
+
+    ;;Double horizontal lines before INVOICE DATE
+    pdf.DrawLineAbsolute(495,193.5,607,193.5)
+    pdf.DrawLineAbsolute(495,189,607,189)
+    pdf.SelectFont(arialNarrow,8)
+    pdf.PrintTextAbsolute(498,182,"INVOICE DATE")
+
+    ;;Double horizontal lines before INVOICE NOS.
+    pdf.DrawLineAbsolute(495,157.5,607,157.5)
+    pdf.DrawLineAbsolute(495,153,607,153)
+    pdf.SelectFont(arialNarrow,8)
+    pdf.PrintTextAbsolute(498,146,"INVOICE NOS.")
+
+    ;Horizontal line above delivery instructions
+    pdf.DrawLineAbsolute(x1=5,y1=117,x2=607,y2=117)
+
+    pdf.SelectFont(arialNarrow,8)
+    pdf.PrintTextAbsolute(7,109,"DELIVERY")
+    pdf.PrintTextAbsolute(7,100,"INSTRUCTIONS:")
+
+    ;;Signature line (REC'D BY)
+    pdf.SelectFont(arialNarrow,8)
+    pdf.PrintTextAbsolute(425,45,"REC'D")
+    pdf.PrintTextAbsolute(435,37,"BY:")
+    pdf.SelectFont(arialNarrowBold,12)
+    pdf.PrintTextAbsolute(450,40,'X')
+    pdf.DrawLineAbsolute(450,36,607,36)
+
+    pdf.SelectFont(arialNarrowBold,8)
+    pdf.PrintTextAbsolute(36,36,"LATE PAYMENT PENALTY PER MONTH ON PART DUE ACCOUNTS, ALL ORDERS SUBJECT TO OFFICE APPROVAL,")
+    pdf.PrintTextAbsolute(9,27,"PRICE CHANGE, AND GOODS AVAILABLE. NO MERCHANDISE RETURNS UNLESS AUTHORIZED BY PREVIOUS CORRESPONDENCE.")
+
+    pdf.SelectFont(arialNarrowBold,12)
+    pdf.PrintTextAbsolute(30,9,"ORIGINAL                             EMERGENCY -- 800-424-9300 -- CHEM TREC # CC23690",PdfColor.Red)
+
+    ;;TICKET NO box (bottom)
+    pdf.DrawBoxAbsolute(x1=486,y1=31.5,x2=603,y2=9)
+    pdf.SelectFont(arialNarrow,8)
+    pdf.PrintTextAbsolute(490.5,13,"TICKET NO.")
+
+    ;;-----------------------------------------------------------------------------------------
+    ;;Add X's as fake data
+
+    pdf.SelectFont("Courier",12)
+
+    pdf.PrintTextAbsolute(555,711,"XXXXX")                      ;;Top ticket number
+    pdf.PrintTextAbsolute(230,675,"XXXXXXXX")                   ;;Pink customer number box
+    pdf.PrintTextAbsolute(230,657,"XXXXXXXX")                   ;;Location # (below customer number box)
+    pdf.PrintTextAbsolute(544,675,"XX/XX/XX")                   ;;Pink ship date box
+
+    ;;Sold To
+    pdf.PrintTextAbsolute(2,711,  "X")
+    pdf.PrintTextAbsolute(2,697.5,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(2,684,  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(2,670.5,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(2,657,  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(2,643.5,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
+    ;;Ship To:
+    pdf.PrintTextAbsolute(320,711,  "XXXXXXXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(320,697.5,"XXXXXXXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(320,684,  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(320,670.5,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(320,657,  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
+    pdf.PrintTextAbsolute(6,606,"XXXXXXXXXXXXXXX")                  ;;Customer order number
+    pdf.PrintTextAbsolute(119,606,"XXXX")                       ;;Sales code
+    pdf.PrintTextAbsolute(155,606,"XXXXXX")                     ;;Credit Approv
+    pdf.PrintTextAbsolute(204,606,"XXXXXX")                     ;;Typed by
+    pdf.PrintTextAbsolute(254,606,"XXXXXX")                     ;;Loaded by
+    pdf.PrintTextAbsolute(308,606,"XXXXXX")                     ;;Checked by
+    pdf.PrintTextAbsolute(357,606,"XXXXXXXXXXXXXXXX")               ;;Truck / Trailer No.
+    pdf.PrintTextAbsolute(479,606,"XXXXXXXXXXXXXXXXX")              ;;Driver
+
+    ;;Upper box
+    begin
+        data ix, float
+        for ix from 569 thru 400 by -12
+        begin
+            pdf.PrintTextAbsolute(6,ix,"XXXXXXXXX")             ;;No of pkgs
+            pdf.PrintTextAbsolute(77,ix,"XXXXXXX")              ;;Pkg size
+            pdf.PrintTextAbsolute(134,ix,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX") ;;Prod name / desc
+            pdf.PrintTextAbsolute(363,ix,"XXXXXX")              ;;Product no
+            pdf.PrintTextAbsolute(413,ix,"XX")              ;;Ver
+            pdf.PrintTextAbsolute(435,ix,"XXXXXXXXXXXX")            ;;Quantity shipped
+            pdf.PrintTextAbsolute(529,ix,"XXX")             ;;Unit
+            pdf.PrintTextAbsolute(558,ix,"XXXXXX")              ;;Van Diest Order Number
+        end
+    end
+
+    ;;Lower box
+    begin
+        data ix, float
+        for ix from 365 thru 125 by -12
+        begin
+            pdf.PrintTextAbsolute(6,ix,"XXXXXXXXX")
+            pdf.PrintTextAbsolute(77,ix,"XXX")
+            pdf.PrintTextAbsolute(103,ix,"XX")
+            pdf.PrintTextAbsolute(125,ix,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+            pdf.PrintTextAbsolute(443,ix,"XXXXXXX")
+        end
+    end
+
+    ;;Guaranteed analysis
+    pdf.SelectFont("Courier",10)
+    pdf.PrintTextAbsolute(549,366,"XXXXXXXX")       ;;Total nit
+    pdf.PrintTextAbsolute(549,355,"XXXXXXXX")       ;;Avail P2O5
+    pdf.PrintTextAbsolute(549,344,"XXXXXXXX")       ;;Sol K2O
+    pdf.PrintTextAbsolute(517,333,"XXX")            ;;S
+    pdf.PrintTextAbsolute(557,333,"XXXXXXX")        ;;ZN
+    pdf.PrintTextAbsolute(509,321,"XXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(542,311,"XXXX")           ;;Acres
+    pdf.PrintTextAbsolute(524,299,"XX")         ;;Per acre
+
+    pdf.SelectFont("Courier",12)
+
+    pdf.PrintTextAbsolute(510,168,"XX/XX/XXXX")     ;;Invoice date
+    pdf.PrintTextAbsolute(510,135,"XXXXXXXXXXXX")       ;;Invoice Nos
+    pdf.PrintTextAbsolute(510,125,"XXXXXXXXXXXX")       ;;Invoice Nos
+
+    ;;Delivery instructions
+    pdf.PrintTextAbsolute(90,99,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(90,90,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(90,81,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(90,72,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
+    pdf.PrintTextAbsolute(360,99,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(360,90,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(360,81,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    pdf.PrintTextAbsolute(360,72,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
+    pdf.PrintTextAbsolute(6,36,"X.X%")      ;;Late payment penalty
+
+
+    ;;Lower ticket number
+    pdf.PrintTextAbsolute(555,18,"XXXXX")
+
+    ;;-----------------------------------------------------------------------------------------
+    ;;And show it
+
+    pdf.Preview()
+
+    UI.CloseTerminal()
+
+endmain

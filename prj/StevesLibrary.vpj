@@ -137,6 +137,7 @@
             <F N="../src/SynPSG.FileTools.dbl"/>
             <F N="../src/SynPSG.FtpClient.dbl"/>
             <F N="../src/SynPSG.get_precision.dbl"/>
+            <F N="../src/SynPSG.GoToUserFolder.dbl"/>
             <F N="../src/SynPSG.HtmlEncode.dbl"/>
             <F N="../src/SynPSG.HttpQueryString.dbl"/>
             <F N="../src/SynPSG.IsNumeric.dbl"/>

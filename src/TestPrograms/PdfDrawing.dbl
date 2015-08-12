@@ -1,0 +1,41 @@
+
+import system
+import synpsg.system
+import synpsg
+
+main PdfDrawing
+
+    record
+        pdf, @PdfFile
+        buffer, a150, "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+        ix, int
+    endrecord
+
+proc
+    UI.OpenTerminal("Test Program for PdfFile Class")
+
+    pdf = new PdfFile(,,,,,,,PdfColor.LightYellow)
+    if (pdf.Initialize()) then
+    begin
+        pdf.FillColor = PdfColor.LightBrown
+        pdf.StrokeColor = PdfColor.Blue
+
+        for ix from 1 thru pdf.Rows
+            pdf.PrintText(ix,1,buffer(1:pdf.Columns))
+
+        pdf.DrawBox(10,10,12,70)
+
+        pdf.DrawBox(14,10,16,70,,PdfColor.Orange,true)
+
+        pdf.DrawLine(12,20,14,20)
+
+        pdf.Preview()
+    end
+    else
+        UI.DisplayLine("Failed to initialize PDF file!")
+
+    UI.CloseTerminal()
+    stop
+
+endmain
+

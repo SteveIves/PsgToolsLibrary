@@ -58,6 +58,23 @@ namespace SynPSG.Windows
 		Landscape, 	2
 	endenum
 
+	enum ReportPaperSource
+		Upper, 		DWPS_UPPER
+		Lower,		DWPS_LOWER
+		Middle,		DWPS_MIDDLE
+		Manual,		DWPS_MANUAL
+		Envelope,	DWPS_ENVELOPE
+		EnvManual,	DWPS_ENVMANUAL
+		Auto,		DWPS_AUTO
+		Tractor,	DWPS_TRACTOR
+		SmallFmt,	DWPS_SMALLFMT
+		LargeFmt,	DWPS_LARGEFMT
+		LargeCapacity,	DWPS_LARGECAPACITY
+		Cassette,	DWPS_CASSETTE
+		FormSource,	DWPS_FORMSOURCE
+		UserDefined,	DWPS_USER
+	endenum
+	
 	public class Report
 		
 		private rpt, 			i4 		;Windows Print API report handle
@@ -162,6 +179,8 @@ namespace SynPSG.Windows
 		;;; <param name="aFontName">Optional font name to use. Default is Lucida Console.</param>
 		;;; <param name="aMaxFontSize">Optional maximum font size to be selected. Default is to use whatever font size most closely produces the desired page width.</param>
 		;;; <param name="aPrinterName">Optional name of printer to output to. Default is your current printer, unless the 'Show Pick Printer' option is used.</param>
+		;;; <param name="aFormName">Optional name of a printer form to select.</param>
+		;;; <param name="aPaperSource">Optional paper source to use. For values see WPR_SETDEVICE / DWP_PAPERSOURCE defines (DWPS_* in DBLDIR:winprint.def).</param>
 		;;; <param name="aShowPickPrinter">Optional display a printer selection dialog to determine the printer to output to.</param>
 		;;; <param name="aErrorMessage">Optional returned error message. If the method returns a fail status (false) then an accompnying error message is returned here.</param>
 		;;; <returns>Returns true if the report was successfully initialized with the requested parameters, otherwise false.</returns>
@@ -175,6 +194,8 @@ namespace SynPSG.Windows
 			optional in  aFontName,		a
 			optional in  aMaxFontSize,	n
 			optional in  aPrinterName, 	a
+			optional in  aFormName,		string
+			optional in  aPaperSource,	ReportPaperSource
 			optional in  aShowPickPrinter,	boolean
 			optional out aErrorMessage,	string
 			endparams
@@ -306,11 +327,20 @@ namespace SynPSG.Windows
 					mPageOrientation = PageOrientation.Portrait
 				else
 					mPageOrientation = PageOrientation.Landscape
-				
-;				mPageOrientation = PageOrientation.Portrait
-;				xcall wpr_setdevice(rpt,DWP_ORIENTATION,DWPO_PORTRAIT)
 			end
 
+			;;Select form name
+			if (^passed(aFormName) && (aFormName.Length>0))
+			begin
+				xcall wpr_setdevice(rpt,DWP_FORMNAME,aFormName)
+				xcall wpr_setdevice(rpt,DWP_PAPERSOURCE,DWPS_FORMSOURCE)
+			end
+			
+			if (^passed(aPaperSource) && ((int)aPaperSource!=0))
+			begin
+				xcall wpr_setdevice(rpt,DWP_PAPERSOURCE,aPaperSource)
+			end
+			
 			;;Set page width (columns)
 			if (^passed(aPageWidth) && (aPageWidth > 0)) then
 				mRequestedPageWidth = aPageWidth
