@@ -6,7 +6,8 @@
 ;;
 ;; Type:        Class
 ;;
-;; Description: Represents a line to be drawn on a page of a PDF file.
+;; Description: Abstract base class for other classes that represents lines to
+;;              be drawn on a page of a PDF file.
 ;;
 ;; Date:        19th July 2015
 ;;
@@ -44,20 +45,12 @@
 
 namespace SynPSG.PDF
 
-    public class PdfLine
+    public abstract class PdfLine
 
         public method PdfLine
-            required in aFromRow,   int
-            required in aFromCol,   int
-            required in aToRow, int
-            required in aToCol, int
-            optional in aWidth, int
+            optional in aWidth, float
             optional in aColor, PdfColor
         proc
-            FromRow = aFromRow
-            FromCol = aFromCol
-            ToRow   = aToRow
-            ToCol   = aToCol
             Width   = ^passed(aWidth) ? aWidth : 1
             if (^passed(aColor)) then
                 Color = aColor
@@ -65,61 +58,9 @@ namespace SynPSG.PDF
                 Color = PdfColor.Black
         endmethod
 
-        private mFromRow, int
+        private mWidth, float
 
-        public property FromRow, int
-            method get
-            proc
-                mreturn mFromRow
-            endmethod
-            method set
-            proc
-                mFromRow = value
-            endmethod
-        endproperty
-
-        private mFromCol, int
-
-        public property FromCol, int
-            method get
-            proc
-                mreturn mFromCol
-            endmethod
-            method set
-            proc
-                mFromCol = value
-            endmethod
-        endproperty
-
-        private mToRow, int
-
-        public property ToRow, int
-            method get
-            proc
-                mreturn mToRow
-            endmethod
-            method set
-            proc
-                mToRow = value
-            endmethod
-        endproperty
-
-        private mToCol, int
-
-        public property ToCol, int
-            method get
-            proc
-                mreturn mToCol
-            endmethod
-            method set
-            proc
-                mToCol = value
-            endmethod
-        endproperty
-
-        private mWidth, int
-
-        public property Width, int
+        public property Width, float
             method get
             proc
                 mreturn mWidth

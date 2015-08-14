@@ -1,13 +1,13 @@
 ;;*****************************************************************************
 ;;
-;; File:        SynPSG.PDF.PdfBox.dbl
+;; File:        SynPSG.PDF.PdfLineAbsolute.dbl
 ;;
-;; Title:       PdfBox
+;; Title:       PdfLineAbsolute
 ;;
 ;; Type:        Class
 ;;
-;; Description: Abstract base class for classes that represent boxes to be
-;;              drawn on a page of a PDF file.
+;; Description: Represents a line to be drawn on a page of a PDF file using
+;;              absolute coordinates.
 ;;
 ;; Date:        19th July 2015
 ;;
@@ -45,31 +45,73 @@
 
 namespace SynPSG.PDF
 
-    public abstract class PdfBox extends PdfLine
+    public class PdfLineAbsolute extends PdfLine
 
-        public method PdfBox
+        public method PdfLineAbsolute
+            required in aFromX, float
+            required in aFromY, float
+            required in aToX,   float
+            required in aToY,   float
             optional in aWidth, float
             optional in aColor, PdfColor
-            optional in aFill,  boolean
             endparams
             parent(aWidth,aColor)
         proc
-            if (^passed(aFill)) then
-                mFill = aFill
-            else
-                mFill = false
+            mFromX = aFromX
+            mFromY = aFromY
+            mToX   = aToX
+            mToY   = aToY
         endmethod
 
-        private mFill, boolean
+        private mFromX, float
 
-        public property Fill, boolean
+        public property FromX, float
             method get
             proc
-                mreturn mFill
+                mreturn mFromX
             endmethod
             method set
             proc
-                mFill = value
+                mFromX = value
+            endmethod
+        endproperty
+
+        private mFromY, float
+
+        public property FromY, float
+            method get
+            proc
+                mreturn mFromY
+            endmethod
+            method set
+            proc
+                mFromY = value
+            endmethod
+        endproperty
+
+        private mToX, float
+
+        public property ToX, float
+            method get
+            proc
+                mreturn mToX
+            endmethod
+            method set
+            proc
+                mToX = value
+            endmethod
+        endproperty
+
+        private mToY, float
+
+        public property ToY, float
+            method get
+            proc
+                mreturn mToY
+            endmethod
+            method set
+            proc
+                mToY = value
             endmethod
         endproperty
 

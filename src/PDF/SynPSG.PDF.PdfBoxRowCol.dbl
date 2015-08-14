@@ -1,13 +1,13 @@
 ;;*****************************************************************************
 ;;
-;; File:        SynPSG.PDF.PdfBox.dbl
+;; File:        SynPSG.PDF.PdfBoxRowCol.dbl
 ;;
-;; Title:       PdfBox
+;; Title:       PdfBoxRowCol
 ;;
 ;; Type:        Class
 ;;
-;; Description: Abstract base class for classes that represent boxes to be
-;;              drawn on a page of a PDF file.
+;; Description: Represents a box to be drawn on a page of a PDF file using
+;;              row/col coordinates.
 ;;
 ;; Date:        19th July 2015
 ;;
@@ -45,35 +45,77 @@
 
 namespace SynPSG.PDF
 
-    public abstract class PdfBox extends PdfLine
+    public class PdfBoxRowCol extends PdfBox
 
-        public method PdfBox
-            optional in aWidth, float
-            optional in aColor, PdfColor
-            optional in aFill,  boolean
+        public method PdfBoxRowCol
+            required in aFromRow,   int
+            required in aFromCol,   int
+            required in aToRow,     int
+            required in aToCol,     int
+            optional in aWidth,     float
+            optional in aColor,     PdfColor
+            optional in aFill,      boolean
             endparams
-            parent(aWidth,aColor)
+            parent(aWidth,aColor,aFill)
         proc
-            if (^passed(aFill)) then
-                mFill = aFill
-            else
-                mFill = false
+            mFromRow = aFromRow
+            mFromCol = aFromCol
+            mToRow   = aToRow
+            mToCol   = aToCol
         endmethod
 
-        private mFill, boolean
+        private mFromRow, int
 
-        public property Fill, boolean
+        public property FromRow, int
             method get
             proc
-                mreturn mFill
+                mreturn mFromRow
             endmethod
             method set
             proc
-                mFill = value
+                mFromRow = value
+            endmethod
+        endproperty
+
+        private mFromCol, int
+
+        public property FromCol, int
+            method get
+            proc
+                mreturn mFromCol
+            endmethod
+            method set
+            proc
+                mFromCol = value
+            endmethod
+        endproperty
+
+        private mToRow, int
+
+        public property ToRow, int
+            method get
+            proc
+                mreturn mToRow
+            endmethod
+            method set
+            proc
+                mToRow = value
+            endmethod
+        endproperty
+
+        private mToCol, int
+
+        public property ToCol, int
+            method get
+            proc
+                mreturn mToCol
+            endmethod
+            method set
+            proc
+                mToCol = value
             endmethod
         endproperty
 
     endclass
 
 endnamespace
-

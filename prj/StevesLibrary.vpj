@@ -145,10 +145,14 @@
             <F N="../src/SynPSG.MonthNumberToShortName.dbl"/>
             <F N="../src/SynPSG.MonthShortNameToNumber.dbl"/>
             <F N="../src/PDF/SynPSG.PDF.PdfBox.dbl"/>
+            <F N="../src/PDF/SynPSG.PDF.PdfBoxAbsolute.dbl"/>
+            <F N="../src/PDF/SynPSG.PDF.PdfBoxRowCol.dbl"/>
             <F N="../src/PDF/SynPSG.PDF.PdfFile.dbl"/>
             <F N="../src/PDF/SynPSG.PDF.PdfFile.Enums.dbl"/>
             <F N="../src/PDF/SynPSG.PDF.PdfFile.Private.dbl"/>
             <F N="../src/PDF/SynPSG.PDF.PdfLine.dbl"/>
+            <F N="../src/PDF/SynPSG.PDF.PdfLineAbsolute.dbl"/>
+            <F N="../src/PDF/SynPSG.PDF.PdfLineRowCol.dbl"/>
             <F N="../src/PDF/SynPSG.PDF.PdfText.dbl"/>
             <F N="../src/SynPSG.ScrollWindow.dbl"/>
             <F N="../src/SynPSG.SevenZipAPI.dbl"/>

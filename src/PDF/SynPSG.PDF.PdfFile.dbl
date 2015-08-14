@@ -815,7 +815,7 @@ namespace SynPSG.PDF
             required in aFromCol, int
             required in aToRow, int
             required in aToCol, int
-            optional in aWidth, int
+            optional in aWidth, float
             optional in aColor, PdfColor
             endparams
             record
@@ -859,7 +859,16 @@ namespace SynPSG.PDF
         public method DrawLine, void
             required in aLineObj, @PdfLine
         proc
-            DrawLine(aLineObj.FromRow,aLineObj.FromCol,aLineObj.ToRow,aLineObj.ToCol,aLineObj.Width,aLineObj.Color)
+            if (aLineObj.is.PdfLineRowCol) then
+            begin
+                data l, @PdfLineRowCol, (PdfLineRowCol)aLineObj
+                DrawLine(l.FromRow,l.FromCol,l.ToRow,l.ToCol,l.Width,l.Color)
+            end
+            else if (aLineObj.is.PdfLineAbsolute)
+            begin
+                data l, @PdfLineAbsolute, (PdfLineAbsolute)aLineObj
+                DrawLineAbsolute(l.FromX,l.FromY,l.ToX,l.ToY,l.Width,l.Color)
+            end
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -921,22 +930,22 @@ namespace SynPSG.PDF
         public method DrawBox, void
             optional in aFromRow,       int
             optional in aFromColumn,    int
-            optional in aToRow,     int
+            optional in aToRow,         int
             optional in aToColumn,      int
-            optional in aWidth,     int
-            optional in aColor,     PdfColor
-            optional in aFill,      boolean
+            optional in aWidth,         float
+            optional in aColor,         PdfColor
+            optional in aFill,          boolean
             endparams
             record
-                lFromRow,       int
-                lFromColumn,        int
-                lToRow,         int
-                lToColumn,      int
-                penWidth,       float
-                start_x,        float
-                start_y,        float
-                end_x,          float
-                end_y,          float
+                lFromRow,               int
+                lFromColumn,            int
+                lToRow,                 int
+                lToColumn,              int
+                penWidth,               float
+                start_x,                float
+                start_y,                float
+                end_x,                  float
+                end_y,                  float
             endrecord
         proc
             ;;Define origin row
@@ -1006,7 +1015,16 @@ namespace SynPSG.PDF
         public method DrawBox, void
             required in aBoxObj, @PdfBox
         proc
-            DrawBox(aBoxObj.FromRow,aBoxObj.FromCol,aBoxObj.ToRow,aBoxObj.ToCol,aBoxObj.Width,aBoxObj.Color,aBoxObj.Fill)
+            if (aBoxObj.is.PdfBoxRowCol) then
+            begin
+                data b, @PdfBoxRowCol, (PdfBoxRowCol)aBoxObj
+                DrawBox(b.FromRow,b.FromCol,b.ToRow,b.ToCol,b.Width,b.Color,b.Fill)
+            end
+            else if (aBoxObj.is.PdfBoxAbsolute)
+            begin
+                data b, @PdfBoxAbsolute, (PdfBoxAbsolute)aBoxObj
+                DrawBoxAbsolute(b.FromX,b.FromY,b.ToX,b.ToY,b.Width,b.Color,b.Fill)
+            end
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -1028,7 +1046,7 @@ namespace SynPSG.PDF
             required in aFromY,     float
             required in aToX,       float
             required in aToY,       float
-            optional in aWidth,     int
+            optional in aWidth,     float
             optional in aColor,     PdfColor
             optional in aFill,      boolean
             endparams
