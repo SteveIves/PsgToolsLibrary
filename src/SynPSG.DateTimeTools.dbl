@@ -1,6 +1,5 @@
 
 import system
-import synpsg.system
 import synpsg
 
 namespace SynPSG
