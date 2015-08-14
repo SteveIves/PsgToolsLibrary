@@ -69,18 +69,20 @@ namespace SynPSG.PDF
     ;;; </summary>
     public partial class PdfFile
 
-        private doc,        @HPdfDoc
-        private fontNormal, @HPdfFont
-        private fontBold,   @HPdfFont
-        private fontItalic, @HPdfFont
+        private doc,            @HPdfDoc
+        private fontNormal,     @HPdfFont
+        private fontBold,       @HPdfFont
+        private fontItalic,     @HPdfFont
         private fontBoldItalic, @HPdfFont
-        private pg,     @HpdfPage
+        private pg,             @HpdfPage
 
-        private leftOffset, int ;Pixels reserved for requested left margin
-        private topOffset,  int ;Pixels reserved for requested top margin
+        private leftOffset,     int ;Pixels reserved for requested left margin
+        private topOffset,      int ;Pixels reserved for requested top margin
         private rightOffset,    int ;Pixels reserved for requested right margin
         private bottomOffset,   int ;Pixels reserved for requested bottom margin
-        private totalRows,  int ;Total number of rows for the entire page
+        private totalRows,      int ;Total number of rows for the entire page
+
+        private pageIsNew,      boolean
 
         ;;********************************************************************************
         ;;CONSTRUCTOR
@@ -211,6 +213,9 @@ namespace SynPSG.PDF
 
             ;Set the default creator name
             this.Creator = "Synergex PSG PdfFile Class"
+
+            ;;Make sure auto begin page items are added to the first page
+            pageIsNew = true
 
             ;;Make sure the error message property is blank not null
             this.ErrorMessage = ""
@@ -467,6 +472,9 @@ namespace SynPSG.PDF
             if (this.Row > this.Rows)
                 NewPage()
 
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
             selectFont(aBold,aItalic)
 
             if (^passed(aColor) && (aColor != this.StrokeColor))
@@ -527,6 +535,9 @@ namespace SynPSG.PDF
             optional in aColor, PdfColor
             optional in aNewLine, boolean
         proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
             selectFont(aBold,aItalic)
 
             if (^passed(aColor) && (aColor != mFillColor))
@@ -590,6 +601,9 @@ namespace SynPSG.PDF
         proc
             if (this.Row > this.Rows)
                 NewPage()
+
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
 
             if (aCol <= mColumns) then
                 this.Column = aCol
@@ -670,6 +684,9 @@ namespace SynPSG.PDF
             required in aText, string
             optional in aColor, PdfColor
         proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
             if (^passed(aColor) && (aColor != mFillColor))
             begin
                 setCustomStrokeColor(aColor)
@@ -773,6 +790,9 @@ namespace SynPSG.PDF
             if (this.Row > this.Rows)
                 NewPage()
 
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
             ;;Set the line width
             penWidth = ^passed(aWidth) ? aWidth : 1
             pg.SetLineWidth(penWidth)
@@ -841,6 +861,9 @@ namespace SynPSG.PDF
                 end_y,      float
             endrecord
         proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
             ;;Set the line width
             penWidth = ^passed(aWidth) ? aWidth : 1
             pg.SetLineWidth(penWidth)
@@ -889,6 +912,9 @@ namespace SynPSG.PDF
                 penWidth,   float
             endrecord
         proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
             ;;Set the line width
             penWidth = ^passed(aWidth) ? aWidth : 1
             pg.SetLineWidth(penWidth)
@@ -957,6 +983,9 @@ namespace SynPSG.PDF
                 end_y,                  float
             endrecord
         proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
             ;;Define origin row
             if (^passed(aFromRow) && (aFromRow > 0) && (aFromRow < this.Rows)) then
                 lFromRow = aFromRow
@@ -1043,6 +1072,9 @@ namespace SynPSG.PDF
                 penWidth,       float
             endrecord
         proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
             ;;Set the line width
             penWidth = ^passed(aWidth) ? aWidth : 1
             pg.SetLineWidth(penWidth)
@@ -1116,6 +1148,9 @@ namespace SynPSG.PDF
                 height, float
             endrecord
         proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
             if (aFileSpec.Trim().ToLower().EndsWith(".jpg") || aFileSpec.Trim().ToLower().EndsWith(".jpeg")) then
                 image = doc.LoadJpegImageFromFile(aFileSpec)
             else if (aFileSpec.Trim().ToLower().EndsWith(".png"))
@@ -1166,6 +1201,7 @@ namespace SynPSG.PDF
             else
             begin
                 NewPage()
+                printBeginPageItems()
             end
 
             mreturn this.Row
@@ -1180,7 +1216,7 @@ namespace SynPSG.PDF
         public method NewPage, int
         proc
             ;;Print page level items on the current page
-            printPageItems()
+            printEndPageItems()
 
             ;;Add a new page to the PDF file
             pg = doc.AddPage(HPdfPageSizes.HPDF_PAGE_SIZE_LETTER,getHaruPageDirection())
@@ -1203,6 +1239,8 @@ namespace SynPSG.PDF
             this.PageNumber = this.PageNumber + 1
             this.Row = 1
             this.Column = 1
+
+            pageIsNew = true
 
             mreturn this.PageNumber
 
@@ -1244,7 +1282,7 @@ namespace SynPSG.PDF
         public method SaveToFile, boolean
         proc
             ;;Print page level items on the last page
-            printPageItems()
+            printEndPageItems()
 
             ;;Create the PDF file on disk
             try

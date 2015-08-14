@@ -198,7 +198,27 @@ namespace SynPSG.PDF
         ;;--------------------------------------------------------------------------------
         ;;
 
-        private method printPageItems, void
+        private method printBeginPageItems, void
+        proc
+            if (this.AutoItems.Count > 0)
+            begin
+                data item, @Object
+                foreach item in this.AutoItems
+                begin
+                    ;;Only print the "end of page" auto items
+                    if (((AutoItem)item).Mode == AutoItemMode.BeginPage)
+                        printAutoItem((AutoItem)item)
+                end
+            end
+
+            pageIsNew = false
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method printEndPageItems, void
         proc
             ;;Print headers and footers on the current page
             printPageHeaders()
@@ -207,32 +227,44 @@ namespace SynPSG.PDF
             ;;Then auto items
             if (this.AutoItems.Count > 0)
             begin
-                data autoItem, @Object
-                foreach autoItem in this.AutoItems
+                data item, @Object
+                foreach item in this.AutoItems
                 begin
-                    if (autoItem.is.AutoTextRowCol) then
-                        PrintTextRowCol((AutoTextRowCol)autoItem)
-
-                    else if (autoItem.is.AutoTextAbsolute) then
-                        PrintTextAbsolute((AutoTextAbsolute)autoItem)
-
-                    else if (autoItem.is.AutoLineRowCol) then
-                        DrawLine((AutoLineRowCol)autoItem)
-
-                    else if (autoItem.is.AutoLineAbsolute) then
-                        DrawLine((AutoLineAbsolute)autoItem)
-
-                    else if (autoItem.is.AutoBoxRowCol) then
-                        DrawBox((AutoBoxRowCol)autoItem)
-
-                    else if (autoItem.is.AutoBoxAbsolute) then
-                        DrawBox((AutoBoxAbsolute)autoItem)
-
-                    else if (autoItem.is.AutoImage)
-                        DrawImage((AutoImage)autoItem)
-
+                    ;;Only print the "end of page" auto items
+                    if (((AutoItem)item).Mode == AutoItemMode.EndPage)
+                        printAutoItem((AutoItem)item)
                 end
             end
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method printAutoItem, void
+            required in aItem, @AutoItem
+        proc
+
+            if (aItem.is.AutoTextRowCol) then
+                PrintTextRowCol((AutoTextRowCol)aItem)
+
+            else if (aItem.is.AutoTextAbsolute) then
+                PrintTextAbsolute((AutoTextAbsolute)aItem)
+
+            else if (aItem.is.AutoLineRowCol) then
+                DrawLine((AutoLineRowCol)aItem)
+
+            else if (aItem.is.AutoLineAbsolute) then
+                DrawLine((AutoLineAbsolute)aItem)
+
+            else if (aItem.is.AutoBoxRowCol) then
+                DrawBox((AutoBoxRowCol)aItem)
+
+            else if (aItem.is.AutoBoxAbsolute) then
+                DrawBox((AutoBoxAbsolute)aItem)
+
+            else if (aItem.is.AutoImage)
+                DrawImage((AutoImage)aItem)
 
         endmethod
 
@@ -4428,6 +4460,9 @@ namespace SynPSG.PDF
 
         endmethod
 
+        ;;--------------------------------------------------------------------------------
+        ;;
+
         private method fileExists, boolean
             required in path, string
             endparams
@@ -4446,6 +4481,7 @@ namespace SynPSG.PDF
             endtry
         endmethod
 
+        ;;--------------------------------------------------------------------------------
         ;;; <summary>
         ;;;Determines whether the given path refers to an existing directory on disk.
         ;;; </summary>
