@@ -1,6 +1,6 @@
 ;;*****************************************************************************
 ;;
-;; File:        SynPSG.PdfFile.dbl
+;; File:        SynPSG.PDF.PdfFile.dbl
 ;;
 ;; Title:       PdfFile
 ;;
@@ -60,7 +60,7 @@ import HPdf
 import system
 import synpsg
 
-namespace SynPSG
+namespace SynPSG.PDF
 
     ;;; <summary>
     ;;; Provides the ability to create a PDF file. This class provides a more usable

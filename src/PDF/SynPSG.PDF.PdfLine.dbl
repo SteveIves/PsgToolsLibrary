@@ -1,0 +1,149 @@
+;;*****************************************************************************
+;;
+;; File:        SynPSG.PDF.PdfLine.dbl
+;;
+;; Title:       PdfLine
+;;
+;; Type:        Class
+;;
+;; Description: Represents a line to be drawn on a page of a PDF file.
+;;
+;; Date:        19th July 2015
+;;
+;; Author:      Steve Ives, Synergex Professional Services Group
+;;              http://www.synergex.com
+;;
+;;*****************************************************************************
+;;
+;; Copyright (c) 2015, Synergex International, Inc.
+;; All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;*****************************************************************************
+
+namespace SynPSG.PDF
+
+    public class PdfLine
+
+        public method PdfLine
+            required in aFromRow,   int
+            required in aFromCol,   int
+            required in aToRow, int
+            required in aToCol, int
+            optional in aWidth, int
+            optional in aColor, PdfColor
+        proc
+            FromRow = aFromRow
+            FromCol = aFromCol
+            ToRow   = aToRow
+            ToCol   = aToCol
+            Width   = ^passed(aWidth) ? aWidth : 1
+            if (^passed(aColor)) then
+                Color = aColor
+            else
+                Color = PdfColor.Black
+        endmethod
+
+        private mFromRow, int
+
+        public property FromRow, int
+            method get
+            proc
+                mreturn mFromRow
+            endmethod
+            method set
+            proc
+                mFromRow = value
+            endmethod
+        endproperty
+
+        private mFromCol, int
+
+        public property FromCol, int
+            method get
+            proc
+                mreturn mFromCol
+            endmethod
+            method set
+            proc
+                mFromCol = value
+            endmethod
+        endproperty
+
+        private mToRow, int
+
+        public property ToRow, int
+            method get
+            proc
+                mreturn mToRow
+            endmethod
+            method set
+            proc
+                mToRow = value
+            endmethod
+        endproperty
+
+        private mToCol, int
+
+        public property ToCol, int
+            method get
+            proc
+                mreturn mToCol
+            endmethod
+            method set
+            proc
+                mToCol = value
+            endmethod
+        endproperty
+
+        private mWidth, int
+
+        public property Width, int
+            method get
+            proc
+                mreturn mWidth
+            endmethod
+            method set
+            proc
+                mWidth = value
+            endmethod
+        endproperty
+
+        private mColor, PdfColor
+
+        public property Color, PdfColor
+            method get
+            proc
+                mreturn mColor
+            endmethod
+            method set
+            proc
+                mColor = value
+            endmethod
+        endproperty
+
+    endclass
+
+endnamespace
+

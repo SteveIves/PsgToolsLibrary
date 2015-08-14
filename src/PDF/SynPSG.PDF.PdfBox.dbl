@@ -1,12 +1,12 @@
 ;;*****************************************************************************
 ;;
-;; File:        SynPSG.PdfLine.dbl
+;; File:        SynPSG.PDF.PdfBox.dbl
 ;;
-;; Title:       PdfLine
+;; Title:       PdfBox
 ;;
-;; Type:       	Class
+;; Type:        Class
 ;;
-;; Description: Represents a line to be drawn on a page of a PDF file.
+;; Description: Represents a box to be drawn on a page of a PDF file.
 ;;
 ;; Date:        19th July 2015
 ;;
@@ -42,108 +42,41 @@
 ;;
 ;;*****************************************************************************
 
-namespace SynPSG
+namespace SynPSG.PDF
 
-	public class PdfLine
+    public class PdfBox extends PdfLine
 
-		public method PdfLine
-			required in aFromRow,	int
-			required in aFromCol,	int
-			required in aToRow,	int
-			required in aToCol,	int
-			optional in aWidth,	int
-			optional in aColor,	PdfColor
-		proc
-			FromRow = aFromRow
-			FromCol = aFromCol
-			ToRow   = aToRow
-			ToCol   = aToCol
-			Width   = ^passed(aWidth) ? aWidth : 1
-			if (^passed(aColor)) then
-				Color = aColor
-			else
-				Color = PdfColor.Black
-		endmethod
-		
-		private mFromRow, int
-		
-		public property FromRow, int
-			method get
-			proc
-				mreturn mFromRow
-			endmethod
-			method set
-			proc
-				mFromRow = value
-			endmethod
-		endproperty
+        public method PdfBox
+            required in aFromRow,   int
+            required in aFromCol,   int
+            required in aToRow, int
+            required in aToCol, int
+            optional in aWidth, int
+            optional in aColor, PdfColor
+            optional in aFill,  boolean
+            endparams
+            parent(aFromRow,aFromCol,aToRow,aToCol,aWidth,aColor)
+        proc
+            if (^passed(aFill)) then
+                mFill = aFill
+            else
+                mFill = false
+        endmethod
 
-		private mFromCol, int
+        private mFill, boolean
 
-		public property FromCol, int
-			method get
-			proc
-				mreturn mFromCol
-			endmethod
-			method set
-			proc
-				mFromCol = value
-			endmethod
-		endproperty
+        public property Fill, boolean
+            method get
+            proc
+                mreturn mFill
+            endmethod
+            method set
+            proc
+                mFill = value
+            endmethod
+        endproperty
 
-		private mToRow, int
+    endclass
 
-		public property ToRow, int
-			method get
-			proc
-				mreturn mToRow
-			endmethod
-			method set
-			proc
-				mToRow = value
-			endmethod
-		endproperty
-
-		private mToCol, int
-
-		public property ToCol, int
-			method get
-			proc
-				mreturn mToCol
-			endmethod
-			method set
-			proc
-				mToCol = value
-			endmethod
-		endproperty
-
-		private mWidth, int
-
-		public property Width, int
-			method get
-			proc
-				mreturn mWidth
-			endmethod
-			method set
-			proc
-				mWidth = value
-			endmethod
-		endproperty
-
-		private mColor, PdfColor
-
-		public property Color, PdfColor
-			method get
-			proc
-				mreturn mColor
-			endmethod
-			method set
-			proc
-				mColor = value
-			endmethod
-		endproperty
-		
-	endclass
-	
 endnamespace
 

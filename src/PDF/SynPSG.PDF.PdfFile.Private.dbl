@@ -1,6 +1,6 @@
 ;;*****************************************************************************
 ;;
-;; File:        SynPSG.PdfFile.Private.dbl
+;; File:        SynPSG.PDF.PdfFile.Private.dbl
 ;;
 ;; Title:       PdfFile
 ;;
@@ -42,7 +42,7 @@
 ;;
 ;;*****************************************************************************
 
-namespace SynPSG
+namespace SynPSG.PDF
 
     public partial class PdfFile
 
