@@ -198,10 +198,8 @@ namespace SynPSG.PDF
             this.FillColor = PdfColor.Black
             this.PageBackgroundColor = PdfColor.White
 
-            ;;Initialize the body text, lines and boxes collections
-            this.AutoBoxes = new ArrayList()
-            this.AutoLines = new ArrayList()
-            this.AutoPrint = new ArrayList()
+            ;;Initialize the auto items collection
+            this.AutoItems = new ArrayList()
 
             ;;If we were given a custom backgound color then save it
             if (^passed(aPageBackgroundColor) && (aPageBackgroundColor != PageBackgroundColor))
@@ -253,14 +251,20 @@ namespace SynPSG.PDF
                 attempts,       int
             endrecord
         proc
-            ok = true
-
             ;;Define the output file location
             if (^passed(aFileLocation) && (aFileLocation.Trim().Length > 0)) then
             begin
                 this.FileLocation = expandLogicalInFileSpec(aFileLocation)
-                if (!this.FileLocation.Trim().EndsWith("\"))
-                    this.FileLocation = this.FileLocation.Trim() + "\"
+                if (this.FileLocation == %char(0)) then
+                begin
+                    this.ErrorMessage = "Invalid location " + aFileLocation
+                    mreturn false
+                end
+                else
+                begin
+                    if (!this.FileLocation.Trim().EndsWith("\"))
+                        this.FileLocation = this.FileLocation.Trim() + "\"
+                end
             end
             else
             begin
@@ -272,7 +276,6 @@ namespace SynPSG.PDF
             ;;Make sure the output file location exists
             if (!directoryExists(this.FileLocation))
             begin
-                ok = false
                 mErrorMessage = "Destination folder " + mFileLocation + " does not exist!"
                 mreturn false
             end
@@ -630,14 +633,26 @@ namespace SynPSG.PDF
 
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
-        ;;; Displays the text defined by a PdfText text object.
+        ;;; Displays the text defined by a PdfTextRowCol text object.
         ;;; </summary>
-        ;;; <param name="aTextObj">PdfText object to be displayed.</param>
+        ;;; <param name="aTextObj">PdfTextRowCol object to be displayed.</param>
         ;;; <returns>Returns the new current column position.</returns>
-        public method PrintText, int
-            required in aTextObj, @PdfText
+        public method PrintTextRowCol, void
+            required in aTextObj, @PdfTextRowCol
         proc
-            mreturn PrintText(aTextObj.Row,aTextObj.Col,aTextObj.Text,aTextObj.Bold,aTextObj.Italic,aTextObj.Color)
+            PrintText(aTextObj.Row,aTextObj.Col,aTextObj.Text,aTextObj.Bold,aTextObj.Italic,aTextObj.Color,aTextObj.NewLine)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Displays the text defined by a PdfTextAbsolute text object.
+        ;;; </summary>
+        ;;; <param name="aTextObj">PdfTextAbsolute object to be displayed.</param>
+        ;;; <returns>Returns the new current column position.</returns>
+        public method PrintTextAbsolute, void
+            required in aTextObj, @PdfTextAbsolute
+        proc
+            PrintTextAbsolute(aTextObj.X,aTextObj.Y,aTextObj.Text,aTextObj.Color)
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -853,26 +868,6 @@ namespace SynPSG.PDF
 
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
-        ;;; Draws the line defined by a PdfLine object.
-        ;;; </summary>
-        ;;; <param name="aLineObj">PdfLine object to be displayed.</param>
-        public method DrawLine, void
-            required in aLineObj, @PdfLine
-        proc
-            if (aLineObj.is.PdfLineRowCol) then
-            begin
-                data l, @PdfLineRowCol, (PdfLineRowCol)aLineObj
-                DrawLine(l.FromRow,l.FromCol,l.ToRow,l.ToCol,l.Width,l.Color)
-            end
-            else if (aLineObj.is.PdfLineAbsolute)
-            begin
-                data l, @PdfLineAbsolute, (PdfLineAbsolute)aLineObj
-                DrawLineAbsolute(l.FromX,l.FromY,l.ToX,l.ToY,l.Width,l.Color)
-            end
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
         ;;; Draws a line based on absolute X,Y positions. The current position is NOT
         ;;; updated by line drawing.
         ;;; </summary>
@@ -913,6 +908,42 @@ namespace SynPSG.PDF
 
         endmethod
 
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws the line defined by a PdfLine object.
+        ;;; </summary>
+        ;;; <param name="aLineObj">PdfLine object to be displayed.</param>
+        public method DrawLine, void
+            required in aLineObj, @PdfLine
+        proc
+            if (aLineObj.is.PdfLineRowCol) then
+                DrawLine(((PdfLineRowCol)aLineObj).FromRow,((PdfLineRowCol)aLineObj).FromCol,((PdfLineRowCol)aLineObj).ToRow,((PdfLineRowCol)aLineObj).ToCol,((PdfLineRowCol)aLineObj).Width,((PdfLineRowCol)aLineObj).Color)
+            else if (aLineObj.is.PdfLineAbsolute)
+                DrawLineAbsolute(((PdfLineAbsolute)aLineObj).FromX,((PdfLineAbsolute)aLineObj).FromY,((PdfLineAbsolute)aLineObj).ToX,((PdfLineAbsolute)aLineObj).ToY,((PdfLineAbsolute)aLineObj).Width,((PdfLineAbsolute)aLineObj).Color)
+        endmethod
+
+;        ;;--------------------------------------------------------------------------------
+;        ;;; <summary>
+;        ;;; Draws the line defined by a PdfLineRowCol object.
+;        ;;; </summary>
+;        ;;; <param name="aLineObj">PdfLineRowCol object to be displayed.</param>
+;        public method DrawLineRowCol, void
+;            required in aLineObj, @PdfLineRowCol
+;        proc
+;            DrawLine(aLineObj.FromRow,aLineObj.FromCol,aLineObj.ToRow,aLineObj.ToCol,aLineObj.Width,aLineObj.Color)
+;        endmethod
+;
+;        ;;--------------------------------------------------------------------------------
+;        ;;; <summary>
+;        ;;; Draws the line defined by a PdfLineAbsolute object.
+;        ;;; </summary>
+;        ;;; <param name="aLineObj">PdfLineAbsolute object to be displayed.</param>
+;        public method DrawLineAbsolute, void
+;            required in aLineObj, @PdfLineAbsolute
+;        proc
+;            DrawLine(aLineObj.FromX,aLineObj.FromY,aLineObj.ToX,aLineObj.ToY,aLineObj.Width,aLineObj.Color)
+;        endmethod
+;
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
         ;;; Draws a box from the center of specified start and end cells.
@@ -1009,26 +1040,6 @@ namespace SynPSG.PDF
 
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
-        ;;; Draws the box defined by a PdfBox object.
-        ;;; </summary>
-        ;;; <param name="aBoxObj">PdfBox object to be displayed.</param>
-        public method DrawBox, void
-            required in aBoxObj, @PdfBox
-        proc
-            if (aBoxObj.is.PdfBoxRowCol) then
-            begin
-                data b, @PdfBoxRowCol, (PdfBoxRowCol)aBoxObj
-                DrawBox(b.FromRow,b.FromCol,b.ToRow,b.ToCol,b.Width,b.Color,b.Fill)
-            end
-            else if (aBoxObj.is.PdfBoxAbsolute)
-            begin
-                data b, @PdfBoxAbsolute, (PdfBoxAbsolute)aBoxObj
-                DrawBoxAbsolute(b.FromX,b.FromY,b.ToX,b.ToY,b.Width,b.Color,b.Fill)
-            end
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
         ;;; Draws a box from the center of specified start and end cells.
         ;;; The default from point is the current position.
         ;;; The default end point is the bottom right corner of the page.
@@ -1081,6 +1092,26 @@ namespace SynPSG.PDF
             if (^passed(aColor) && (aColor != this.FillColor))
                 resetFillColor()
 
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws the box defined by a PdfBox object.
+        ;;; </summary>
+        ;;; <param name="aBoxObj">PdfBox object to be displayed.</param>
+        public method DrawBox, void
+            required in aBoxObj, @PdfBox
+        proc
+            if (aBoxObj.is.PdfBoxRowCol) then
+            begin
+                data b, @PdfBoxRowCol, (PdfBoxRowCol)aBoxObj
+                DrawBox(b.FromRow,b.FromCol,b.ToRow,b.ToCol,b.Width,b.Color,b.Fill)
+            end
+            else if (aBoxObj.is.PdfBoxAbsolute)
+            begin
+                data b, @PdfBoxAbsolute, (PdfBoxAbsolute)aBoxObj
+                DrawBoxAbsolute(b.FromX,b.FromY,b.ToX,b.ToY,b.Width,b.Color,b.Fill)
+            end
         endmethod
 
         ;;; <summary>
@@ -1262,57 +1293,19 @@ namespace SynPSG.PDF
         ;;--------------------------------------------------------------------------------
         ;;
 
-        private mAutoBoxes, @ArrayList
+        private mAutoItems, @ArrayList
 
         ;;; <summary>
-        ;;; Gets or sets a collection of PdfBox objects that are to be drawn on each page during new page processing.
+        ;;; Gets or sets a collection of auto objects that are to be drawn on each page.
         ;;; </summary>
-        public property AutoBoxes, @ArrayList
+        public property AutoItems, @ArrayList
             method get
             proc
-                mreturn mAutoBoxes
+                mreturn mAutoItems
             endmethod
             method set
             proc
-                mAutoBoxes = value
-            endmethod
-        endproperty
-
-        ;;--------------------------------------------------------------------------------
-        ;;
-
-        private mAutoLines, @ArrayList
-
-        ;;; <summary>
-        ;;; A collection of PdfLine objects that are to be drawn on each page during new page processing.
-        ;;; </summary>
-        public property AutoLines, @ArrayList
-            method get
-            proc
-                mreturn mAutoLines
-            endmethod
-            method set
-            proc
-                mAutoLines = value
-            endmethod
-        endproperty
-
-        ;;--------------------------------------------------------------------------------
-        ;;
-
-        private mAutoPrint, @ArrayList
-
-        ;;; <summary>
-        ;;; A collection of PdfText objects that are to be displayed on each page during new page processing.
-        ;;; </summary>
-        public property AutoPrint, @ArrayList
-            method get
-            proc
-                mreturn mAutoPrint
-            endmethod
-            method set
-            proc
-                mAutoPrint = value
+                mAutoItems = value
             endmethod
         endproperty
 

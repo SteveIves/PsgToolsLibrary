@@ -1,7 +1,8 @@
 
 import system
-import synpsg.system
 import synpsg
+import synpsg.pdf
+import synpsg.system
 import HPdf
 
 main PdfFileTest
@@ -115,7 +116,7 @@ proc
 
         pdf = new PdfFile(orientation,margin,margin,margin,margin,3,2)
 
-        if (pdf.Initialize("SYS$LOGIN:","PDF Test",width,,center)) then
+        if (pdf.Initialize("TEMP:","PDF Test",width,,center)) then
         begin
 
             if (width > 99) then
@@ -177,7 +178,13 @@ proc
             UI.AcceptAsCharacter()
         end
         else
+        begin
             UI.DisplayLine("Failed to initialize PDF file!")
+            UI.DisplayLine("Error was: " + pdf.ErrorMessage)
+            pdf.Dispose()
+            UI.DisplayText("Press a key: ")
+            UI.AcceptAsCharacter()
+        end
     end
 
     UI.CloseTerminal()

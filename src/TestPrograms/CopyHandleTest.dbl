@@ -23,29 +23,29 @@ import SynPSG
 
 main CopyHandleTest
 
-	record
-		tt              ,i4     ;Terminal channel
-		OriginalHandle  ,i4     ;Original handle to copy
-		NewHandle       ,i4     ;New handle (copy of original)
-		error           ,i4     ;
-	endrecord
-	
-	external function
-		FileToHandle    ,^val
-	endexternal
-	
-	.ifdef OS_VMS
-	.define D_INFILE    "DBLDIR:bldism.exe"
-	.else
-	.define D_INFILE    "DBLDIR:bldism.dbr"
-	.endc
+    record
+        tt              ,i4     ;Terminal channel
+        OriginalHandle  ,i4     ;Original handle to copy
+        NewHandle       ,i4     ;New handle (copy of original)
+        error           ,i4     ;
+    endrecord
+
+    external function
+        FileToHandle    ,^val
+    endexternal
+
+    .ifdef OS_VMS
+    .define D_INFILE    "DBLDIR:bldism.exe"
+    .else
+    .define D_INFILE    "DBLDIR:bldism.dbr"
+    .endc
 
 proc
 
     open(tt=0,i,"tt:")
 
     ;Load the contents of a file into a dynamic memory handle
-    error = FileToHandle(D_INFILE,OriginalHandle)
+    error = FileTools.FileToHandle(D_INFILE,OriginalHandle)
 
     ;Did it work
     if (error) then

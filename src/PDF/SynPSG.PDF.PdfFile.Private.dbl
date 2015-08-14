@@ -204,28 +204,30 @@ namespace SynPSG.PDF
             printPageHeaders()
             printPageFooters()
 
-            ;;Then boxes
-            if (this.AutoBoxes.Count > 0)
+            ;;Then auto items
+            if (this.AutoItems.Count > 0)
             begin
-                data boxObj, @PdfBox
-                foreach boxObj in this.AutoBoxes
-                    DrawBox(boxObj)
-            end
+                data autoItem, @Object
+                foreach autoItem in this.AutoItems
+                begin
+                    if (autoItem.is.PdfTextRowCol) then
+                        PrintTextRowCol((PdfTextRowCol)autoItem)
 
-            ;;Print text objects first so they won't overwrite any lines
-            if (this.AutoPrint.Count > 0)
-            begin
-                data textObj, @PdfText
-                foreach textObj in this.AutoPrint
-                    PrintText(textObj)
-            end
+                    else if (autoItem.is.PdfTextAbsolute) then
+                        PrintTextAbsolute((PdfTextAbsolute)autoItem)
 
-            ;;Then lines
-            if (this.AutoLines.Count > 0)
-            begin
-                data lineObj, @PdfLine
-                foreach lineObj in this.AutoLines
-                    DrawLine(lineObj)
+                    else if (autoItem.is.PdfLineRowCol) then
+                        DrawLine((PdfLineRowCol)autoItem)
+
+                    else if (autoItem.is.PdfLineAbsolute) then
+                        DrawLine((PdfLineAbsolute)autoItem)
+
+                    else if (autoItem.is.PdfBoxRowCol) then
+                        DrawBox((PdfBoxRowCol)autoItem)
+
+                    else if (autoItem.is.PdfBoxAbsolute)
+                        DrawBox((PdfBoxAbsolute)autoItem)
+                end
             end
 
         endmethod

@@ -154,6 +154,8 @@
             <F N="../src/PDF/SynPSG.PDF.PdfLineAbsolute.dbl"/>
             <F N="../src/PDF/SynPSG.PDF.PdfLineRowCol.dbl"/>
             <F N="../src/PDF/SynPSG.PDF.PdfText.dbl"/>
+            <F N="../src/PDF/SynPSG.PSG.PdfTextAbsolute.dbl"/>
+            <F N="../src/PDF/SynPSG.PSG.PdfTextRowCol.dbl"/>
             <F N="../src/SynPSG.ScrollWindow.dbl"/>
             <F N="../src/SynPSG.SevenZipAPI.dbl"/>
             <F N="../src/SynPSG.StringUtil.dbl"/>

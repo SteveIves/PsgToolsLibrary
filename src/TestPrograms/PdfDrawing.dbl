@@ -1,7 +1,8 @@
 
 import system
-import synpsg.system
 import synpsg
+import synpsg.pdf
+import synpsg.system
 
 main PdfDrawing
 

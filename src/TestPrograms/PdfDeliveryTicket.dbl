@@ -1,11 +1,12 @@
 
 import system
 import synpsg
+import synpsg.pdf
 import synpsg.system
 
 main TestDeliveryTicket
     record
-        pdf,        @SynPSG.PdfFile
+        pdf,        @PdfFile
         x1,     float
         y1,     float
         x2,     float
@@ -17,7 +18,7 @@ main TestDeliveryTicket
 proc
     UI.OpenTerminal("Delivery Ticket Test")
 
-    pdf = new SynPSG.PdfFile()
+    pdf = new PdfFile()
     pdf.Initialize("TEMP:","Delivery Ticket")
 
     ;;Load and embed custom fonts
