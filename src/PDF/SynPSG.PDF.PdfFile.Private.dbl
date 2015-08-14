@@ -210,26 +210,26 @@ namespace SynPSG.PDF
                 data autoItem, @Object
                 foreach autoItem in this.AutoItems
                 begin
-                    if (autoItem.is.PdfTextRowCol) then
-                        PrintTextRowCol((PdfTextRowCol)autoItem)
+                    if (autoItem.is.AutoTextRowCol) then
+                        PrintTextRowCol((AutoTextRowCol)autoItem)
 
-                    else if (autoItem.is.PdfTextAbsolute) then
-                        PrintTextAbsolute((PdfTextAbsolute)autoItem)
+                    else if (autoItem.is.AutoTextAbsolute) then
+                        PrintTextAbsolute((AutoTextAbsolute)autoItem)
 
-                    else if (autoItem.is.PdfLineRowCol) then
-                        DrawLine((PdfLineRowCol)autoItem)
+                    else if (autoItem.is.AutoLineRowCol) then
+                        DrawLine((AutoLineRowCol)autoItem)
 
-                    else if (autoItem.is.PdfLineAbsolute) then
-                        DrawLine((PdfLineAbsolute)autoItem)
+                    else if (autoItem.is.AutoLineAbsolute) then
+                        DrawLine((AutoLineAbsolute)autoItem)
 
-                    else if (autoItem.is.PdfBoxRowCol) then
-                        DrawBox((PdfBoxRowCol)autoItem)
+                    else if (autoItem.is.AutoBoxRowCol) then
+                        DrawBox((AutoBoxRowCol)autoItem)
 
-                    else if (autoItem.is.PdfBoxAbsolute) then
-                        DrawBox((PdfBoxAbsolute)autoItem)
+                    else if (autoItem.is.AutoBoxAbsolute) then
+                        DrawBox((AutoBoxAbsolute)autoItem)
 
-                    else if (autoItem.is.PdfImage)
-                        DrawImage((PdfImage)autoItem)
+                    else if (autoItem.is.AutoImage)
+                        DrawImage((AutoImage)autoItem)
 
                 end
             end

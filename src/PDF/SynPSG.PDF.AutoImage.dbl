@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; File:        SynPSG.PDF.PdfImage.dbl
+;; File:        SynPSG.PDF.AutoImage.dbl
 ;;
-;; Title:       PdfImage
+;; Title:       AutoImage
 ;;
 ;; Type:        Class
 ;;
@@ -45,15 +45,17 @@
 
 namespace SynPSG.PDF
 
-    public class PdfImage
+    public class AutoImage extends AutoItem
 
-        public method PdfImage
+        public method AutoImage
             required in aFileSpec, string
             required in aX, float
             required in aY, float
             optional in aWidth, float
             optional in aHeight, float
+            optional in aMode, AutoItemMode
             endparams
+            parent(aMode)
         proc
             mFileSpec = aFileSpec
             mX = aX

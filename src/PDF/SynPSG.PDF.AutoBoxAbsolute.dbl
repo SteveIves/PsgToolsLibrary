@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; File:        SynPSG.PDF.PdfBoxAbsolute.dbl
+;; File:        SynPSG.PDF.AutoBoxAbsolute.dbl
 ;;
-;; Title:       PdfBoxAbsolute
+;; Title:       AutoBoxAbsolute
 ;;
 ;; Type:        Class
 ;;
@@ -45,9 +45,9 @@
 
 namespace SynPSG.PDF
 
-    public class PdfBoxAbsolute extends PdfBox
+    public class AutoBoxAbsolute extends AutoBox
 
-        public method PdfBoxAbsolute
+        public method AutoBoxAbsolute
             required in aFromX, float
             required in aFromY, float
             required in aToX,   float

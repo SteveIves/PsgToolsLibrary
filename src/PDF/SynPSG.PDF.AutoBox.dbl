@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; File:        SynPSG.PDF.PdfBox.dbl
+;; File:        SynPSG.PDF.AutoBox.dbl
 ;;
-;; Title:       PdfBox
+;; Title:       AutoBox
 ;;
 ;; Type:        Class
 ;;
@@ -45,9 +45,9 @@
 
 namespace SynPSG.PDF
 
-    public abstract class PdfBox extends PdfLine
+    public abstract class AutoBox extends AutoLine
 
-        public method PdfBox
+        public method AutoBox
             optional in aWidth, float
             optional in aColor, PdfColor
             optional in aFill,  boolean

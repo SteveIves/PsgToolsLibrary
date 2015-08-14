@@ -638,7 +638,7 @@ namespace SynPSG.PDF
         ;;; <param name="aTextObj">PdfTextRowCol object to be displayed.</param>
         ;;; <returns>Returns the new current column position.</returns>
         public method PrintTextRowCol, void
-            required in aTextObj, @PdfTextRowCol
+            required in aTextObj, @AutoTextRowCol
         proc
             PrintText(aTextObj.Row,aTextObj.Col,aTextObj.Text,aTextObj.Bold,aTextObj.Italic,aTextObj.Color,aTextObj.NewLine)
         endmethod
@@ -650,7 +650,7 @@ namespace SynPSG.PDF
         ;;; <param name="aTextObj">PdfTextAbsolute object to be displayed.</param>
         ;;; <returns>Returns the new current column position.</returns>
         public method PrintTextAbsolute, void
-            required in aTextObj, @PdfTextAbsolute
+            required in aTextObj, @AutoTextAbsolute
         proc
             PrintTextAbsolute(aTextObj.X,aTextObj.Y,aTextObj.Text,aTextObj.Color)
         endmethod
@@ -914,12 +914,12 @@ namespace SynPSG.PDF
         ;;; </summary>
         ;;; <param name="aLineObj">PdfLine object to be displayed.</param>
         public method DrawLine, void
-            required in aLineObj, @PdfLine
+            required in aLineObj, @AutoLine
         proc
-            if (aLineObj.is.PdfLineRowCol) then
-                DrawLine(((PdfLineRowCol)aLineObj).FromRow,((PdfLineRowCol)aLineObj).FromCol,((PdfLineRowCol)aLineObj).ToRow,((PdfLineRowCol)aLineObj).ToCol,((PdfLineRowCol)aLineObj).Width,((PdfLineRowCol)aLineObj).Color)
-            else if (aLineObj.is.PdfLineAbsolute)
-                DrawLineAbsolute(((PdfLineAbsolute)aLineObj).FromX,((PdfLineAbsolute)aLineObj).FromY,((PdfLineAbsolute)aLineObj).ToX,((PdfLineAbsolute)aLineObj).ToY,((PdfLineAbsolute)aLineObj).Width,((PdfLineAbsolute)aLineObj).Color)
+            if (aLineObj.is.AutoLineRowCol) then
+                DrawLine(((AutoLineRowCol)aLineObj).FromRow,((AutoLineRowCol)aLineObj).FromCol,((AutoLineRowCol)aLineObj).ToRow,((AutoLineRowCol)aLineObj).ToCol,((AutoLineRowCol)aLineObj).Width,((AutoLineRowCol)aLineObj).Color)
+            else if (aLineObj.is.AutoLineAbsolute)
+                DrawLineAbsolute(((AutoLineAbsolute)aLineObj).FromX,((AutoLineAbsolute)aLineObj).FromY,((AutoLineAbsolute)aLineObj).ToX,((AutoLineAbsolute)aLineObj).ToY,((AutoLineAbsolute)aLineObj).Width,((AutoLineAbsolute)aLineObj).Color)
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -1074,20 +1074,20 @@ namespace SynPSG.PDF
 
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
-        ;;; Draws the box defined by a PdfBox object.
+        ;;; Draws the box defined by a AutoBox object.
         ;;; </summary>
-        ;;; <param name="aBoxObj">PdfBox object to be displayed.</param>
+        ;;; <param name="aBoxObj">AutoBox object to be displayed.</param>
         public method DrawBox, void
-            required in aBoxObj, @PdfBox
+            required in aBoxObj, @AutoBox
         proc
-            if (aBoxObj.is.PdfBoxRowCol) then
+            if (aBoxObj.is.AutoBoxRowCol) then
             begin
-                data b, @PdfBoxRowCol, (PdfBoxRowCol)aBoxObj
+                data b, @AutoBoxRowCol, (AutoBoxRowCol)aBoxObj
                 DrawBox(b.FromRow,b.FromCol,b.ToRow,b.ToCol,b.Width,b.Color,b.Fill)
             end
-            else if (aBoxObj.is.PdfBoxAbsolute)
+            else if (aBoxObj.is.AutoBoxAbsolute)
             begin
-                data b, @PdfBoxAbsolute, (PdfBoxAbsolute)aBoxObj
+                data b, @AutoBoxAbsolute, (AutoBoxAbsolute)aBoxObj
                 DrawBoxAbsolute(b.FromX,b.FromY,b.ToX,b.ToY,b.Width,b.Color,b.Fill)
             end
         endmethod
@@ -1141,11 +1141,11 @@ namespace SynPSG.PDF
 
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
-        ;;; Draws the image defined by a PdfImage object.
+        ;;; Draws the image defined by a AutoImage object.
         ;;; </summary>
-        ;;; <param name="aImageObj">PdfImage object to be displayed.</param>
+        ;;; <param name="aImageObj">AutoImage object to be displayed.</param>
         public method DrawImage, void
-            required in aImageObj, @PdfImage
+            required in aImageObj, @AutoImage
         proc
             DrawImage(aImageObj.FileSpec,aImageObj.X,aImageObj.Y,aImageObj.Width,aImageObj.Height)
         endmethod

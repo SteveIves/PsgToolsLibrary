@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; File:        SynPSG.PDF.PdfLineAbsolute.dbl
+;; File:        SynPSG.PDF.AutoLineAbsolute.dbl
 ;;
-;; Title:       PdfLineAbsolute
+;; Title:       AutoLineAbsolute
 ;;
 ;; Type:        Class
 ;;
@@ -45,9 +45,9 @@
 
 namespace SynPSG.PDF
 
-    public class PdfLineAbsolute extends PdfLine
+    public class AutoLineAbsolute extends AutoLine
 
-        public method PdfLineAbsolute
+        public method AutoLineAbsolute
             required in aFromX, float
             required in aFromY, float
             required in aToX,   float

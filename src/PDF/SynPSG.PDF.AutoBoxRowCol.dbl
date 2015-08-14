@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; File:        SynPSG.PDF.PdfBoxRowCol.dbl
+;; File:        SynPSG.PDF.AutoBoxRowCol.dbl
 ;;
-;; Title:       PdfBoxRowCol
+;; Title:       AutoBoxRowCol
 ;;
 ;; Type:        Class
 ;;
@@ -45,9 +45,9 @@
 
 namespace SynPSG.PDF
 
-    public class PdfBoxRowCol extends PdfBox
+    public class AutoBoxRowCol extends AutoBox
 
-        public method PdfBoxRowCol
+        public method AutoBoxRowCol
             required in aFromRow,   int
             required in aFromCol,   int
             required in aToRow,     int

@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; File:        SynPSG.PDF.PdfTextAbsolute.dbl
+;; File:        SynPSG.PDF.AutoTextAbsolute.dbl
 ;;
-;; Title:       PdfTextAbsolute
+;; Title:       AutoTextAbsolute
 ;;
 ;; Type:        Class
 ;;
@@ -45,9 +45,9 @@
 
 namespace SynPSG.PDF
 
-    public class PdfTextAbsolute extends PdfText
+    public class AutoTextAbsolute extends AutoText
 
-        public method PdfTextAbsolute
+        public method AutoTextAbsolute
             required in aX,     float
             required in aY,     float
             required in aText,  string

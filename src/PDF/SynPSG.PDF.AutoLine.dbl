@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; File:        SynPSG.PDF.PdfLine.dbl
+;; File:        SynPSG.PDF.AutoLine.dbl
 ;;
-;; Title:       PdfLine
+;; Title:       AutoLine
 ;;
 ;; Type:        Class
 ;;
@@ -45,11 +45,14 @@
 
 namespace SynPSG.PDF
 
-    public abstract class PdfLine
+    public abstract class AutoLine extends AutoItem
 
-        public method PdfLine
+        public method AutoLine
             optional in aWidth, float
             optional in aColor, PdfColor
+            optional in aMode,  AutoItemMode
+            endparams
+            parent(aMode)
         proc
             Width   = ^passed(aWidth) ? aWidth : 1
             if (^passed(aColor)) then

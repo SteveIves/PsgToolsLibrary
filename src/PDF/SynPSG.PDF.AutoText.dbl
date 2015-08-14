@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; File:        SynPSG.PDF.PdfText.dbl
+;; File:        SynPSG.PDF.AutoText.dbl
 ;;
-;; Title:       PdfText
+;; Title:       AutoText
 ;;
 ;; Type:        Class
 ;;
@@ -45,12 +45,14 @@
 
 namespace SynPSG.PDF
 
-    public abstract class PdfText
+    public abstract class AutoText extends AutoItem
 
-        public method PdfText
+        public method AutoText
             required in aText,      string
             optional in aColor,     PdfColor
+            optional in aMode,      AutoItemMode
             endparams
+            parent(aMode)
         proc
             mText = aText
             if (^passed(aColor)) then
