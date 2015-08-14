@@ -55,8 +55,9 @@ namespace SynPSG.PDF
             optional in aItalic,    boolean
             optional in aColor,     PdfColor
             optional in aNewLine,   boolean
+            optional in aMode,      AutoItemMode
             endparams
-            parent(aText,aColor)
+            parent(aText,aColor,aMode)
         proc
             mRow  = aRow
             mCol  = aCol

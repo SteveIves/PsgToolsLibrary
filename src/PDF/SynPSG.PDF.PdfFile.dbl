@@ -594,7 +594,7 @@ namespace SynPSG.PDF
         public method PrintText, int
             required in aCol, int
             required in aText, string
-            required in aBold, boolean
+            optional in aBold, boolean
             optional in aItalic, boolean
             optional in aColor, PdfColor
             optional in aNewLine, boolean
@@ -651,22 +651,13 @@ namespace SynPSG.PDF
         ;;; </summary>
         ;;; <param name="aTextObj">PdfTextRowCol object to be displayed.</param>
         ;;; <returns>Returns the new current column position.</returns>
-        public method PrintTextRowCol, void
-            required in aTextObj, @AutoTextRowCol
+        public method PrintText, void
+            required in aTextObj, @AutoText
         proc
-            PrintText(aTextObj.Row,aTextObj.Col,aTextObj.Text,aTextObj.Bold,aTextObj.Italic,aTextObj.Color,aTextObj.NewLine)
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Displays the text defined by a PdfTextAbsolute text object.
-        ;;; </summary>
-        ;;; <param name="aTextObj">PdfTextAbsolute object to be displayed.</param>
-        ;;; <returns>Returns the new current column position.</returns>
-        public method PrintTextAbsolute, void
-            required in aTextObj, @AutoTextAbsolute
-        proc
-            PrintTextAbsolute(aTextObj.X,aTextObj.Y,aTextObj.Text,aTextObj.Color)
+            if (aTextObj.is.AutoTextRowCol) then
+                PrintText(((AutoTextRowCol)aTextObj).Row,((AutoTextRowCol)aTextObj).Col,((AutoTextRowCol)aTextObj).Text,((AutoTextRowCol)aTextObj).Bold,((AutoTextRowCol)aTextObj).Italic,((AutoTextRowCol)aTextObj).Color,((AutoTextRowCol)aTextObj).NewLine)
+            else if (aTextObj.is.AutoTextAbsolute)
+                PrintTextAbsolute(((AutoTextAbsolute)aTextObj).X,((AutoTextAbsolute)aTextObj).Y,((AutoTextAbsolute)aTextObj).Text,((AutoTextAbsolute)aTextObj).Color)
         endmethod
 
         ;;--------------------------------------------------------------------------------

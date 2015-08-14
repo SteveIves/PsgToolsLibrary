@@ -44,6 +44,11 @@
 
 namespace SynPSG.PDF
 
+    public enum AutoItemMode
+        BeginPage
+        EndPage
+    endenum
+
     public enum PdfOrientation
         Portrait,   1
         Landscape

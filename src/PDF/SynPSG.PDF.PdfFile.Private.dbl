@@ -246,10 +246,10 @@ namespace SynPSG.PDF
         proc
 
             if (aItem.is.AutoTextRowCol) then
-                PrintTextRowCol((AutoTextRowCol)aItem)
+                PrintText((AutoTextRowCol)aItem)
 
             else if (aItem.is.AutoTextAbsolute) then
-                PrintTextAbsolute((AutoTextAbsolute)aItem)
+                PrintText((AutoTextAbsolute)aItem)
 
             else if (aItem.is.AutoLineRowCol) then
                 DrawLine((AutoLineRowCol)aItem)

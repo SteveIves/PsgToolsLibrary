@@ -52,8 +52,9 @@ namespace SynPSG.PDF
             required in aY,     float
             required in aText,  string
             optional in aYor,   PdfColor
+            optional in aMode,  AutoItemMode
             endparams
-            parent(aText,aYor)
+            parent(aText,aYor,aMode)
         proc
             mX  = aX
             mY  = aY

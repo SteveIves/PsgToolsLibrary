@@ -51,8 +51,9 @@ namespace SynPSG.PDF
             optional in aWidth, float
             optional in aColor, PdfColor
             optional in aFill,  boolean
+            optional in aMode,  AutoItemMode
             endparams
-            parent(aWidth,aColor)
+            parent(aWidth,aColor,aMode)
         proc
             if (^passed(aFill)) then
                 mFill = aFill

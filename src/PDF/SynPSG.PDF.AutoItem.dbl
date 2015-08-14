@@ -45,11 +45,6 @@
 
 namespace SynPSG.PDF
 
-    public enum AutoItemMode
-        BeginPage
-        EndPage
-    endenum
-
     public abstract class AutoItem
 
         public method AutoItem

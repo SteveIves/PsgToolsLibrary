@@ -54,8 +54,9 @@ namespace SynPSG.PDF
             required in aToCol,     int
             optional in aWidth,     float
             optional in aColor,     PdfColor
+            optional in aMode,  AutoItemMode
             endparams
-            parent(aWidth,aColor)
+            parent(aWidth,aColor,aMode)
         proc
             FromRow = aFromRow
             FromCol = aFromCol

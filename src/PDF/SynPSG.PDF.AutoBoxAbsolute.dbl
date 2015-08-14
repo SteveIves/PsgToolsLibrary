@@ -55,8 +55,9 @@ namespace SynPSG.PDF
             optional in aWidth, float
             optional in aColor, PdfColor
             optional in aFill,  boolean
+            optional in aMode,  AutoItemMode
             endparams
-            parent(aWidth,aColor,aFill)
+            parent(aWidth,aColor,aFill,aMode)
         proc
             mFromX = aFromX
             mFromY = aFromY
