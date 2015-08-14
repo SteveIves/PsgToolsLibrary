@@ -225,8 +225,12 @@ namespace SynPSG.PDF
                     else if (autoItem.is.PdfBoxRowCol) then
                         DrawBox((PdfBoxRowCol)autoItem)
 
-                    else if (autoItem.is.PdfBoxAbsolute)
+                    else if (autoItem.is.PdfBoxAbsolute) then
                         DrawBox((PdfBoxAbsolute)autoItem)
+
+                    else if (autoItem.is.PdfImage)
+                        DrawImage((PdfImage)autoItem)
+
                 end
             end
 

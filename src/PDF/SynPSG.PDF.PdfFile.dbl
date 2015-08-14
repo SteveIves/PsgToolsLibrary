@@ -922,28 +922,6 @@ namespace SynPSG.PDF
                 DrawLineAbsolute(((PdfLineAbsolute)aLineObj).FromX,((PdfLineAbsolute)aLineObj).FromY,((PdfLineAbsolute)aLineObj).ToX,((PdfLineAbsolute)aLineObj).ToY,((PdfLineAbsolute)aLineObj).Width,((PdfLineAbsolute)aLineObj).Color)
         endmethod
 
-;        ;;--------------------------------------------------------------------------------
-;        ;;; <summary>
-;        ;;; Draws the line defined by a PdfLineRowCol object.
-;        ;;; </summary>
-;        ;;; <param name="aLineObj">PdfLineRowCol object to be displayed.</param>
-;        public method DrawLineRowCol, void
-;            required in aLineObj, @PdfLineRowCol
-;        proc
-;            DrawLine(aLineObj.FromRow,aLineObj.FromCol,aLineObj.ToRow,aLineObj.ToCol,aLineObj.Width,aLineObj.Color)
-;        endmethod
-;
-;        ;;--------------------------------------------------------------------------------
-;        ;;; <summary>
-;        ;;; Draws the line defined by a PdfLineAbsolute object.
-;        ;;; </summary>
-;        ;;; <param name="aLineObj">PdfLineAbsolute object to be displayed.</param>
-;        public method DrawLineAbsolute, void
-;            required in aLineObj, @PdfLineAbsolute
-;        proc
-;            DrawLine(aLineObj.FromX,aLineObj.FromY,aLineObj.ToX,aLineObj.ToY,aLineObj.Width,aLineObj.Color)
-;        endmethod
-;
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
         ;;; Draws a box from the center of specified start and end cells.
@@ -1114,6 +1092,7 @@ namespace SynPSG.PDF
             end
         endmethod
 
+        ;;--------------------------------------------------------------------------------
         ;;; <summary>
         ;;; Loads a JPEG or PNG image and displays it at a specified position on the current page.
         ;;; Note that if you specify height and width then you should try to maintain the same ratio
@@ -1127,8 +1106,8 @@ namespace SynPSG.PDF
         ;;; <param name="aWidth">Height to occupy in device independent pixels (defaults to the pixel height of the image).</param>
         public method DrawImage, void
             required in aFileSpec, string
-            required in aOriginX, float
-            required in aOriginY, float
+            required in aX, float
+            required in aY, float
             optional in aWidth, float
             optional in aHeight, float
             record
@@ -1154,10 +1133,21 @@ namespace SynPSG.PDF
                 else
                     height = image.GetHeight()
 
-                pg.DrawImage(image,aOriginX,aOriginY,width,height)
+                pg.DrawImage(image,aX,aY,width,height)
 
             end
 
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws the image defined by a PdfImage object.
+        ;;; </summary>
+        ;;; <param name="aImageObj">PdfImage object to be displayed.</param>
+        public method DrawImage, void
+            required in aImageObj, @PdfImage
+        proc
+            DrawImage(aImageObj.FileSpec,aImageObj.X,aImageObj.Y,aImageObj.Width,aImageObj.Height)
         endmethod
 
         ;;--------------------------------------------------------------------------------

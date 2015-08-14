@@ -150,6 +150,7 @@
             <F N="../src/PDF/SynPSG.PDF.PdfFile.dbl"/>
             <F N="../src/PDF/SynPSG.PDF.PdfFile.Enums.dbl"/>
             <F N="../src/PDF/SynPSG.PDF.PdfFile.Private.dbl"/>
+            <F N="../src/PDF/SynPSG.PDF.PdfImage.dbl"/>
             <F N="../src/PDF/SynPSG.PDF.PdfLine.dbl"/>
             <F N="../src/PDF/SynPSG.PDF.PdfLineAbsolute.dbl"/>
             <F N="../src/PDF/SynPSG.PDF.PdfLineRowCol.dbl"/>
