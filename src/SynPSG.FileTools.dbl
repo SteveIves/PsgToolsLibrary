@@ -136,6 +136,7 @@ namespace SynPSG
         endmethod
 
 .ifndef OS_VMS
+
         public static method UnloadIsamFile, boolean
             required in  isamFile, string
             required in  outputFile, string
@@ -181,7 +182,148 @@ namespace SynPSG
             mreturn ((File.Exists(outputFile)) && (err.Length == 0))
 
         endmethod
+
+	public static method LoadIsamFile, boolean
+	    required in  sequentialFile, string
+	    required in  isamFile, string
+	    required in  fdlOrXdlFile, string
+	    optional out errtxt, string
+	    endparams
+	    stack record
+		pipe,       i4
+		buffer,     a256
+		command,    string
+		err,        string
+	    endrecord
+	proc
+	    err = ""
+
+	    ;;If the output file exists, delete it
+	    xcall delet(isamFile)
+
+	    ;;Define the fconvert command
+	    command = '|fconvert -it "' + ExpandLogicalInFilespec(sequentialFile) + '" -oi -f "' + ExpandLogicalInFilespec(isamFile) + '" -d "' + ExpandLogicalInFilespec(fdlOrXdlFile) + '"'
+
+	    ;;Execute the command file with "open pipe"
+	    open(pipe=0,i,command)
+
+	    ;;Wait until the command has completed
+	    repeat
+	    begin
+		sleep 0.1
+		reads(pipe,buffer,end_pipe)
+		if (buffer)
+		begin
+		    if (err.Length > 0)
+			err = err + ", "
+		    err = err + %atrim(buffer)
+		end
+	    end
+
+	end_pipe,
+	    close pipe
+
+	    if (^passed(errtxt))
+		errtxt = err
+
+	    mreturn ((File.Exists(isamFile)) && (err.Length == 0))
+
+	endmethod
+	    
+	public static method StreamLfToText, boolean
+	    required in  streamFile, string
+	    required in  textFile, string
+	    optional out errtxt, string
+	    endparams
+	    stack record
+		pipe,       i4
+		buffer,     a256
+		command,    string
+		err,        string
+	    endrecord
+	proc
+	    err = ""
+
+	    ;;If the output file exists, delete it
+	    xcall delet(textFile)
+
+	    ;;Define the fconvert command
+	    command = '|fconvert -i1 "' + ExpandLogicalInFilespec(streamFile) + '" -ot -f "' + ExpandLogicalInFilespec(textFile)
+
+	    ;;Execute the command file with "open pipe"
+	    open(pipe=0,i,command)
+
+	    ;;Wait until the command has completed
+	    repeat
+	    begin
+		sleep 0.1
+		reads(pipe,buffer,end_pipe)
+		if (buffer)
+		begin
+		    if (err.Length > 0)
+			err = err + ", "
+		    err = err + %atrim(buffer)
+		end
+	    end
+
+	end_pipe,
+	    close pipe
+
+	    if (^passed(errtxt))
+		errtxt = err
+
+	    mreturn ((File.Exists(textFile)) && (err.Length == 0))
+
+	endmethod
+
+	public static method StreamCrLfToText, boolean
+	    required in  streamFile, string
+	    required in  textFile, string
+	    optional out errtxt, string
+	    endparams
+	    stack record
+		pipe,       i4
+		buffer,     a256
+		command,    string
+		err,        string
+	    endrecord
+	proc
+	    err = ""
+
+	    ;;If the output file exists, delete it
+	    xcall delet(textFile)
+
+	    ;;Define the fconvert command
+	    command = '|fconvert -i2 "' + ExpandLogicalInFilespec(streamFile) + '" -ot -f "' + ExpandLogicalInFilespec(textFile)
+
+	    ;;Execute the command file with "open pipe"
+	    open(pipe=0,i,command)
+
+	    ;;Wait until the command has completed
+	    repeat
+	    begin
+		sleep 0.1
+		reads(pipe,buffer,end_pipe)
+		if (buffer)
+		begin
+		    if (err.Length > 0)
+			err = err + ", "
+		    err = err + %atrim(buffer)
+		end
+	    end
+
+	end_pipe,
+	    close pipe
+
+	    if (^passed(errtxt))
+		errtxt = err
+
+	    mreturn ((File.Exists(textFile)) && (err.Length == 0))
+
+	endmethod
+
 .endc
+
     endclass
 
 endnamespace
