@@ -48,24 +48,29 @@ namespace SynPSG.PDF
     public class AutoBoxRowCol extends AutoBox
 
         public method AutoBoxRowCol
-            required in aFromRow,   int
-            required in aFromCol,   int
-            required in aToRow,     int
-            required in aToCol,     int
-            optional in aWidth,     float
-            optional in aColor,     PdfColor
-            optional in aFill,      boolean
-            optional in aMode,      AutoItemMode
+            optional in aFromRow,     int
+            optional in aFromCol,     int
+            optional in aToRow,       int
+            optional in aToCol,       int
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            optional in aFill,        boolean
+            optional in aFillColor,   PdfColor
+            optional in aMode,        AutoItemMode
             endparams
-            parent(aWidth,aColor,aFill,aMode)
+            parent(aWidth,aStrokeColor,aFill,aFillColor,aMode)
         proc
-            mFromRow = aFromRow
-            mFromCol = aFromCol
-            mToRow   = aToRow
-            mToCol   = aToCol
+            if (^passed(aFromRow))
+                mFromRow = aFromRow
+            if (^passed(aFromCol))
+                mFromCol = aFromCol
+            if (^passed(aToRow))
+                mToRow = aToRow
+            if (^passed(aToCol))
+                mToCol = aToCol
         endmethod
 
-        private mFromRow, int
+        private mFromRow, int, 0
 
         public property FromRow, int
             method get
@@ -78,7 +83,7 @@ namespace SynPSG.PDF
             endmethod
         endproperty
 
-        private mFromCol, int
+        private mFromCol, int, 0
 
         public property FromCol, int
             method get
@@ -91,7 +96,7 @@ namespace SynPSG.PDF
             endmethod
         endproperty
 
-        private mToRow, int
+        private mToRow, int, 0
 
         public property ToRow, int
             method get
@@ -104,7 +109,7 @@ namespace SynPSG.PDF
             endmethod
         endproperty
 
-        private mToCol, int
+        private mToCol, int, 0
 
         public property ToCol, int
             method get

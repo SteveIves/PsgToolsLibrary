@@ -48,16 +48,22 @@ namespace SynPSG.PDF
     public class AutoTextAbsolute extends AutoText
 
         public method AutoTextAbsolute
-            required in aX,     float
-            required in aY,     float
-            required in aText,  string
-            optional in aYor,   PdfColor
-            optional in aMode,  AutoItemMode
+            required in aText,      string
+            required in aX,         float
+            required in aY,         float
+            optional in aColor,     PdfColor
+            optional in aFontName,  string
+            optional in aFontSize,  int
+            optional in aMode,      AutoItemMode
             endparams
-            parent(aText,aYor,aMode)
+            parent(aText,aColor,aMode)
         proc
             mX  = aX
             mY  = aY
+            if (^passed(aFontName) && (afontName!=^null) && (aFontName.Trim().Length>0))
+                mFontName = aFontName
+            if (^passed(aFontSize) && (aFontSize>0))
+                mFontSize = aFontSize
         endmethod
 
         private mX, float
@@ -83,6 +89,32 @@ namespace SynPSG.PDF
             method set
             proc
                 mY = value
+            endmethod
+        endproperty
+
+        private mFontName, string
+
+        public property FontName, string
+            method get
+            proc
+                mreturn mFontName
+            endmethod
+            method set
+            proc
+                mFontName = value
+            endmethod
+        endproperty
+
+        private mFontSize, int, 0
+
+        public property FontSize, int
+            method get
+            proc
+                mreturn mFontSize
+            endmethod
+            method set
+            proc
+                mFontSize = value
             endmethod
         endproperty
 

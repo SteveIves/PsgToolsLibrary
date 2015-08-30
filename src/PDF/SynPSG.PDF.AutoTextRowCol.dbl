@@ -48,9 +48,9 @@ namespace SynPSG.PDF
     public class AutoTextRowCol extends AutoText
 
         public method AutoTextRowCol
-            required in aRow,       int
-            required in aCol,       int
             required in aText,      string
+            optional in aRow,       int
+            optional in aCol,       int
             optional in aBold,      boolean
             optional in aItalic,    boolean
             optional in aColor,     PdfColor
@@ -59,23 +59,19 @@ namespace SynPSG.PDF
             endparams
             parent(aText,aColor,aMode)
         proc
-            mRow  = aRow
-            mCol  = aCol
-            if (^passed(aBold)) then
+            if (^passed(aRow))
+                mRow  = aRow
+            if (^passed(aCol))
+                mCol  = aCol
+            if (^passed(aBold))
                 mBold = aBold
-            else
-                mBold = false
-            if (^passed(aItalic)) then
+            if (^passed(aItalic))
                 mItalic = aItalic
-            else
-                mItalic = false
-            if (^passed(aNewLine)) then
+            if (^passed(aNewLine))
                 mNewLine = aNewLine
-            else
-                mNewLine = false
         endmethod
 
-        private mRow, int
+        private mRow, int, 0
 
         public property Row, int
             method get
@@ -88,7 +84,7 @@ namespace SynPSG.PDF
             endmethod
         endproperty
 
-        private mCol, int
+        private mCol, int, 0
 
         public property Col, int
             method get
@@ -101,7 +97,7 @@ namespace SynPSG.PDF
             endmethod
         endproperty
 
-        private mBold, boolean
+        private mBold, boolean, false
 
         public property Bold, boolean
             method get
@@ -114,7 +110,7 @@ namespace SynPSG.PDF
             endmethod
         endproperty
 
-        private mItalic, boolean
+        private mItalic, boolean, false
 
         public property Italic, boolean
             method get
@@ -127,7 +123,7 @@ namespace SynPSG.PDF
             endmethod
         endproperty
 
-        private mNewLine, boolean
+        private mNewLine, boolean, false
 
         public property NewLine, boolean
             method get

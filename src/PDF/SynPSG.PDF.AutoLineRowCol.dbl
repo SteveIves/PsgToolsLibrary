@@ -48,15 +48,15 @@ namespace SynPSG.PDF
     public class AutoLineRowCol extends AutoLine
 
         public method AutoLineRowCol
-            required in aFromRow,   int
-            required in aFromCol,   int
-            required in aToRow,     int
-            required in aToCol,     int
-            optional in aWidth,     float
-            optional in aColor,     PdfColor
-            optional in aMode,  AutoItemMode
+            required in aFromRow,     int
+            required in aFromCol,     int
+            required in aToRow,       int
+            required in aToCol,       int
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            optional in aMode,        AutoItemMode
             endparams
-            parent(aWidth,aColor,aMode)
+            parent(aWidth,aStrokeColor,aMode)
         proc
             FromRow = aFromRow
             FromCol = aFromCol

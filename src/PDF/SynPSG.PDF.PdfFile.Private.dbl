@@ -102,17 +102,6 @@ namespace SynPSG.PDF
         ;;--------------------------------------------------------------------------------
         ;;
 
-        private method getHaruPageDirection, HPdfPageDirection
-        proc
-            if (this.Orientation == PdfOrientation.Portrait) then
-                mreturn HPdfPageDirection.HPDF_PAGE_PORTRAIT
-            else
-                mreturn HPdfPageDirection.HPDF_PAGE_LANDSCAPE
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;
-
         private method Header_YfromRow, float
             required in aHeaderRow, int
         proc
@@ -129,9 +118,21 @@ namespace SynPSG.PDF
                 data ix, int
                 for ix from 1 thru this.FooterRows
                 begin
-                    if ((this.FooterText[ix]).Trim().Length==0) then
+                    data footer, string
+                    if ((this.Orientation==this.DefaultOrientation) || (this.UseAlternateFooters==false)) then
+                    begin
+                        ;;Default orientation page or alternate orientation page using default footers
+                        footer = this.FooterText[ix]
+                    end
+                    else
+                    begin
+                        ;;Alternate orientation page
+                        footer = this.FooterTextAlternate[ix]
+                    end
+
+                    if (footer.Trim().Length==0) then
                         nop
-                    else if (this.FooterText[ix]=="[LINE]") then
+                    else if (footer=="[LINE]") then
                     begin
                         ;;Calculate the start and end points for a full width line
                         data penWidth, float, 1.0
@@ -150,7 +151,7 @@ namespace SynPSG.PDF
                     begin
                         pg.BeginText()
                         pg.MoveTextPos(XfromCol(1),Footer_YFromRow(ix))
-                        pg.ShowText(expandTokens(this.FooterText[ix]))
+                        pg.ShowText(expandTokens(footer))
                         pg.EndText()
                     end
                 end
@@ -167,9 +168,21 @@ namespace SynPSG.PDF
                 data ix, int
                 for ix from 1 thru this.HeaderRows
                 begin
-                    if ((this.HeaderText[ix]).Trim().Length==0) then
+                    data header, string
+                    if ((this.Orientation==this.DefaultOrientation) || (this.UseAlternateHeaders==false)) then
+                    begin
+                        ;;Default orientation page or alternate orientation page using default headers
+                        header = this.HeaderText[ix]
+                    end
+                    else
+                    begin
+                        ;;Alternate orientation page
+                        header = this.HeaderTextAlternate[ix]
+                    end
+
+                    if (header.Trim().Length==0) then
                         nop
-                    else if (this.HeaderText[ix]=="[LINE]") then
+                    else if (header=="[LINE]") then
                     begin
                         ;;Calculate the start and end points for a full width line
                         data penWidth, float, 1.0
@@ -188,7 +201,7 @@ namespace SynPSG.PDF
                     begin
                         pg.BeginText()
                         pg.MoveTextPos(XfromCol(1),Header_YFromRow(ix))
-                        pg.ShowText(expandTokens(this.HeaderText[ix]))
+                        pg.ShowText(expandTokens(header))
                         pg.EndText()
                     end
                 end
@@ -245,23 +258,23 @@ namespace SynPSG.PDF
             required in aItem, @AutoItem
         proc
 
-            if (aItem.is.AutoTextRowCol) then
-                PrintText((AutoTextRowCol)aItem)
+            if (aItem.is.AutoTextAbsolute) then
+                DrawText((AutoTextAbsolute)aItem)
 
-            else if (aItem.is.AutoTextAbsolute) then
-                PrintText((AutoTextAbsolute)aItem)
-
-            else if (aItem.is.AutoLineRowCol) then
-                DrawLine((AutoLineRowCol)aItem)
+            else if (aItem.is.AutoTextRowCol) then
+                DrawTextRC((AutoTextRowCol)aItem)
 
             else if (aItem.is.AutoLineAbsolute) then
                 DrawLine((AutoLineAbsolute)aItem)
 
-            else if (aItem.is.AutoBoxRowCol) then
-                DrawBox((AutoBoxRowCol)aItem)
+            else if (aItem.is.AutoLineRowCol) then
+                DrawLineRC((AutoLineRowCol)aItem)
 
             else if (aItem.is.AutoBoxAbsolute) then
                 DrawBox((AutoBoxAbsolute)aItem)
+
+            else if (aItem.is.AutoBoxRowCol) then
+                DrawBoxRC((AutoBoxRowCol)aItem)
 
             else if (aItem.is.AutoImage)
                 DrawImage((AutoImage)aItem)
@@ -4344,7 +4357,7 @@ namespace SynPSG.PDF
         ;;--------------------------------------------------------------------------------
         ;;
 
-        private method selectFont, void
+        private method setFontAttributes, void
             optional in aBold, boolean
             optional in aItalic, boolean
         proc

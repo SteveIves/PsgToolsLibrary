@@ -48,16 +48,17 @@ namespace SynPSG.PDF
     public class AutoBoxAbsolute extends AutoBox
 
         public method AutoBoxAbsolute
-            required in aFromX, float
-            required in aFromY, float
-            required in aToX,   float
-            required in aToY,   float
-            optional in aWidth, float
-            optional in aColor, PdfColor
-            optional in aFill,  boolean
-            optional in aMode,  AutoItemMode
+            required in aFromX,       float
+            required in aFromY,       float
+            required in aToX,         float
+            required in aToY,         float
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            optional in aFill,        boolean
+            optional in aFillColor,   PdfColor
+            optional in aMode,        AutoItemMode
             endparams
-            parent(aWidth,aColor,aFill,aMode)
+            parent(aWidth,aStrokeColor,aFill,aFillColor,aMode)
         proc
             mFromX = aFromX
             mFromY = aFromY

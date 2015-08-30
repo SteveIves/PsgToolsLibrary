@@ -48,20 +48,21 @@ namespace SynPSG.PDF
     public abstract class AutoBox extends AutoLine
 
         public method AutoBox
-            optional in aWidth, float
-            optional in aColor, PdfColor
-            optional in aFill,  boolean
-            optional in aMode,  AutoItemMode
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            optional in aFill,        boolean
+            optional in aFillColor,   PdfColor
+            optional in aMode,        AutoItemMode
             endparams
-            parent(aWidth,aColor,aMode)
+            parent(aWidth,aStrokeColor,aMode)
         proc
-            if (^passed(aFill)) then
+            if (^passed(aFill))
                 mFill = aFill
-            else
-                mFill = false
+            if (^passed(aFillColor))
+                mFillColor = aFillColor
         endmethod
 
-        private mFill, boolean
+        private mFill, boolean, false
 
         public property Fill, boolean
             method get
@@ -71,6 +72,19 @@ namespace SynPSG.PDF
             method set
             proc
                 mFill = value
+            endmethod
+        endproperty
+
+        private mFillColor, PdfColor, PdfColor.Black
+
+        public property FillColor, PdfColor
+            method get
+            proc
+                mreturn mFillColor
+            endmethod
+            method set
+            proc
+                mFillColor = value
             endmethod
         endproperty
 

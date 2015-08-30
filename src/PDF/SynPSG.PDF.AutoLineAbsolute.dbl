@@ -48,15 +48,15 @@ namespace SynPSG.PDF
     public class AutoLineAbsolute extends AutoLine
 
         public method AutoLineAbsolute
-            required in aFromX, float
-            required in aFromY, float
-            required in aToX,   float
-            required in aToY,   float
-            optional in aWidth, float
-            optional in aColor, PdfColor
-            optional in aMode,  AutoItemMode
+            required in aFromX,       float
+            required in aFromY,       float
+            required in aToX,         float
+            required in aToY,         float
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            optional in aMode,        AutoItemMode
             endparams
-            parent(aWidth,aColor,aMode)
+            parent(aWidth,aStrokeColor,aMode)
         proc
             mFromX = aFromX
             mFromY = aFromY

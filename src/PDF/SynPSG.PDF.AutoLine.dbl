@@ -48,17 +48,17 @@ namespace SynPSG.PDF
     public abstract class AutoLine extends AutoItem
 
         public method AutoLine
-            optional in aWidth, float
-            optional in aColor, PdfColor
-            optional in aMode,  AutoItemMode
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            optional in aMode,        AutoItemMode
             endparams
             parent(aMode)
         proc
-            Width   = ^passed(aWidth) ? aWidth : 1
-            if (^passed(aColor)) then
-                Color = aColor
+            Width = ^passed(aWidth) ? aWidth : 1
+            if (^passed(aStrokeColor)) then
+                StrokeColor = aStrokeColor
             else
-                Color = PdfColor.Black
+                StrokeColor = PdfColor.Black
         endmethod
 
         private mWidth, float
@@ -74,16 +74,16 @@ namespace SynPSG.PDF
             endmethod
         endproperty
 
-        private mColor, PdfColor
+        private mStrokeColor, PdfColor
 
-        public property Color, PdfColor
+        public property StrokeColor, PdfColor
             method get
             proc
-                mreturn mColor
+                mreturn mStrokeColor
             endmethod
             method set
             proc
-                mColor = value
+                mStrokeColor = value
             endmethod
         endproperty
 

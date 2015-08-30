@@ -69,28 +69,40 @@ namespace SynPSG.PDF
     ;;; </summary>
     public partial class PdfFile
 
-        private doc,            @HPdfDoc
-        private fontNormal,     @HPdfFont
-        private fontBold,       @HPdfFont
-        private fontItalic,     @HPdfFont
-        private fontBoldItalic, @HPdfFont
-        private pg,             @HpdfPage
+        private doc,                            @HPdfDoc
+        private fontNormal,                     @HPdfFont
+        private fontBold,                       @HPdfFont
+        private fontItalic,                     @HPdfFont
+        private fontBoldItalic,                 @HPdfFont
+        private pg,                             @HpdfPage
 
-        private leftOffset,     int ;Pixels reserved for requested left margin
-        private topOffset,      int ;Pixels reserved for requested top margin
-        private rightOffset,    int ;Pixels reserved for requested right margin
-        private bottomOffset,   int ;Pixels reserved for requested bottom margin
-        private totalRows,      int ;Total number of rows for the entire page
+        private leftOffset,                     float   ;Pixels reserved for requested left margin
+        private topOffset,                      float   ;Pixels reserved for requested top margin
+        private rightOffset,                    float   ;Pixels reserved for requested right margin
+        private bottomOffset,                   float   ;Pixels reserved for requested bottom margin
 
-        private pageIsNew,      boolean
+        private totalHeightDefaultOrientation,  float
+        private totalHeightOtherOrientation,    float
+
+        private totalWidthDefaultOrientation,   float
+        private totalWidthOtherOrientation,     float
+
+        private totalRowsDefaultOrientation,    int     ;Total number of rows for the entire page (default orientation)
+        private totalColsDefaultOrientation,    int     ;Total number of cols for the entire page (default orientation)
+
+        private totalRowsOtherOrientation,      int     ;Total number of rows for the entire page (other orientation)
+        private totalColsOtherOrientation,      int     ;Total number of cols for the entire page (other orientation)
+
+        private pageIsNew,                      boolean
 
         ;;********************************************************************************
         ;;CONSTRUCTOR
 
         ;;; <summary>
-        ;;; Constructs a new PsfFile object.
+        ;;; Constructs a new PdfFile object.
         ;;; </summary>
-        ;;; <param name="aOrientation">Orientation of pages, portrait or landscape.</param>
+        ;;; <param name="aPageSize">Size of pages in the document.</param>
+        ;;; <param name="aOrientation">Default orientation of pages, portrait or landscape.</param>
         ;;; <param name="aLeftMargin">Establishes a left margin for the pages of the document. The value is specified in inches. If you don't specify a left margin then a default value of 0.16 inches will be used. If you don't want any margin then specify a value of 0.</param>
         ;;; <param name="aTopMargin">Establishes a top margin for the pages of the document. The value is specified in inches. If you don't specify a left margin then a default value of 0.16 inches will be used. If you don't want any margin then specify a value of 0.</param>
         ;;; <param name="aRightMargin">Establishes a right margin for the pages of the document. The value is specified in inches. If you don't specify a left margin then a default value of 0.16 inches will be used. If you don't want any margin then specify a value of 0.</param>
@@ -99,23 +111,34 @@ namespace SynPSG.PDF
         ;;; <param name="aFooterRows">Establishes the number of footer rows that are to be allocated on each page of the document. Footer rows are displayed below main body and above the bottom margin of each page of the document.</param>
         ;;; <param name="aPageBackgroundColor">Establishes a custom page background color and implements that color on the first page. The default page background color is white.</param>
         public method PdfFile
-            optional in aOrientation,       PdfOrientation
-            optional in aLeftMargin,        float
-            optional in aTopMargin,         float
-            optional in aRightMargin,       float
-            optional in aBottomMargin,      float
-            optional in aHeaderRows,        int
-            optional in aFooterRows,        int
+            optional in aPageSize,              PdfPageSize
+            optional in aOrientation,           PdfOrientation
+            optional in aLeftMargin,            float
+            optional in aTopMargin,             float
+            optional in aRightMargin,           float
+            optional in aBottomMargin,          float
+            optional in aHeaderRows,            int
+            optional in aFooterRows,            int
             optional in aPageBackgroundColor,   PdfColor
         proc
+
             ;;Set page orientation
-            if (^passed(aOrientation)) then
-                this.Orientation = aOrientation
+            if (^passed(aPageSize)) then
+                this.PageSize = aPageSize
             else
-                this.Orientation = PdfOrientation.Portrait
+                this.PageSize = PdfPageSize.LETTER
+
+            ;;Set default page orientation
+            if (^passed(aOrientation)) then
+                this.DefaultOrientation = aOrientation
+            else
+                this.DefaultOrientation = PdfOrientation.Portrait
 
             ;;Create a new PDF document
             doc = new HPdfDoc()
+
+            ;;Set the document compression mode
+;           doc.SetCompressionMode(HPDF_COMP_ALL)
 
             ;;Load the fonts we'll be using
             fontNormal = doc.GetFont("Courier", ^null)
@@ -124,11 +147,17 @@ namespace SynPSG.PDF
             fontBoldItalic = doc.GetFont("Courier-BoldOblique", ^null)
 
             ;;Start the first page
-            pg = doc.AddPage(HPdfPageSizes.HPDF_PAGE_SIZE_LETTER,getHaruPageDirection())
+            pg = doc.AddPage((HPdfPageSizes)this.PageSize,(HPdfPageDirection)this.DefaultOrientation)
+            this.Orientation = this.DefaultOrientation
 
             ;;Get the pixel dimensions of the page
-            this.Height = %integer(pg.GetHeight())
-            this.Width = %integer(pg.GetWidth())
+            totalHeightDefaultOrientation = %integer(pg.GetHeight())
+            totalWidthDefaultOrientation = %integer(pg.GetWidth())
+            totalHeightOtherOrientation = totalWidthDefaultOrientation
+            totalWidthOtherOrientation = totalHeightDefaultOrientation
+
+            this.Height = totalHeightDefaultOrientation
+            this.Width = totalWidthDefaultOrientation
 
             ;;Left margin
             if (^passed(aLeftMargin) && (aLeftMargin >= 0)) then
@@ -165,9 +194,13 @@ namespace SynPSG.PDF
 
             ;;Calculate the page dimensions in rows and columns based on the current font
             this.RowHeight = fontSizeFloat
-            totalRows = %truncate((this.Height-topOffset-bottomOffset)/this.RowHeight)
             this.ColumnWidth = pg.TextWidth("W")
-            this.Columns = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+
+            totalRowsDefaultOrientation = %truncate((this.Height-topOffset-bottomOffset)/this.RowHeight)
+            totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+
+            totalRowsOtherOrientation = %truncate((this.Width-topOffset-bottomOffset)/this.RowHeight)
+            totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
 
             ;;Close off the page for now, not sure if we'll need text or graphics first
             pg.EndText()
@@ -192,8 +225,9 @@ namespace SynPSG.PDF
                     this.FooterText[ix] = ""
             end
 
-            ;;Calculate the number of body rows
-            this.Rows = totalRows - this.HeaderRows - this.FooterRows
+            ;;Set the body dimensions for the default orientation
+            this.Rows = totalRowsDefaultOrientation - this.HeaderRows - this.FooterRows
+            this.Columns = totalColsDefaultOrientation
 
             ;;Set the default colors to black
             this.StrokeColor = PdfColor.Black
@@ -225,13 +259,675 @@ namespace SynPSG.PDF
         ;;********************************************************************************
         ;;PUBLIC METHODS
 
+        ;------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Adds a design grid to all pages of the document (via the AutoItems collection).
+        ;;; </summary>
+        public method AddDesignGrid, void
+            endparams
+            record
+                x, float
+                y, float
+            endrecord
+        proc
+            this.SelectFont("Helvetica",4)
+
+            ;Draw horizontal 5 lines
+            y = 0
+            while ((y+=5)<=this.Height)
+                this.AutoItems.Add(new AutoLineAbsolute(0,y,this.Width,y,0.1,PdfColor.LightGray))
+
+            ;Draw horizontal 10 lines
+            y = 0
+            while ((y+=10)<=this.Height)
+            begin
+                this.AutoItems.Add(new AutoLineAbsolute(0,y,this.Width,y,0.5,PdfColor.LightGray))
+                this.AutoItems.Add(new AutoTextAbsolute(%string(%integer(y)),0,y+1,PdfColor.Black,"Helvetica",4))
+            end
+
+            ;Draw horizontal 100 lines
+            y = 0
+            while ((y+=100)<=this.Height)
+                this.AutoItems.Add(new AutoLineAbsolute(0,y,this.Width,y,0.5,PdfColor.DarkGray))
+
+            ;Draw vertical 5 lines
+            x = 0
+            while ((x+=5)<=this.Height)
+                this.AutoItems.Add(new AutoLineAbsolute(x,0,x,this.Height,0.1,PdfColor.LightGray))
+
+            ;Draw vertical 10 lines
+            x = 0
+            while ((x+=10)<=this.Height)
+            begin
+                this.AutoItems.Add(new AutoLineAbsolute(x,0,x,this.Height,0.5,PdfColor.LightGray))
+                this.AutoItems.Add(new AutoTextAbsolute(%string(%integer(x)),x,1,PdfColor.Black,"Helvetica",4))
+            end
+
+            ;Draw vertical 100 lines
+            x = 0
+            while ((x+=100)<=this.Height)
+                this.AutoItems.Add(new AutoLineAbsolute(x,0,x,this.Height,0.5,PdfColor.DarkGray))
+
+            this.ResetFont()
+
+        endmethod
+
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
-        ;;; Releases resources used by the PDF document.
+        ;;; Releases resources allocated by the PDF document. After calling this method the PdfFile object is no longer valid. This method is called automatically whenever you call the Preview, Print or Save methods.
         ;;; </summary>
         public method Dispose, void
+            endparams
         proc
             doc.FreeDocAll()
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws a box from the center of specified start and end cells.
+        ;;; The default from point is the current position.
+        ;;; The default end point is the bottom right corner of the page.
+        ;;; The current position is NOT updated by this method.
+        ;;; </summary>
+        ;;; <param name="aFromX">Top left corner X coordinate.</param>
+        ;;; <param name="aFromY">Top left corner Y coordinate.</param>
+        ;;; <param name="aToX">Bottom right corner X coordinate.</param>
+        ;;; <param name="aToY">Bottom right corner Y coordinate.</param>
+        ;;; <param name="aWidth">Line width in pixels. Default is 1.</param>
+        ;;; <param name="aStrokeColor">Custom stroke color.</param>
+        ;;; <param name="aFill">Should the box be filled?</param>
+        ;;; <param name="aFillColor">Custom fill color.</param>
+        public method DrawBox,        void
+            required in aFromX,       float
+            required in aFromY,       float
+            required in aToX,         float
+            required in aToY,         float
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            optional in aFill,        boolean
+            optional in aFillColor,   PdfColor
+            endparams
+            record
+                penWidth,       float
+            endrecord
+        proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
+            ;;Set the line width
+            penWidth = ^passed(aWidth) ? aWidth : 1
+            pg.SetLineWidth(penWidth)
+
+            ;;If we were passed a specific stroke color then use it
+            if (^passed(aStrokeColor) && (aStrokeColor != this.StrokeColor))
+                setCustomStrokeColor(aStrokeColor)
+
+            ;;If we were passed a specific fill color then use it
+            if (^passed(aFillColor) && (aFillColor != this.FillColor))
+                setCustomFillColor(aFillColor)
+
+            ;;Define the box (this enters graphics mode)
+            pg.Rectangle(aFromX,aFromY,aToX-aFromX,aToY-aFromY)
+
+            ;;Draw the box (this exits graphics mode and returns to text mode)
+            if (^passed(aFill) && aFill) then
+                pg.FillStroke()
+            else
+                pg.Stroke()
+
+            ;;If we changed the stroke color then revert back to the default color
+            if (^passed(aStrokeColor) && (aStrokeColor != this.StrokeColor))
+                resetStrokeColor()
+
+            ;;If we changed the fill color then revert back to the default color
+            if (^passed(aFillColor) && (aFillColor != this.FillColor))
+                resetFillColor()
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws the box defined by a AutoBox object.
+        ;;; </summary>
+        ;;; <param name="aBoxObj">AutoBox object to be displayed.</param>
+
+        public method DrawBox, void
+            required in aBoxObj, @AutoBoxAbsolute
+            endparams
+        proc
+            DrawBox(aBoxObj.FromX,aBoxObj.FromY,aBoxObj.ToX,aBoxObj.ToY,aBoxObj.Width,aBoxObj.StrokeColor,aBoxObj.Fill,aBoxObj.FillColor)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws a box from the center of specified start and end cells.
+        ;;; The default from point is the current position.
+        ;;; The default end point is the bottom right corner of the page.
+        ;;; The current position is NOT updated by this method.
+        ;;; </summary>
+        ;;; <param name="aFromRow">Top left corner row.</param>
+        ;;; <param name="aFromCol">Top left corner column.</param>
+        ;;; <param name="aToRow">Bottom right corner row.</param>
+        ;;; <param name="aToCol">Bottom right corner column.</param>
+        ;;; <param name="aWidth">Line width in pixels. Default is 1.</param>
+        ;;; <param name="aStrokeColor">Custom stroke color.</param>
+        ;;; <param name="aFill">Should the box be filled?</param>
+        ;;; <param name="aFillColor">Custom fill color.</param>
+        public method DrawBoxRC, void
+            optional in aFromRow,       int
+            optional in aFromColumn,    int
+            optional in aToRow,         int
+            optional in aToColumn,      int
+            optional in aWidth,         float
+            optional in aStrokeColor,   PdfColor
+            optional in aFill,          boolean
+            optional in aFillColor,     PdfColor
+            endparams
+            record
+                lFromRow,               int
+                lFromColumn,            int
+                lToRow,                 int
+                lToColumn,              int
+                penWidth,               float
+                start_x,                float
+                start_y,                float
+                end_x,                  float
+                end_y,                  float
+            endrecord
+        proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
+            ;;Define origin row
+            if (^passed(aFromRow) && (aFromRow > 0) && (aFromRow < this.Rows)) then
+                lFromRow = aFromRow
+            else
+                lFromRow = this.Row
+
+            ;;Define origin column
+            if (^passed(aFromColumn) && (aFromColumn > 0) && (aFromColumn < this.Columns)) then
+                lFromColumn = aFromColumn
+            else
+                lFromColumn = this.Column
+
+            ;;Define destination row
+            if (^passed(aToRow) && (aToRow > lFromRow) && (aToRow <= this.Rows)) then
+                lToRow = aToRow
+            else
+                lToRow = this.Rows
+
+            ;;Define destination column
+            if (^passed(aToColumn) && (aToColumn > lFromColumn) && (aToColumn <= this.Columns)) then
+                lToColumn = aToColumn
+            else
+                lToColumn = this.Columns
+
+            ;;Set the line width
+            penWidth = ^passed(aWidth) ? aWidth : 1
+            pg.SetLineWidth(penWidth)
+
+            ;;If we were passed a specific stroke color then use it
+            if (^passed(aStrokeColor) && (aStrokeColor != this.StrokeColor))
+                setCustomStrokeColor(aStrokeColor)
+
+            ;;If we were passed a specific fill color then use it
+            if (^passed(aFillColor) && (aFillColor != this.FillColor))
+                setCustomFillColor(aFillColor)
+
+            ;;Calculate the start and end points for a center cell to center cell line
+            start_x = XfromCol(lFromColumn) + (this.ColumnWidth / 2)
+            start_y = Body_YfromRow(lFromRow) + ((this.RowHeight-penWidth)/2)
+            end_x   = XfromCol(lToColumn) + (this.ColumnWidth/ 2)
+            end_y   = Body_YfromRow(lToRow) + ((this.RowHeight-penWidth)/2)
+
+            ;;Define the box (this enters graphics mode)
+            pg.Rectangle(start_x,start_y,end_x-start_x,end_y-start_y)
+
+            ;;Draw the box (this exits graphics mode and returns to text mode)
+            if (^passed(aFill) && aFill) then
+                pg.FillStroke()
+            else
+                pg.Stroke()
+
+            ;;If we changed the stroke color then revert back to the default color
+            if (^passed(aStrokeColor) && (aStrokeColor != this.StrokeColor))
+                resetStrokeColor()
+
+            ;;If we changed the fill color then revert back to the default color
+            if (^passed(aFillColor) && (aFillColor != this.FillColor))
+                resetFillColor()
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws the box defined by a AutoBox object.
+        ;;; </summary>
+        ;;; <param name="aBoxObj">AutoBox object to be displayed.</param>
+
+        public method DrawBoxRC, void
+            required in aBoxObj, @AutoBoxRowCol
+            endparams
+        proc
+            DrawBoxRC(aBoxObj.FromRow,aBoxObj.FromCol,aBoxObj.ToRow,aBoxObj.ToCol,aBoxObj.Width,aBoxObj.StrokeColor,aBoxObj.Fill,aBoxObj.FillColor)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Loads a JPEG or PNG image and displays it at a specified position on the current page.
+        ;;; Note that if you specify height and width then you should try to maintain the same ratio
+        ;;; as the dimensions of the actual image, otherwise the image will be stretched or shrunk
+        ;;; in order to achieve the dimensions that you specify.
+        ;;; </summary>
+        ;;; <param name="aFileSpec">Full or relative file spec of the image to load (.jpg, .jpeg or .png).</param>
+        ;;; <param name="aOriginX">X position of the bottom left corner of the image on the current page.</param>
+        ;;; <param name="aOriginY">Y position of the bottom left corner of the image on the current page.</param>
+        ;;; <param name="aWidth">Width to occupy in device independent pixels (defaults to the pixel width of the image).</param>
+        ;;; <param name="aWidth">Height to occupy in device independent pixels (defaults to the pixel height of the image).</param>
+        public method DrawImage,   void
+            required in aFileSpec, string
+            required in aX,        float
+            required in aY,        float
+            optional in aWidth,    float
+            optional in aHeight,   float
+            endparams
+            record
+                image, @HPdfImage
+                width, float
+                height, float
+            endrecord
+        proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
+            if (aFileSpec.Trim().ToLower().EndsWith(".jpg") || aFileSpec.Trim().ToLower().EndsWith(".jpeg")) then
+                image = doc.LoadJpegImageFromFile(aFileSpec)
+            else if (aFileSpec.Trim().ToLower().EndsWith(".png"))
+                image = doc.LoadPngImageFromFile(aFileSpec)
+
+            if (image != ^null)
+            begin
+                if (^passed(aWidth) && aWidth) then
+                    width = aWidth
+                else
+                    width = image.GetWidth()
+
+                if (^passed(aHeight) && aHeight) then
+                    height = aHeight
+                else
+                    height = image.GetHeight()
+
+                pg.DrawImage(image,aX,aY,width,height)
+
+            end
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws the image defined by a AutoImage object.
+        ;;; </summary>
+        ;;; <param name="aImageObj">AutoImage object to be displayed.</param>
+        public method DrawImage,   void
+            required in aImageObj, @AutoImage
+            endparams
+        proc
+            DrawImage(aImageObj.FileSpec,aImageObj.X,aImageObj.Y,aImageObj.Width,aImageObj.Height)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws a line based on absolute X,Y positions. The current position is NOT
+        ;;; updated by line drawing.
+        ;;; </summary>
+        ;;; <param name="aFromX">Origin X position.</param>
+        ;;; <param name="aFromY">Origin Y position.</param>
+        ;;; <param name="aToRow">Destination X position.</param>
+        ;;; <param name="aToCol">Destination Y position.</param>
+        ;;; <param name="aWidth">Line width in pixels. Default is 1.</param>
+        ;;; <param name="aStrokeColor">Custom stroke color.</param>
+        public method DrawLine,       void
+            required in aFromX,       float
+            required in aFromY,       float
+            required in aToX,         float
+            required in aToY,         float
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            endparams
+            record
+                penWidth,   float
+            endrecord
+        proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
+            ;;Set the line width
+            penWidth = ^passed(aWidth) ? aWidth : 1
+            pg.SetLineWidth(penWidth)
+
+            ;;If we were passed a specific stroke color then use it
+            if (^passed(aStrokeColor) && (aStrokeColor != this.StrokeColor))
+                setCustomStrokeColor(aStrokeColor)
+
+            ;;Draw the line
+            pg.MoveTo(aFromX,aFromY)
+            pg.LineTo(aToX,aToY)
+            pg.Stroke()
+
+            ;;If we changed the stroke color then revert back to the default color
+            if (^passed(aStrokeColor) && (aStrokeColor != this.StrokeColor))
+                resetStrokeColor()
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws the line defined by a PdfLine object.
+        ;;; </summary>
+        ;;; <param name="aLineObj">PdfLine object to be displayed.</param>
+        public method DrawLine, void
+            required in aLineObj, @AutoLineAbsolute
+            endparams
+        proc
+            DrawLine(aLineObj.FromX,aLineObj.FromY,aLineObj.ToX,aLineObj.ToY,aLineObj.Width,aLineObj.StrokeColor)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws a horizontal line from the current position to the end of the
+        ;;; current line. By default the line is drawn from and to the center of the
+        ;;; start and end cells, unless fullWidth is passed, in which case the line is
+        ;;; drawn from the left side of the first cell to the right side of the last cell.
+        ;;; The current position set to the beginning of the next line.
+        ;;; </summary>
+        ;;; <param name="aFullWidth">Draw the line the full width of the cells.</param>
+        ;;; <param name="aWidth">Line width in pixels. Default is 5.</param>
+        ;;; <param name="aStrokeColor">Custom stroke color.</param>
+        ;;; <returns>Returns the new current row number.</returns>
+        public method DrawLineRC,     int
+            optional in aFullWidth,   boolean
+            optional in aWidth,       int
+            optional in aStrokeColor, PdfColor
+            endparams
+            record
+                penWidth,   float
+                start_x,    float
+                start_y,    float
+                end_x,      float
+                end_y,      float
+            endrecord
+        proc
+            if (this.Row > this.Rows)
+                NewPage()
+
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
+            ;;Set the line width
+            penWidth = ^passed(aWidth) ? aWidth : 1
+            pg.SetLineWidth(penWidth)
+
+            ;;If we were passed a specific stroke color then use it
+            if (^passed(aStrokeColor) && (aStrokeColor != this.StrokeColor))
+                setCustomStrokeColor(aStrokeColor)
+
+            ;;Calculate the start and end points for a center cell to center cell line
+            start_x = XfromCol(this.Column) + (this.ColumnWidth / 2)
+            start_y = Body_YfromRow(this.Row) + ((this.RowHeight-penWidth)/2)
+            end_x   = XfromCol(this.Columns) + (this.ColumnWidth/ 2)
+            end_y   = start_y
+
+            ;;If we're being asked for a full-width line then add back in the partial cell pixels
+            if (^passed(aFullWidth) && aFullWidth)
+            begin
+                start_x -= (this.ColumnWidth / 2)
+                end_x += (this.ColumnWidth / 2)
+            end
+
+            ;;Draw the line
+            pg.MoveTo(start_x,start_y)
+            pg.LineTo(end_x,end_y)
+            pg.Stroke()
+
+            ;;If we changed the stroke color then revert back to the default color
+            if (^passed(aStrokeColor) && (aStrokeColor != this.StrokeColor))
+                resetStrokeColor()
+
+            ;;Update current position
+            this.Row = this.Row + 1
+            this.Column = 1
+
+            mreturn this.Row
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws a line from the current cell to the end of the current line. By default
+        ;;; the line is drawn from and to the center of the start and end cells, unless
+        ;;; fullWidth is passed, in which case the line is drawn from the left side of the
+        ;;; first cell to the right side of the last cell. The current position is
+        ;;; NOT updated by line drawing.
+        ;;; </summary>
+        ;;; <param name="aFromRow">Origin cell row.</param>
+        ;;; <param name="aFromCol">Origin cell column.</param>
+        ;;; <param name="aToRow">Destination cell row.</param>
+        ;;; <param name="aToCol">Destination cell column.</param>
+        ;;; <param name="aWidth">Line width in pixels. Default is 2.</param>
+        ;;; <param name="aStrokeColor">Custom stroke color.</param>
+        public method DrawLineRC,     void
+            required in aFromRow,     int
+            required in aFromCol,     int
+            required in aToRow,       int
+            required in aToCol,       int
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            endparams
+            record
+                penWidth,   float
+                start_x,    float
+                start_y,    float
+                end_x,      float
+                end_y,      float
+            endrecord
+        proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
+            ;;Set the line width
+            penWidth = ^passed(aWidth) ? aWidth : 1
+            pg.SetLineWidth(penWidth)
+
+            ;;If we were passed a specific stroke color then use it
+            if (^passed(aStrokeColor) && (aStrokeColor != this.StrokeColor))
+                setCustomStrokeColor(aStrokeColor)
+
+            ;;Calculate the start and end points for a center cell to center cell line
+            start_x = XfromCol(aFromCol) + (this.ColumnWidth / 2)
+            start_y = Body_YfromRow(aFromRow) + ((this.RowHeight-penWidth)/2)
+            end_x   = XfromCol(aToCol) + (this.ColumnWidth/ 2)
+            end_y   = Body_YfromRow(aToRow) + ((this.RowHeight-penWidth)/2)
+
+            ;;Draw the line
+            pg.MoveTo(start_x,start_y)
+            pg.LineTo(end_x,end_y)
+            pg.Stroke()
+
+            ;;If we changed the stroke color then revert back to the default color
+            if (^passed(aStrokeColor) && (aStrokeColor != this.StrokeColor))
+                resetStrokeColor()
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws the line defined by a PdfLine object.
+        ;;; </summary>
+        ;;; <param name="aLineObj">PdfLine object to be displayed.</param>
+        public method DrawLineRC, void
+            required in aLineObj, @AutoLineRowCol
+            endparams
+        proc
+            DrawLineRC(aLineObj.FromRow,aLineObj.FromCol,aLineObj.ToRow,aLineObj.ToCol,aLineObj.Width,aLineObj.StrokeColor)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws text at the specified absolute position. The current row/column
+        ;;; position is NOT affected by this method.
+        ;;; </summary>
+        ;;; <param name="aText">Text to display.</param>
+        ;;; <param name="aX">X coordinate to display text at.</param>
+        ;;; <param name="aY">Y coordinate to display text at.</param>
+        ;;; <param name="aColor">Display the text in a specific color.</param>
+        ;;; <param name="aFontName">Display the text in a specific font.</param>
+        ;;; <param name="aFontSize">Display the text in a specific font size.</param>
+        public method DrawText,    void
+            required in aText,      string
+            required in aX,         float
+            required in aY,         float
+            optional in aColor,     PdfColor
+            optional in aFontName,  string
+            optional in aFontSize,  int
+            endparams
+        proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
+            if (^passed(aColor) && (aColor != mFillColor))
+            begin
+                setCustomStrokeColor(aColor)
+                setCustomFillColor(aColor)
+            end
+
+            if ((^passed(aFontName) && (aFontName!=^null)) || (^passed(aFontSize) && (aFontSize>0)))
+            begin
+                data tmpFontName, string
+                data tmpFontSize, int
+
+                if (^passed(aFontName) && (aFontName!=^null)) then
+                    tmpFontName = aFontName
+                else
+                    tmpFontName = fontNormal.GetFontName()
+
+                if (^passed(aFontSize) && (aFontSize>0)) then
+                    tmpFontSize = aFontSize
+                else
+                    tmpFontSize = mFontSize
+
+                SelectFont(tmpFontName,tmpFontSize)
+            end
+
+            pg.BeginText()
+            pg.MoveTextPos(aX,aY)
+            pg.ShowText(aText)
+            pg.EndText()
+
+            if ((^passed(aFontName) && (aFontName!=^null)) || (^passed(aFontSize) && (aFontSize>0)))
+                ResetFont()
+
+            if (^passed(aColor) && (aColor != this.FillColor))
+            begin
+                resetStrokeColor()
+                resetFillColor()
+            end
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws the text defined by an AutoTextRowCol or AutoTextAbsolute object.
+        ;;; </summary>
+        ;;; <param name="aTextObj">AutoTextRowCol or AutoTextAbsolute object to be displayed.</param>
+        public method DrawText, void
+            required in aTextObj, @AutoTextAbsolute
+            endparams
+        proc
+            DrawText(aTextObj.Text,aTextObj.X,aTextObj.Y,aTextObj.Color,aTextObj.FontName,aTextObj.FontSize)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws text at the current row/column position and sets the curent position to
+        ;;; the cell immediately after the displayed text, or to the last cell on the
+        ;;; current line if the text extends beyond the page body.
+        ;;; </summary>
+        ;;; <param name="aText">Text to display.</param>
+        ;;; <param name="aRow">Row within the page body to display text at.</param>
+        ;;; <param name="aCol">Column within the page body to display text at.</param>
+        ;;; <param name="aBold">Display the text in a bold font.</param>
+        ;;; <param name="aItalic">Display the text in an italic font.</param>
+        ;;; <param name="aColor">Display the text in a specific color.</param>
+        ;;; <param name="aNewLine">Set current position to column 1 on the next line after printing text.</param>
+        ;;; <returns>Returns the new current column position.</returns>
+        public method DrawTextRC,   int
+            required in aText,      string
+            optional in aRow,       int
+            optional in aCol,       int
+            optional in aBold,      boolean
+            optional in aItalic,    boolean
+            optional in aColor,     PdfColor
+            optional in aNewLine,   boolean
+            endparams
+            record
+                row,                int
+                col,                int
+            endrecord
+        proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
+            row = ^passed(aRow) ? aRow : this.Row
+            col = ^passed(aCol) ? aCol : this.Column
+
+            setFontAttributes(aBold,aItalic)
+
+            if (^passed(aColor) && (aColor != mFillColor))
+            begin
+                setCustomStrokeColor(aColor)
+                setCustomFillColor(aColor)
+            end
+
+            pg.BeginText()
+            pg.MoveTextPos(XfromCol(col),Body_YFromRow(row))
+            pg.ShowText(aText)
+            pg.EndText()
+
+            resetFont(aBold,aItalic)
+
+            if (^passed(aColor) && (aColor != this.FillColor))
+            begin
+                resetStrokeColor()
+                resetFillColor()
+            end
+
+            if (^passed(aNewLine) && aNewLine) then
+            begin
+                this.Row = row + 1
+                this.Column = 1
+            end
+            else
+            begin
+                this.Row = row
+                this.Column = col + aText.Length
+                if (this.Column > this.Columns)
+                    this.Column = this.Columns
+            end
+
+            mreturn this.Column
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws the text defined by an AutoTextRowCol or AutoTextAbsolute object.
+        ;;; </summary>
+        ;;; <param name="aTextObj">AutoTextRowCol or AutoTextAbsolute object to be displayed.</param>
+        public method DrawTextRC, void
+            required in aTextObj, @AutoTextRowCol
+            endparams
+        proc
+            DrawTextRC(aTextObj.Text,aTextObj.Row,aTextObj.Col,aTextObj.Bold,aTextObj.Italic,aTextObj.Color,aTextObj.NewLine)
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -244,11 +940,11 @@ namespace SynPSG.PDF
         ;;; <param name="aMinimumColumns">The minimum number of columns required for the document. An appropriate font size will be determined based on this value.</param>
         ;;; <param name="aMaxFontSize">The maximum font size that you want to be selected. If a larger font is calculated then this font size will be used instead.</param>
         ;;; <param name="aCenterBodyInPage">Should the page be configured for the exact number of columns specified, and the content horizontally centered in the page?</param>
-        public method Initialize, boolean
-            optional in  aFileLocation, string
+        public method Initialize,           boolean
+            optional in  aFileLocation,     string
             optional in  aPartialFileName,  string
             optional in  aMinimumColumns,   int
-            optional in  aMaxFontSize,  int
+            optional in  aMaxFontSize,      int
             optional in  aCenterBodyInPage, boolean
             endparams
             record
@@ -333,7 +1029,9 @@ namespace SynPSG.PDF
                     FontSize = newFontSize
                     pg.SetFontAndSize(fontNormal,fontSizeFloat)
                     this.ColumnWidth = pg.TextWidth("W")
-                    this.Columns = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                    totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                    this.Columns = totalColsDefaultOrientation
                     if (this.Columns >= this.RequestedColumns)
                     begin
                         ok = true
@@ -350,14 +1048,18 @@ namespace SynPSG.PDF
                     FontSize = newFontSize
                     pg.SetFontAndSize(fontNormal,fontSizeFloat)
                     this.ColumnWidth = pg.TextWidth("W")
-                    this.Columns = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                    totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                    this.Columns = totalColsDefaultOrientation
                     if (this.Columns < this.RequestedColumns)
                     begin
                         ;;We went too far so back off to the previous font size
                         FontSize = mFontSize - 1
                         pg.SetFontAndSize(fontNormal,fontSizeFloat)
                         this.ColumnWidth = pg.TextWidth("W")
-                        this.Columns = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                        totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                        totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                        this.Columns = totalColsDefaultOrientation
                         ok = true
                         exitloop
                     end
@@ -381,14 +1083,19 @@ namespace SynPSG.PDF
                         this.FontSize = aMaxFontSize
                         pg.SetFontAndSize(fontNormal,fontSizeFloat)
                         this.ColumnWidth = pg.TextWidth("W")
-                        this.Columns = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                        totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                        totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                        this.Columns = totalColsDefaultOrientation
                     end
                 end
 
                 ;;How many rows fit on the page at the selected font size?
                 this.RowHeight = fontSizeFloat
-                totalRows = %truncate((this.Height-topOffset-bottomOffset)/this.RowHeight)
-                this.Rows = totalRows - this.HeaderRows - this.FooterRows
+
+                totalRowsDefaultOrientation = %truncate((this.Height-topOffset-bottomOffset)/this.RowHeight)
+                totalRowsOtherOrientation = %truncate((this.Width-topOffset-bottomOffset)/this.RowHeight)
+
+                this.Rows = totalRowsDefaultOrientation - this.HeaderRows - this.FooterRows
 
                 ;;If the page is wider than requested, should we manipulate the margins so that the
                 ;;requested width is centered horizontally within the page?
@@ -405,13 +1112,23 @@ namespace SynPSG.PDF
                     this.LeftMargin = leftOffset / 72.0
                     this.RightMargin = rightOffset / 72.0
 
-                    this.Columns = this.RequestedColumns
+                    totalColsDefaultOrientation = this.RequestedColumns
+                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                    this.Columns = totalColsDefaultOrientation
                 end
 
                 ;;Record where we're at
                 this.PageNumber = 1
                 this.Row = 1
                 this.Column = 1
+
+                ;;Add any begin page auto items
+                if (this.AutoItems.Count > 0)
+                begin
+                    this.pageIsNew = false
+                    this.printBeginPageItems()
+                end
+
             end
             else
             begin
@@ -425,286 +1142,13 @@ namespace SynPSG.PDF
 
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
-        ;;; Sets the current position within the current page.
-        ;;; </summary>
-        ;;; <param name="aRow">Row position, between 1 and Rows.</param>
-        ;;; <param name="aColumn">Column position, between 1 and Columns.</param>
-        public method SetPosition, void
-            required in aRow, int
-            required in aColumn, int
-        proc
-            if (aRow < 1) then
-                this.Row = 1
-            else if (aRow > this.Rows) then
-                this.Row = this.Rows
-            else
-                this.Row = aRow
-
-            if (aColumn < 1) then
-                this.Column = 1
-            else if (aColumn > this.Columns) then
-                this.Column = this.Columns
-            else
-                this.Column = aColumn
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Prints text at the current position and sets the curent position to the cell
-        ;;; immediately after the displayed text, or to the last cell on the current line
-        ;;; if the text extends beyond the page body. If the current row is below the page
-        ;;; body then a new page is generated and the text is printed at the beginning of
-        ;;; the new page.
-        ;;; </summary>
-        ;;; <param name="aText">Text to display</param>
-        ;;; <param name="aBold">Display the text in a bold font.</param>
-        ;;; <param name="aItalic">Display the text in an italic font.</param>
-        ;;; <param name="aColor">Display the text in a specific color.</param>
-        ;;; <param name="aNewLine">Set current position to column 1 on the next line after printing text.</param>
-        ;;; <returns>Returns the new current column position.</returns>
-        public method PrintText, int
-            required in aText, string
-            optional in aBold, boolean
-            optional in aItalic, boolean
-            optional in aColor, PdfColor
-            optional in aNewLine, boolean
-        proc
-            if (this.Row > this.Rows)
-                NewPage()
-
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
-
-            selectFont(aBold,aItalic)
-
-            if (^passed(aColor) && (aColor != this.StrokeColor))
-                setCustomStrokeColor(aColor)
-
-            if (^passed(aColor) && (aColor != this.FillColor))
-                setCustomFillColor(aColor)
-
-            pg.BeginText()
-            pg.MoveTextPos(XfromCol(this.Column),Body_YFromRow(this.Row))
-            pg.ShowText(aText)
-            pg.EndText()
-
-            resetFont(aBold,aItalic)
-
-            if (^passed(aColor) && (aColor != this.StrokeColor))
-                resetStrokeColor()
-
-            if (^passed(aColor) && (aColor != this.FillColor))
-                resetFillColor()
-
-            if (^passed(aNewLine) && aNewLine) then
-            begin
-                this.Row = this.Row + 1
-                this.Column = 1
-            end
-            else
-            begin
-                this.Column = this.Column + aText.Length
-                if (this.Column > this.Columns)
-                    this.Column = this.Columns
-            end
-
-            mreturn this.Column
-
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Prints text at the current position and sets the curent position to the cell
-        ;;; immediately after the displayed text, or to the last cell on the current line
-        ;;; if the text extends beyond the page body.
-        ;;; </summary>
-        ;;; <param name="aRow">Row within the page body to display text at.</param>
-        ;;; <param name="aCol">Column within the page body to display text at.</param>
-        ;;; <param name="aText">Text to display.</param>
-        ;;; <param name="aBold">Display the text in a bold font.</param>
-        ;;; <param name="aItalic">Display the text in an italic font.</param>
-        ;;; <param name="aColor">Display the text in a specific color.</param>
-        ;;; <param name="aNewLine">Set current position to column 1 on the next line after printing text.</param>
-        ;;; <returns>Returns the new current column position.</returns>
-        public method PrintText, int
-            required in aRow, int
-            required in aCol, int
-            required in aText, string
-            optional in aBold, boolean
-            optional in aItalic, boolean
-            optional in aColor, PdfColor
-            optional in aNewLine, boolean
-        proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
-
-            selectFont(aBold,aItalic)
-
-            if (^passed(aColor) && (aColor != mFillColor))
-            begin
-                setCustomStrokeColor(aColor)
-                setCustomFillColor(aColor)
-            end
-
-            pg.BeginText()
-            pg.MoveTextPos(XfromCol(aCol),Body_YFromRow(aRow))
-            pg.ShowText(aText)
-            pg.EndText()
-
-            resetFont(aBold,aItalic)
-
-            if (^passed(aColor) && (aColor != this.FillColor))
-            begin
-                resetStrokeColor()
-                resetFillColor()
-            end
-
-            if (^passed(aNewLine) && aNewLine) then
-            begin
-                this.Row = aRow + 1
-                this.Column = 1
-            end
-            else
-            begin
-                this.Row = aRow
-                this.Column = aCol + aText.Length
-                if (this.Column > this.Columns)
-                    this.Column = this.Columns
-            end
-
-            mreturn this.Column
-
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Prints text at the specified column in the current row and sets the curent
-        ;;; position to the cell immediately after the displayed text, or to the last cell
-        ;;; on the current line if the text extends beyond the page body. If the current row
-        ;;; is below the page body then a new page is generated and the text is printed at
-        ;;; the specified column in the first row of the new page.
-        ;;; </summary>
-        ;;; <param name="aCol">Column within the current line to display text at.</param>
-        ;;; <param name="aText">Text to display.</param>
-        ;;; <param name="aBold">Display the text in a bold font.</param>
-        ;;; <param name="aItalic">Display the text in an italic font.</param>
-        ;;; <param name="aColor">Display the text in a specific color.</param>
-        ;;; <param name="aNewLine">Set current position to column 1 on the next line after printing text.</param>
-        ;;; <returns>Returns the new current column number.</returns>
-        public method PrintText, int
-            required in aCol, int
-            required in aText, string
-            optional in aBold, boolean
-            optional in aItalic, boolean
-            optional in aColor, PdfColor
-            optional in aNewLine, boolean
-        proc
-            if (this.Row > this.Rows)
-                NewPage()
-
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
-
-            if (aCol <= mColumns) then
-                this.Column = aCol
-            else
-                this.Column = this.Columns
-
-            selectFont(aBold,aItalic)
-
-            if (^passed(aColor) && (aColor != this.FillColor))
-            begin
-                setCustomStrokeColor(aColor)
-                setCustomFillColor(aColor)
-            end
-
-            pg.BeginText()
-            pg.MoveTextPos(XfromCol(this.Column),Body_YFromRow(this.Row))
-            pg.ShowText(aText)
-            pg.EndText()
-
-            resetFont(aBold,aItalic)
-
-            if (^passed(aColor) && (aColor != this.FillColor))
-            begin
-                resetStrokeColor()
-                resetFillColor()
-            end
-
-            if (^passed(aNewLine) && aNewLine) then
-            begin
-                this.Row = this.Row + 1
-                this.Column = 1
-            end
-            else
-            begin
-                this.Column = this.Column + aText.Length
-            end
-
-            mreturn this.Column
-
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Displays the text defined by a PdfTextRowCol text object.
-        ;;; </summary>
-        ;;; <param name="aTextObj">PdfTextRowCol object to be displayed.</param>
-        ;;; <returns>Returns the new current column position.</returns>
-        public method PrintText, void
-            required in aTextObj, @AutoText
-        proc
-            if (aTextObj.is.AutoTextRowCol) then
-                PrintText(((AutoTextRowCol)aTextObj).Row,((AutoTextRowCol)aTextObj).Col,((AutoTextRowCol)aTextObj).Text,((AutoTextRowCol)aTextObj).Bold,((AutoTextRowCol)aTextObj).Italic,((AutoTextRowCol)aTextObj).Color,((AutoTextRowCol)aTextObj).NewLine)
-            else if (aTextObj.is.AutoTextAbsolute)
-                PrintTextAbsolute(((AutoTextAbsolute)aTextObj).X,((AutoTextAbsolute)aTextObj).Y,((AutoTextAbsolute)aTextObj).Text,((AutoTextAbsolute)aTextObj).Color)
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Prints text at the specified absolute position. The current position is NOT
-        ;;; affected by this method
-        ;;; </summary>
-        ;;; <param name="aX">X coordinate to display text at.</param>
-        ;;; <param name="aY">Y coordinate to display text at.</param>
-        ;;; <param name="aText">Text to display.</param>
-        ;;; <param name="aColor">Display the text in a specific color.</param>
-        public method PrintTextAbsolute, void
-            required in aX, float
-            required in aY, float
-            required in aText, string
-            optional in aColor, PdfColor
-        proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
-
-            if (^passed(aColor) && (aColor != mFillColor))
-            begin
-                setCustomStrokeColor(aColor)
-                setCustomFillColor(aColor)
-            end
-
-            pg.BeginText()
-            pg.MoveTextPos(aX,aY)
-            pg.ShowText(aText)
-            pg.EndText()
-
-            if (^passed(aColor) && (aColor != this.FillColor))
-            begin
-                resetStrokeColor()
-                resetFillColor()
-            end
-
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
         ;;; Loads a TrueType font and embeds it in the PDF document ready for use.
         ;;; </summary>
         ;;; <param name="aFontFile">Full path to the font file (.ttf)</param>
         ;;; <returns>Returns the name of the font that can be passed to the SelectFont method.</returns>
         public method LoadTrueTypeFont, string
-            required in aFontFile, string
+            required in aFontFile,      string
+            endparams
             record
                 ok, boolean
                 fileSpec, string
@@ -727,462 +1171,12 @@ namespace SynPSG.PDF
 
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
-        ;;; Selects the font that will be used for subsequent text operations.
-        ;;; </summary>
-        ;;; <param name="aFontName">Font name, as returned by LoadTrueTypeFont, or one of the native PDF font names (e.g. Courier)</param>
-        ;;; <param name="aFontSize">Point size to use.</param>
-        public method SelectFont, void
-            required in aFontName, string
-            required in aFontSize, int
-            record
-                fontSize, float
-                newFont, @HPdfFont
-            endrecord
-        proc
-            newFont = doc.GetFont(aFontName, ^null)
-            pg.SetFontAndSize(newFont,fontSize = aFontSize)
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Resets the font to Courier and the size to that calculated during Initialize.
-        ;;; Call this method to return to fixed-pitch row/column mode after woking with
-        ;;; other (generally variable-pitch) fonts.
-        ;;; </summary>
-        public method ResetFont, void
-        proc
-            pg.SetFontAndSize(fontNormal,fontSizeFloat)
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Draws a horizontal line from the current position to the end of the
-        ;;; current line. By default the line is drawn from and to the center of the
-        ;;; start and end cells, unless fullWidth is passed, in which case the line is
-        ;;; drawn from the left side of the first cell to the right side of the last cell.
-        ;;; The current position set to the beginning of the next line.
-        ;;; </summary>
-        ;;; <param name="aFullWidth">Draw the line the full width of the cells.</param>
-        ;;; <param name="aWidth">Line width in pixels. Default is 5.</param>
-        ;;; <param name="aColor">Line color.</param>
-        ;;; <returns>Returns the new current row number.</returns>
-        public method DrawLine,     int
-            optional in aFullWidth, boolean
-            optional in aWidth, int
-            optional in aColor, PdfColor
-            record
-                penWidth,   float
-                start_x,    float
-                start_y,    float
-                end_x,      float
-                end_y,      float
-            endrecord
-        proc
-            if (this.Row > this.Rows)
-                NewPage()
-
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
-
-            ;;Set the line width
-            penWidth = ^passed(aWidth) ? aWidth : 1
-            pg.SetLineWidth(penWidth)
-
-            ;;If we were passed a specific color then use it
-            if (^passed(aColor) && (aColor != this.StrokeColor))
-                setCustomStrokeColor(aColor)
-
-            ;;Calculate the start and end points for a center cell to center cell line
-            start_x = XfromCol(this.Column) + (this.ColumnWidth / 2)
-            start_y = Body_YfromRow(this.Row) + ((this.RowHeight-penWidth)/2)
-            end_x   = XfromCol(this.Columns) + (this.ColumnWidth/ 2)
-            end_y   = start_y
-
-            ;;If we're being asked for a full-width line then add back in the partial cell pixels
-            if (^passed(aFullWidth) && aFullWidth)
-            begin
-                start_x -= (this.ColumnWidth / 2)
-                end_x += (this.ColumnWidth / 2)
-            end
-
-            ;;Draw the line
-            pg.MoveTo(start_x,start_y)
-            pg.LineTo(end_x,end_y)
-            pg.Stroke()
-
-            ;;If we changed the line color then revert back to the default color
-            if (^passed(aColor) && (aColor != this.StrokeColor))
-                resetStrokeColor()
-
-            ;;Update current position
-            this.Row = this.Row + 1
-            this.Column = 1
-
-            mreturn this.Row
-
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Draws a line from the current cell to the end of the current line. By default
-        ;;; the line is drawn from and to the center of the start and end cells, unless
-        ;;; fullWidth is passed, in which case the line is drawn from the left side of the
-        ;;; first cell to the right side of the last cell. The current position is
-        ;;; NOT updated by line drawing.
-        ;;; </summary>
-        ;;; <param name="aFromRow">Origin cell row.</param>
-        ;;; <param name="aFromCol">Origin cell column.</param>
-        ;;; <param name="aToRow">Destination cell row.</param>
-        ;;; <param name="aToCol">Destination cell column.</param>
-        ;;; <param name="aWidth">Line width in pixels. Default is 2.</param>
-        ;;; <param name="aColor">Line color.</param>
-        public method DrawLine, void
-            required in aFromRow, int
-            required in aFromCol, int
-            required in aToRow, int
-            required in aToCol, int
-            optional in aWidth, float
-            optional in aColor, PdfColor
-            endparams
-            record
-                penWidth,   float
-                start_x,    float
-                start_y,    float
-                end_x,      float
-                end_y,      float
-            endrecord
-        proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
-
-            ;;Set the line width
-            penWidth = ^passed(aWidth) ? aWidth : 1
-            pg.SetLineWidth(penWidth)
-
-            ;;If we were passed a specific color then use it
-            if (^passed(aColor) && (aColor != this.StrokeColor))
-                setCustomStrokeColor(aColor)
-
-            ;;Calculate the start and end points for a center cell to center cell line
-            start_x = XfromCol(aFromCol) + (this.ColumnWidth / 2)
-            start_y = Body_YfromRow(aFromRow) + ((this.RowHeight-penWidth)/2)
-            end_x   = XfromCol(aToCol) + (this.ColumnWidth/ 2)
-            end_y   = Body_YfromRow(aToRow) + ((this.RowHeight-penWidth)/2)
-
-            ;;Draw the line
-            pg.MoveTo(start_x,start_y)
-            pg.LineTo(end_x,end_y)
-            pg.Stroke()
-
-            ;;If we changed the line color then revert back to the default color
-            if (^passed(aColor) && (aColor != this.StrokeColor))
-                resetStrokeColor()
-
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Draws a line based on absolute X,Y positions. The current position is NOT
-        ;;; updated by line drawing.
-        ;;; </summary>
-        ;;; <param name="aFromX">Origin X position.</param>
-        ;;; <param name="aFromY">Origin Y position.</param>
-        ;;; <param name="aToRow">Destination X position.</param>
-        ;;; <param name="aToCol">Destination Y position.</param>
-        ;;; <param name="aWidth">Line width in pixels. Default is 1.</param>
-        ;;; <param name="aColor">Line color.</param>
-        public method DrawLineAbsolute, void
-            required in aFromX, float
-            required in aFromY, float
-            required in aToX,   float
-            required in aToY,   float
-            optional in aWidth, float
-            optional in aColor, PdfColor
-            endparams
-            record
-                penWidth,   float
-            endrecord
-        proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
-
-            ;;Set the line width
-            penWidth = ^passed(aWidth) ? aWidth : 1
-            pg.SetLineWidth(penWidth)
-
-            ;;If we were passed a specific color then use it
-            if (^passed(aColor) && (aColor != this.StrokeColor))
-                setCustomStrokeColor(aColor)
-
-            ;;Draw the line
-            pg.MoveTo(aFromX,aFromY)
-            pg.LineTo(aToX,aToY)
-            pg.Stroke()
-
-            ;;If we changed the line color then revert back to the default color
-            if (^passed(aColor) && (aColor != this.StrokeColor))
-                resetStrokeColor()
-
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Draws the line defined by a PdfLine object.
-        ;;; </summary>
-        ;;; <param name="aLineObj">PdfLine object to be displayed.</param>
-        public method DrawLine, void
-            required in aLineObj, @AutoLine
-        proc
-            if (aLineObj.is.AutoLineRowCol) then
-                DrawLine(((AutoLineRowCol)aLineObj).FromRow,((AutoLineRowCol)aLineObj).FromCol,((AutoLineRowCol)aLineObj).ToRow,((AutoLineRowCol)aLineObj).ToCol,((AutoLineRowCol)aLineObj).Width,((AutoLineRowCol)aLineObj).Color)
-            else if (aLineObj.is.AutoLineAbsolute)
-                DrawLineAbsolute(((AutoLineAbsolute)aLineObj).FromX,((AutoLineAbsolute)aLineObj).FromY,((AutoLineAbsolute)aLineObj).ToX,((AutoLineAbsolute)aLineObj).ToY,((AutoLineAbsolute)aLineObj).Width,((AutoLineAbsolute)aLineObj).Color)
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Draws a box from the center of specified start and end cells.
-        ;;; The default from point is the current position.
-        ;;; The default end point is the bottom right corner of the page.
-        ;;; The current position is NOT updated by this method.
-        ;;; </summary>
-        ;;; <param name="aFromRow">Top left corner row.</param>
-        ;;; <param name="aFromCol">Top left corner column.</param>
-        ;;; <param name="aToRow">Bottom right corner row.</param>
-        ;;; <param name="aToCol">Bottom right corner column.</param>
-        ;;; <param name="aWidth">Line width in pixels. Default is 1.</param>
-        ;;; <param name="aColor">Line color.</param>
-        ;;; <param name="aFill">Should the box be filled by the specified color?</param>
-        public method DrawBox, void
-            optional in aFromRow,       int
-            optional in aFromColumn,    int
-            optional in aToRow,         int
-            optional in aToColumn,      int
-            optional in aWidth,         float
-            optional in aColor,         PdfColor
-            optional in aFill,          boolean
-            endparams
-            record
-                lFromRow,               int
-                lFromColumn,            int
-                lToRow,                 int
-                lToColumn,              int
-                penWidth,               float
-                start_x,                float
-                start_y,                float
-                end_x,                  float
-                end_y,                  float
-            endrecord
-        proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
-
-            ;;Define origin row
-            if (^passed(aFromRow) && (aFromRow > 0) && (aFromRow < this.Rows)) then
-                lFromRow = aFromRow
-            else
-                lFromRow = this.Row
-
-            ;;Define origin column
-            if (^passed(aFromColumn) && (aFromColumn > 0) && (aFromColumn < this.Columns)) then
-                lFromColumn = aFromColumn
-            else
-                lFromColumn = this.Column
-
-            ;;Define destination row
-            if (^passed(aToRow) && (aToRow > lFromRow) && (aToRow <= this.Rows)) then
-                lToRow = aToRow
-            else
-                lToRow = this.Rows
-
-            ;;Define destination column
-            if (^passed(aToColumn) && (aToColumn > lFromColumn) && (aToColumn <= this.Columns)) then
-                lToColumn = aToColumn
-            else
-                lToColumn = this.Columns
-
-            ;;Set the line width
-            penWidth = ^passed(aWidth) ? aWidth : 1
-            pg.SetLineWidth(penWidth)
-
-            ;;If we were passed a specific color then use it
-            if (^passed(aColor) && (aColor != this.StrokeColor))
-                setCustomStrokeColor(aColor)
-
-            if (^passed(aColor) && (aColor != this.FillColor))
-                setCustomFillColor(aColor)
-
-            ;;Calculate the start and end points for a center cell to center cell line
-            start_x = XfromCol(lFromColumn) + (this.ColumnWidth / 2)
-            start_y = Body_YfromRow(lFromRow) + ((this.RowHeight-penWidth)/2)
-            end_x   = XfromCol(lToColumn) + (this.ColumnWidth/ 2)
-            end_y   = Body_YfromRow(lToRow) + ((this.RowHeight-penWidth)/2)
-
-            ;;Define the box (this enters graphics mode)
-            pg.Rectangle(start_x,start_y,end_x-start_x,end_y-start_y)
-
-            ;;Draw the box (this exits graphics mode and returns to text mode)
-            if (^passed(aFill) && aFill) then
-                pg.FillStroke()
-            else
-                pg.Stroke()
-
-            ;;If we changed the line color then revert back to the default color
-            if (^passed(aColor) && (aColor != this.StrokeColor))
-                resetStrokeColor()
-
-            if (^passed(aColor) && (aColor != this.FillColor))
-                resetFillColor()
-
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Draws a box from the center of specified start and end cells.
-        ;;; The default from point is the current position.
-        ;;; The default end point is the bottom right corner of the page.
-        ;;; The current position is NOT updated by this method.
-        ;;; </summary>
-        ;;; <param name="aFromX">Top left corner X coordinate.</param>
-        ;;; <param name="aFromY">Top left corner Y coordinate.</param>
-        ;;; <param name="aToX">Bottom right corner X coordinate.</param>
-        ;;; <param name="aToY">Bottom right corner Y coordinate.</param>
-        ;;; <param name="aWidth">Line width in pixels. Default is 1.</param>
-        ;;; <param name="aColor">Line color.</param>
-        ;;; <param name="aFill">Should the box be filled by the specified color?</param>
-        public method DrawBoxAbsolute, void
-            required in aFromX,     float
-            required in aFromY,     float
-            required in aToX,       float
-            required in aToY,       float
-            optional in aWidth,     float
-            optional in aColor,     PdfColor
-            optional in aFill,      boolean
-            endparams
-            record
-                penWidth,       float
-            endrecord
-        proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
-
-            ;;Set the line width
-            penWidth = ^passed(aWidth) ? aWidth : 1
-            pg.SetLineWidth(penWidth)
-
-            ;;If we were passed a specific color then use it
-            if (^passed(aColor) && (aColor != this.StrokeColor))
-                setCustomStrokeColor(aColor)
-
-            if (^passed(aColor) && (aColor != this.FillColor))
-                setCustomFillColor(aColor)
-
-            ;;Define the box (this enters graphics mode)
-            pg.Rectangle(aFromX,aFromY,aToX-aFromX,aToY-aFromY)
-
-            ;;Draw the box (this exits graphics mode and returns to text mode)
-            if (^passed(aFill) && aFill) then
-                pg.FillStroke()
-            else
-                pg.Stroke()
-
-            ;;If we changed the line color then revert back to the default color
-            if (^passed(aColor) && (aColor != this.StrokeColor))
-                resetStrokeColor()
-
-            if (^passed(aColor) && (aColor != this.FillColor))
-                resetFillColor()
-
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Draws the box defined by a AutoBox object.
-        ;;; </summary>
-        ;;; <param name="aBoxObj">AutoBox object to be displayed.</param>
-        public method DrawBox, void
-            required in aBoxObj, @AutoBox
-        proc
-            if (aBoxObj.is.AutoBoxRowCol) then
-            begin
-                data b, @AutoBoxRowCol, (AutoBoxRowCol)aBoxObj
-                DrawBox(b.FromRow,b.FromCol,b.ToRow,b.ToCol,b.Width,b.Color,b.Fill)
-            end
-            else if (aBoxObj.is.AutoBoxAbsolute)
-            begin
-                data b, @AutoBoxAbsolute, (AutoBoxAbsolute)aBoxObj
-                DrawBoxAbsolute(b.FromX,b.FromY,b.ToX,b.ToY,b.Width,b.Color,b.Fill)
-            end
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Loads a JPEG or PNG image and displays it at a specified position on the current page.
-        ;;; Note that if you specify height and width then you should try to maintain the same ratio
-        ;;; as the dimensions of the actual image, otherwise the image will be stretched or shrunk
-        ;;; in order to achieve the dimensions that you specify.
-        ;;; </summary>
-        ;;; <param name="aFileSpec">Full or relative file spec of the image to load (.jpg, .jpeg or .png).</param>
-        ;;; <param name="aOriginX">X position of the bottom left corner of the image on the current page.</param>
-        ;;; <param name="aOriginY">Y position of the bottom left corner of the image on the current page.</param>
-        ;;; <param name="aWidth">Width to occupy in device independent pixels (defaults to the pixel width of the image).</param>
-        ;;; <param name="aWidth">Height to occupy in device independent pixels (defaults to the pixel height of the image).</param>
-        public method DrawImage, void
-            required in aFileSpec, string
-            required in aX, float
-            required in aY, float
-            optional in aWidth, float
-            optional in aHeight, float
-            record
-                image, @HPdfImage
-                width, float
-                height, float
-            endrecord
-        proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
-
-            if (aFileSpec.Trim().ToLower().EndsWith(".jpg") || aFileSpec.Trim().ToLower().EndsWith(".jpeg")) then
-                image = doc.LoadJpegImageFromFile(aFileSpec)
-            else if (aFileSpec.Trim().ToLower().EndsWith(".png"))
-                image = doc.LoadPngImageFromFile(aFileSpec)
-
-            if (image != ^null)
-            begin
-                if (^passed(aWidth) && aWidth) then
-                    width = aWidth
-                else
-                    width = image.GetWidth()
-
-                if (^passed(aHeight) && aHeight) then
-                    height = aHeight
-                else
-                    height = image.GetHeight()
-
-                pg.DrawImage(image,aX,aY,width,height)
-
-            end
-
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Draws the image defined by a AutoImage object.
-        ;;; </summary>
-        ;;; <param name="aImageObj">AutoImage object to be displayed.</param>
-        public method DrawImage, void
-            required in aImageObj, @AutoImage
-        proc
-            DrawImage(aImageObj.FileSpec,aImageObj.X,aImageObj.Y,aImageObj.Width,aImageObj.Height)
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
         ;;; Sets the current position to the beginning of the next line. If the next line
         ;;; is outside of the page body then a new page is generated.
         ;;; </summary>
         ;;; <returns>Returns the new current row number.</returns>
         public method NewLine, int
+            endparams
         proc
             if (this.Row < this.Rows) then
             begin
@@ -1205,12 +1199,52 @@ namespace SynPSG.PDF
         ;;; </summary>
         ;;; <returns>Returns the new page number.</returns>
         public method NewPage, int
+            optional in aOrientation, PdfOrientation
+            endparams
+            record
+                orientation, PdfOrientation
+            endrecord
         proc
+
             ;;Print page level items on the current page
             printEndPageItems()
 
+            ;;Default to the document default arientation
+            orientation = this.DefaultOrientation
+
+            ;;Determine the page orientation of the new page
+            if (^passed(aOrientation) && (this.Orientation!=aOrientation)) then
+            begin
+                orientation = aOrientation
+                if (this.Orientation == this.DefaultOrientation) then
+                begin
+                    this.Height = totalHeightOtherOrientation
+                    this.Width = totalWidthOtherOrientation
+                    this.Rows = totalRowsOtherOrientation - this.HeaderRows - this.FooterRows
+                    this.Columns = totalColsOtherOrientation
+                end
+                else
+                begin
+                    this.Height = totalHeightDefaultOrientation
+                    this.Width = totalWidthDefaultOrientation
+                    this.Rows = totalRowsDefaultOrientation - this.HeaderRows - this.FooterRows
+                    this.Columns = totalColsDefaultOrientation
+                end
+            end
+            else
+            begin
+                if (this.Orientation != this.DefaultOrientation)
+                begin
+                    this.Height = totalHeightDefaultOrientation
+                    this.Width = totalWidthDefaultOrientation
+                    this.Rows = totalRowsDefaultOrientation - this.HeaderRows - this.FooterRows
+                    this.Columns = totalColsDefaultOrientation
+                end
+            end
+
             ;;Add a new page to the PDF file
-            pg = doc.AddPage(HPdfPageSizes.HPDF_PAGE_SIZE_LETTER,getHaruPageDirection())
+            pg = doc.AddPage((HPdfPageSizes)this.PageSize,(HPdfPageDirection)orientation)
+            this.Orientation = orientation
 
             ;;Activate the font for the new page
             pg.StartPageWithFont(fontNormal,fontSizeFloat)
@@ -1240,37 +1274,97 @@ namespace SynPSG.PDF
 .ifdef D_GUI
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
-        ;;; Displays the report in a print preview window. The Dispose method is called
-        ;;; after the preview is launched, so after calling this method the PdfFile object
-        ;;; is no longer valid.
+        ;;; Displays the PDF file using the default application that is registered to handle
+        ;;; PDF files. The Dispose method is automatically called so after calling this method
+        ;;; the PdfFile object is no longer valid.
         ;;; </summary>
         ;;; <returns>Returns true if the PDF file was saved and launched.</returns>
         public method Preview, boolean
+            endparams
         proc
-            if (SaveToFile()) then
+            if (Save()) then
             begin
                 ;;And launch the associated application
                 xcall shell(,'"'+this.FileLocation+this.FileName+'"',D_NOCONSOLE|D_NOWAIT)
             end
             else
             begin
-                ;;Error message already set by SaveToFile()
+                ;;Error message already set by Save()
                 mreturn false
             end
-
-            ;;Clean up
-            Dispose()
 
             mreturn true
 
         endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Print the PDF file to a printer.
+        ;;; </summary>
+        ;;; <param name="aPrinterName">Optional printer name</param>
+        ;;; <returns></returns>
+        public method Print, boolean
+            optional in aPrinterName, string
+            endparams
+            .define D_GSPRINT_EXE 'C:\Program Files\Ghostgum\gsview\gsprint.exe'
+            record
+                ok, boolean
+                pdffile, string
+                command, string
+            endrecord
+        proc
+            if (!fileExists(D_GSPRINT_EXE))
+                throw new ApplicationException("GSPRINT.EXE not found!")
+
+            pdffile = this.FileLocation + this.FileName
+
+            if (Save()) then
+            begin
+                command = D_GSPRINT_EXE + ' -color -option "-q"'
+                if (^passed(aPrinterName) && (aPrinterName.Trim().Length>0))
+                    command = command + ' -printer "'+aPrinterName.Trim()+'"'
+                command = command +  ' "' + pdffile + '"'
+                try
+                begin
+                    xcall spawn(command,D_NOCONSOLE|D_NOWINDOW)
+                    ok = true
+                end
+                catch (ex)
+                begin
+                    ok = false
+                end
+                endtry
+            end
+            else
+            begin
+                ;;Error message already set by Save()
+                ok = false
+            end
+
+            mreturn ok
+
+        endmethod
+
 .endc
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Resets the font to Courier and the size to that calculated during Initialize.
+        ;;; Call this method to return to fixed-pitch row/column mode after woking with
+        ;;; other (generally variable-pitch) fonts.
+        ;;; </summary>
+        public method ResetFont, void
+            endparams
+        proc
+            pg.SetFontAndSize(fontNormal,fontSizeFloat)
+        endmethod
+
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
         ;;; Saves the PDF file to disk.
         ;;; </summary>
         ;;; <returns>Returns true if the PDF file was successfully saved.</returns>
-        public method SaveToFile, boolean
+        public method Save, boolean
+            endparams
         proc
             ;;Print page level items on the last page
             printEndPageItems()
@@ -1287,7 +1381,62 @@ namespace SynPSG.PDF
             end
             endtry
 
+            ;;Clean up
+            this.Dispose()
+
             mreturn true
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Selects the font that will be used for subsequent text operations.
+        ;;; </summary>
+        ;;; <param name="aFontName">Font name as returned by LoadTrueTypeFont, or one of the native PDF font names (Courier, Courier-Bold, Courier-Oblique, Courier-BoldOblique, Helvetica, Helvetica-Bold, Helvetica-Oblique, Helvetica-BoldOblique, Times-Roman, Times-Bold, Times-Italic, Times-BoldItalic, Symbol, ZapfDingbats)</param>
+        ;;; <param name="aFontSize">Point size to use.</param>
+        public method SelectFont, void
+            required in aFontName, string
+            required in aFontSize, int
+            endparams
+            record
+                fontSize, float
+                newFont, @HPdfFont
+            endrecord
+        proc
+            newFont = doc.GetFont(aFontName, ^null)
+            pg.SetFontAndSize(newFont,fontSize = aFontSize)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Sets the current position within the current page.
+        ;;; </summary>
+        ;;; <param name="aRow">Row position, between 1 and Rows.</param>
+        ;;; <param name="aColumn">Column position, between 1 and Columns.</param>
+        public method SetPosition, void
+            optional in aRow, int
+            optional in aColumn, int
+            endparams
+        proc
+            if (^passed(aRow))
+            begin
+                if (aRow < 1) then
+                    this.Row = 1
+                else if (aRow > this.Rows) then
+                    this.Row = this.Rows
+                else
+                    this.Row = aRow
+            end
+
+            if (^passed(aColumn))
+            begin
+                if (aColumn < 1) then
+                    this.Column = 1
+                else if (aColumn > this.Columns) then
+                    this.Column = this.Columns
+                else
+                    this.Column = aColumn
+            end
 
         endmethod
 
@@ -1453,6 +1602,25 @@ namespace SynPSG.PDF
         ;;--------------------------------------------------------------------------------
         ;;
 
+        private mDefaultOrientation, PdfOrientation
+
+        ;;; <summary>
+        ;;; Gets the default page orientation (portrait or landscape) of the PDF document. The deafult page orientation is defined for the document when calling the constructor method and cannot be changed.
+        ;;; </summary>
+        public property DefaultOrientation, PdfOrientation
+            method get
+            proc
+                mreturn mDefaultOrientation
+            endmethod
+            private method set
+            proc
+                mDefaultOrientation = value
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
         private mErrorMessage, string
 
         ;;; <summary>
@@ -1494,7 +1662,7 @@ namespace SynPSG.PDF
         private mFileName, string
 
         ;;; <summary>
-        ;;; Gets the name of the PDF file being created. The default name of the file will be in the format "YYYY-MM-DD HH.MM.SS <name> .pdf" where the value of <name> can be supplied via the optional "partial file name" parameter to the Initialize method. The name of the file is not used until you call either the Preview or SaveToFile methods, so you may update the value of the property in order to override the default name until that time.
+        ;;; Gets the name of the PDF file being created. The default name of the file will be in the format "YYYY-MM-DD HH.MM.SS <name> .pdf" where the value of <name> can be supplied via the optional "partial file name" parameter to the Initialize method. The name of the file is not used until you call either the Print, Preview or Save methods, so you may update the value of the property in order to override the default name until that time.
         ;;; </summary>
         public property FileName, string
             method get
@@ -1577,7 +1745,7 @@ namespace SynPSG.PDF
         private mFooterText, [#]string
 
         ;;; <summary>
-        ;;; Gets or sets the array of strings to be displayed in the reserved page footer rows. The array is initialized based on the number of footer rows requested when calling the constructor, and can subsequently be populated with the data to be displayed in the reserved footer area of each page.
+        ;;; Gets or sets the array of strings to be displayed in the reserved page footer rows of pages that use the default page orientation. The array is initialized based on the number of footer rows requested when calling the constructor, and can subsequently be populated with the data to be displayed in the reserved footer area of each page.
         ;;; </summary>
         public property FooterText, [#]string
             method get
@@ -1587,6 +1755,25 @@ namespace SynPSG.PDF
             private method set
             proc
                 mFooterText = value
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private mFooterTextAlternate, [#]string
+
+        ;;; <summary>
+        ;;; Gets or sets the array of strings to be displayed in the reserved page footer rows of pages with the alternate orientation. The array is initialized based on the number of footer rows requested when calling the constructor, and can subsequently be populated with the data to be displayed in the reserved footer area of each page.
+        ;;; </summary>
+        public property FooterTextAlternate, [#]string
+            method get
+            proc
+                mreturn mFooterTextAlternate
+            endmethod
+            private method set
+            proc
+                mFooterTextAlternate = value
             endmethod
         endproperty
 
@@ -1615,7 +1802,7 @@ namespace SynPSG.PDF
         private mHeaderText, [#]string
 
         ;;; <summary>
-        ;;; Gets or sets the array of strings to be displayed in the reserved page header rows. The array is initialized based on the number of header rows requested when calling the constructor, and can subsequently be populated with the data to be displayed in the reserved header area of each page.
+        ;;; Gets or sets the array of strings to be displayed in the reserved page header rows of pages that use the default page orientation. The array is initialized based on the number of header rows requested when calling the constructor, and can subsequently be populated with the data to be displayed in the reserved header area of each page.
         ;;; </summary>
         public property HeaderText, [#]string
             method get
@@ -1631,12 +1818,31 @@ namespace SynPSG.PDF
         ;;--------------------------------------------------------------------------------
         ;;
 
-        private mHeight, int
+        private mHeaderTextAlternate, [#]string
+
+        ;;; <summary>
+        ;;; Gets or sets the array of strings to be displayed in the reserved page header rows. The array is initialized based on the number of header rows requested when calling the constructor, and can subsequently be populated with the data to be displayed in the reserved header area of each page.
+        ;;; </summary>
+        public property HeaderTextAlternate, [#]string
+            method get
+            proc
+                mreturn mHeaderTextAlternate
+            endmethod
+            private method set
+            proc
+                mHeaderTextAlternate = value
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private mHeight, float
 
         ;;; <summary>
         ;;; Gets the height of the page in device independent pixels (1/72 inch). The height of the page is based on the paper size and orientation and defines the maximum value for Y coordinates when addressing the document via absolute positioning mechanisms.
         ;;; </summary>
-        public property Height, int
+        public property Height, float
             method get
             proc
                 mreturn mHeight
@@ -1699,7 +1905,7 @@ namespace SynPSG.PDF
         private mOrientation, PdfOrientation
 
         ;;; <summary>
-        ;;; Gets the page orientation (portrait or landscape) of the PDF document. The page orientation is defined for the document when calling the constructor method and cannot be changed.
+        ;;; Gets the page orientation (portrait or landscape) of the current page. The page orientation is defined when a new page is added to the document.
         ;;; </summary>
         public property Orientation, PdfOrientation
             method get
@@ -1751,6 +1957,25 @@ namespace SynPSG.PDF
             private method set
             proc
                 mPageNumber = value
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private mPageSize, PdfPageSize
+
+        ;;; <summary>
+        ;;; Gets the page size used within the document.
+        ;;; </summary>
+        public property PageSize, PdfPageSize
+            method get
+            proc
+                mreturn mPageSize
+            endmethod
+            private method set
+            proc
+                mPageSize = value
             endmethod
         endproperty
 
@@ -1927,12 +2152,80 @@ namespace SynPSG.PDF
         ;;--------------------------------------------------------------------------------
         ;;
 
-        private mWidth, int
+        private mUseAlternateFooters, boolean, false
+
+        ;;; <summary>
+        ;;; Gets or sets whether alternate text should be displayed in the page footers of pages that use the opposite orientation to the document default orientation. The default is that the same footer text is used for all pages. If this property is set to true then the alternative footer text should then be specified via the FooterTextAlternate property.
+        ;;; </summary>
+        public property UseAlternateFooters, boolean
+            method get
+            proc
+                mreturn mUseAlternateFooters
+            endmethod
+            method set
+            proc
+                ;;We can only enable this if there are footer rows
+                if (this.FooterRows > 0) then
+                    mUseAlternateFooters = value
+                else
+                    mUseAlternateFooters = false
+
+                ;;Initialize the array of alternate footer items
+                if (mUseAlternateFooters) then
+                begin
+                    data ix, int
+                    this.FooterTextAlternate = new string[this.FooterRows]
+                    for ix from 1 thru this.FooterRows
+                        this.FooterTextAlternate[ix] = ""
+                end
+                else
+                    this.FooterTextAlternate = ^null
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private mUseAlternateHeaders, boolean, false
+
+        ;;; <summary>
+        ;;; Gets or sets whether alternate text should be displayed in the page headers of pages that use the opposite orientation to the document default orientation. The default is that the same header text is used for all pages. If this property is set to true then the alternative headter text should then be specified via the HeaderTextAlternate property.
+        ;;; </summary>
+        public property UseAlternateHeaders, boolean
+            method get
+            proc
+                mreturn mUseAlternateHeaders
+            endmethod
+            method set
+            proc
+                ;;We can only enable this if there are header rows
+                if (this.HeaderRows > 0) then
+                    mUseAlternateHeaders = value
+                else
+                    mUseAlternateHeaders = false
+
+                ;;Initialize the array of alternate header items
+                if (mUseAlternateHeaders) then
+                begin
+                    data ix, int
+                    this.HeaderTextAlternate = new string[this.HeaderRows]
+                    for ix from 1 thru this.HeaderRows
+                        this.HeaderTextAlternate[ix] = ""
+                end
+                else
+                    this.HeaderTextAlternate = ^null
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private mWidth, float
 
         ;;; <summary>
         ;;; Gets the width of the page in device independent pixels (1/72 inch). The width of the page is based on the paper size and orientation and defines the maximum value for X coordinates when addressing the document via absolute positioning mechanisms.
         ;;; </summary>
-        public property Width, int
+        public property Width, float
             method get
             proc
                 mreturn mWidth
