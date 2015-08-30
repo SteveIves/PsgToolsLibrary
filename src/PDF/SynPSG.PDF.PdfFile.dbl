@@ -387,15 +387,15 @@ namespace SynPSG.PDF
 
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
-        ;;; Draws the box defined by a AutoBox object.
+        ;;; Draws the box defined by an AutoBoxAbsolute object.
         ;;; </summary>
-        ;;; <param name="aBoxObj">AutoBox object to be displayed.</param>
+        ;;; <param name="aBox">AutoBoxAbsolute object to be drawn.</param>
 
-        public method DrawBox, void
-            required in aBoxObj, @AutoBoxAbsolute
+        public method DrawBoxObject, void
+            required in aBox, @AutoBoxAbsolute
             endparams
         proc
-            DrawBox(aBoxObj.FromX,aBoxObj.FromY,aBoxObj.ToX,aBoxObj.ToY,aBoxObj.Width,aBoxObj.StrokeColor,aBoxObj.Fill,aBoxObj.FillColor)
+            DrawBox(aBox.FromX,aBox.FromY,aBox.ToX,aBox.ToY,aBox.Width,aBox.StrokeColor,aBox.Fill,aBox.FillColor)
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -501,15 +501,15 @@ namespace SynPSG.PDF
 
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
-        ;;; Draws the box defined by a AutoBox object.
+        ;;; Draws the box defined by an AutoBoxRowCol object.
         ;;; </summary>
-        ;;; <param name="aBoxObj">AutoBox object to be displayed.</param>
+        ;;; <param name="aBox">AutoBoxRowCol object to be drawn.</param>
 
-        public method DrawBoxRC, void
-            required in aBoxObj, @AutoBoxRowCol
+        public method DrawBoxObjectRC, void
+            required in aBox, @AutoBoxRowCol
             endparams
         proc
-            DrawBoxRC(aBoxObj.FromRow,aBoxObj.FromCol,aBoxObj.ToRow,aBoxObj.ToCol,aBoxObj.Width,aBoxObj.StrokeColor,aBoxObj.Fill,aBoxObj.FillColor)
+            DrawBoxRC(aBox.FromRow,aBox.FromCol,aBox.ToRow,aBox.ToCol,aBox.Width,aBox.StrokeColor,aBox.Fill,aBox.FillColor)
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -520,8 +520,8 @@ namespace SynPSG.PDF
         ;;; in order to achieve the dimensions that you specify.
         ;;; </summary>
         ;;; <param name="aFileSpec">Full or relative file spec of the image to load (.jpg, .jpeg or .png).</param>
-        ;;; <param name="aOriginX">X position of the bottom left corner of the image on the current page.</param>
-        ;;; <param name="aOriginY">Y position of the bottom left corner of the image on the current page.</param>
+        ;;; <param name="aX">X position of the bottom left corner of the image on the current page.</param>
+        ;;; <param name="aY">Y position of the bottom left corner of the image on the current page.</param>
         ;;; <param name="aWidth">Width to occupy in device independent pixels (defaults to the pixel width of the image).</param>
         ;;; <param name="aWidth">Height to occupy in device independent pixels (defaults to the pixel height of the image).</param>
         public method DrawImage,   void
@@ -567,12 +567,12 @@ namespace SynPSG.PDF
         ;;; <summary>
         ;;; Draws the image defined by a AutoImage object.
         ;;; </summary>
-        ;;; <param name="aImageObj">AutoImage object to be displayed.</param>
-        public method DrawImage,   void
-            required in aImageObj, @AutoImage
+        ;;; <param name="aImage">AutoImage object to be drawn.</param>
+        public method DrawImageObject, void
+            required in aImage,        @AutoImage
             endparams
         proc
-            DrawImage(aImageObj.FileSpec,aImageObj.X,aImageObj.Y,aImageObj.Width,aImageObj.Height)
+            DrawImage(aImage.FileSpec,aImage.X,aImage.Y,aImage.Width,aImage.Height)
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -582,8 +582,8 @@ namespace SynPSG.PDF
         ;;; </summary>
         ;;; <param name="aFromX">Origin X position.</param>
         ;;; <param name="aFromY">Origin Y position.</param>
-        ;;; <param name="aToRow">Destination X position.</param>
-        ;;; <param name="aToCol">Destination Y position.</param>
+        ;;; <param name="aToX">Destination X position.</param>
+        ;;; <param name="aToY">Destination Y position.</param>
         ;;; <param name="aWidth">Line width in pixels. Default is 1.</param>
         ;;; <param name="aStrokeColor">Custom stroke color.</param>
         public method DrawLine,       void
@@ -624,12 +624,82 @@ namespace SynPSG.PDF
         ;;; <summary>
         ;;; Draws the line defined by a PdfLine object.
         ;;; </summary>
-        ;;; <param name="aLineObj">PdfLine object to be displayed.</param>
-        public method DrawLine, void
-            required in aLineObj, @AutoLineAbsolute
+        ;;; <param name="aLine">PdfLine object to be displayed.</param>
+        public method DrawLineObject, void
+            required in aLine,        @AutoLineAbsolute
             endparams
         proc
-            DrawLine(aLineObj.FromX,aLineObj.FromY,aLineObj.ToX,aLineObj.ToY,aLineObj.Width,aLineObj.StrokeColor)
+            DrawLine(aLine.FromX,aLine.FromY,aLine.ToX,aLine.ToY,aLine.Width,aLine.StrokeColor)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws the line defined by a AutoLineRowCol object.
+        ;;; </summary>
+        ;;; <param name="aLine">AutoLineRowCol object to be drawn.</param>
+        public method DrawLineObjectRC, void
+            required in aLine, @AutoLineRowCol
+            endparams
+        proc
+            DrawLineRC(aLine.FromRow,aLine.FromCol,aLine.ToRow,aLine.ToCol,aLine.Width,aLine.StrokeColor)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws a line from the current cell to the end of the current line. By default
+        ;;; the line is drawn from and to the center of the start and end cells, unless
+        ;;; fullWidth is passed, in which case the line is drawn from the left side of the
+        ;;; first cell to the right side of the last cell. The current position is
+        ;;; NOT updated by line drawing.
+        ;;; </summary>
+        ;;; <param name="aFromRow">Origin cell row.</param>
+        ;;; <param name="aFromCol">Origin cell column.</param>
+        ;;; <param name="aToRow">Destination cell row.</param>
+        ;;; <param name="aToCol">Destination cell column.</param>
+        ;;; <param name="aWidth">Line width in pixels. Default is 2.</param>
+        ;;; <param name="aStrokeColor">Custom stroke color.</param>
+        public method DrawLineRC,     void
+            required in aFromRow,     int
+            required in aFromCol,     int
+            required in aToRow,       int
+            required in aToCol,       int
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            endparams
+            record
+                penWidth,   float
+                start_x,    float
+                start_y,    float
+                end_x,      float
+                end_y,      float
+            endrecord
+        proc
+            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
+                printBeginPageItems()
+
+            ;;Set the line width
+            penWidth = ^passed(aWidth) ? aWidth : 1
+            pg.SetLineWidth(penWidth)
+
+            ;;If we were passed a specific stroke color then use it
+            if (^passed(aStrokeColor) && (aStrokeColor != this.StrokeColor))
+                setCustomStrokeColor(aStrokeColor)
+
+            ;;Calculate the start and end points for a center cell to center cell line
+            start_x = XfromCol(aFromCol) + (this.ColumnWidth / 2)
+            start_y = Body_YfromRow(aFromRow) + ((this.RowHeight-penWidth)/2)
+            end_x   = XfromCol(aToCol) + (this.ColumnWidth/ 2)
+            end_y   = Body_YfromRow(aToRow) + ((this.RowHeight-penWidth)/2)
+
+            ;;Draw the line
+            pg.MoveTo(start_x,start_y)
+            pg.LineTo(end_x,end_y)
+            pg.Stroke()
+
+            ;;If we changed the stroke color then revert back to the default color
+            if (^passed(aStrokeColor) && (aStrokeColor != this.StrokeColor))
+                resetStrokeColor()
+
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -703,76 +773,6 @@ namespace SynPSG.PDF
 
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
-        ;;; Draws a line from the current cell to the end of the current line. By default
-        ;;; the line is drawn from and to the center of the start and end cells, unless
-        ;;; fullWidth is passed, in which case the line is drawn from the left side of the
-        ;;; first cell to the right side of the last cell. The current position is
-        ;;; NOT updated by line drawing.
-        ;;; </summary>
-        ;;; <param name="aFromRow">Origin cell row.</param>
-        ;;; <param name="aFromCol">Origin cell column.</param>
-        ;;; <param name="aToRow">Destination cell row.</param>
-        ;;; <param name="aToCol">Destination cell column.</param>
-        ;;; <param name="aWidth">Line width in pixels. Default is 2.</param>
-        ;;; <param name="aStrokeColor">Custom stroke color.</param>
-        public method DrawLineRC,     void
-            required in aFromRow,     int
-            required in aFromCol,     int
-            required in aToRow,       int
-            required in aToCol,       int
-            optional in aWidth,       float
-            optional in aStrokeColor, PdfColor
-            endparams
-            record
-                penWidth,   float
-                start_x,    float
-                start_y,    float
-                end_x,      float
-                end_y,      float
-            endrecord
-        proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
-
-            ;;Set the line width
-            penWidth = ^passed(aWidth) ? aWidth : 1
-            pg.SetLineWidth(penWidth)
-
-            ;;If we were passed a specific stroke color then use it
-            if (^passed(aStrokeColor) && (aStrokeColor != this.StrokeColor))
-                setCustomStrokeColor(aStrokeColor)
-
-            ;;Calculate the start and end points for a center cell to center cell line
-            start_x = XfromCol(aFromCol) + (this.ColumnWidth / 2)
-            start_y = Body_YfromRow(aFromRow) + ((this.RowHeight-penWidth)/2)
-            end_x   = XfromCol(aToCol) + (this.ColumnWidth/ 2)
-            end_y   = Body_YfromRow(aToRow) + ((this.RowHeight-penWidth)/2)
-
-            ;;Draw the line
-            pg.MoveTo(start_x,start_y)
-            pg.LineTo(end_x,end_y)
-            pg.Stroke()
-
-            ;;If we changed the stroke color then revert back to the default color
-            if (^passed(aStrokeColor) && (aStrokeColor != this.StrokeColor))
-                resetStrokeColor()
-
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Draws the line defined by a PdfLine object.
-        ;;; </summary>
-        ;;; <param name="aLineObj">PdfLine object to be displayed.</param>
-        public method DrawLineRC, void
-            required in aLineObj, @AutoLineRowCol
-            endparams
-        proc
-            DrawLineRC(aLineObj.FromRow,aLineObj.FromCol,aLineObj.ToRow,aLineObj.ToCol,aLineObj.Width,aLineObj.StrokeColor)
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
         ;;; Draws text at the specified absolute position. The current row/column
         ;;; position is NOT affected by this method.
         ;;; </summary>
@@ -836,14 +836,26 @@ namespace SynPSG.PDF
 
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
-        ;;; Draws the text defined by an AutoTextRowCol or AutoTextAbsolute object.
+        ;;; Draws the text defined by an AutoTextAbsolute object.
         ;;; </summary>
-        ;;; <param name="aTextObj">AutoTextRowCol or AutoTextAbsolute object to be displayed.</param>
-        public method DrawText, void
-            required in aTextObj, @AutoTextAbsolute
+        ;;; <param name="aText">AutoTextAbsolute object to be drawn.</param>
+        public method DrawTextObject, void
+            required in aText, @AutoTextAbsolute
             endparams
         proc
-            DrawText(aTextObj.Text,aTextObj.X,aTextObj.Y,aTextObj.Color,aTextObj.FontName,aTextObj.FontSize)
+            DrawText(aText.Text,aText.X,aText.Y,aText.Color,aText.FontName,aText.FontSize)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Draws the text defined by an AutoTextRowCol object.
+        ;;; </summary>
+        ;;; <param name="aText">AutoTextRowCol object to be drawn.</param>
+        public method DrawTextObjectRC, void
+            required in aText, @AutoTextRowCol
+            endparams
+        proc
+            DrawTextRC(aText.Text,aText.Row,aText.Col,aText.Bold,aText.Italic,aText.Color,aText.NewLine)
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -916,18 +928,6 @@ namespace SynPSG.PDF
 
             mreturn this.Column
 
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Draws the text defined by an AutoTextRowCol or AutoTextAbsolute object.
-        ;;; </summary>
-        ;;; <param name="aTextObj">AutoTextRowCol or AutoTextAbsolute object to be displayed.</param>
-        public method DrawTextRC, void
-            required in aTextObj, @AutoTextRowCol
-            endparams
-        proc
-            DrawTextRC(aTextObj.Text,aTextObj.Row,aTextObj.Col,aTextObj.Bold,aTextObj.Italic,aTextObj.Color,aTextObj.NewLine)
         endmethod
 
         ;;--------------------------------------------------------------------------------

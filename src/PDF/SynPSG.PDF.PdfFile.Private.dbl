@@ -259,25 +259,25 @@ namespace SynPSG.PDF
         proc
 
             if (aItem.is.AutoTextAbsolute) then
-                DrawText((AutoTextAbsolute)aItem)
+                DrawTextObject((AutoTextAbsolute)aItem)
 
             else if (aItem.is.AutoTextRowCol) then
-                DrawTextRC((AutoTextRowCol)aItem)
+                DrawTextObjectRC((AutoTextRowCol)aItem)
 
             else if (aItem.is.AutoLineAbsolute) then
-                DrawLine((AutoLineAbsolute)aItem)
+                DrawLineObject((AutoLineAbsolute)aItem)
 
             else if (aItem.is.AutoLineRowCol) then
-                DrawLineRC((AutoLineRowCol)aItem)
+                DrawLineObjectRC((AutoLineRowCol)aItem)
 
             else if (aItem.is.AutoBoxAbsolute) then
-                DrawBox((AutoBoxAbsolute)aItem)
+                DrawBoxObject((AutoBoxAbsolute)aItem)
 
             else if (aItem.is.AutoBoxRowCol) then
-                DrawBoxRC((AutoBoxRowCol)aItem)
+                DrawBoxObjectRC((AutoBoxRowCol)aItem)
 
             else if (aItem.is.AutoImage)
-                DrawImage((AutoImage)aItem)
+                DrawImageObject((AutoImage)aItem)
 
         endmethod
 
