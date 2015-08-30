@@ -644,7 +644,7 @@ namespace SynPSG.PDF
         ;;; <param name="aWidth">Line width in pixels. Default is 5.</param>
         ;;; <param name="aStrokeColor">Custom stroke color.</param>
         ;;; <returns>Returns the new current row number.</returns>
-        public method DrawLineRC,     int
+        public method DrawLineRow,    int
             optional in aFullWidth,   boolean
             optional in aWidth,       int
             optional in aStrokeColor, PdfColor

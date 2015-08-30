@@ -738,7 +738,7 @@ eof,            close ch
                     pdf.NewPage()
                 else
                 begin
-                    data newCol, int, pdf.PrintText(character)
+                    data newCol, int, pdf.DrawTextRC(character)
                     if ((newCol-1)>MaxPrintWidth)
                         MaxPrintWidth = newCol-1
                 end
@@ -762,7 +762,7 @@ eof,            close ch
                     pdf.NewPage()
                 else
                 begin
-                    data newCol, int, pdf.PrintText(text)
+                    data newCol, int, pdf.DrawTextRC(text)
                     if ((newCol-1)>MaxPrintWidth)
                         MaxPrintWidth = newCol-1
                 end
@@ -782,7 +782,7 @@ eof,            close ch
                 display(mPrintChannel,text)
             else if (PrintMode) then
             begin
-                data newCol, int, pdf.PrintText(text,true)
+                data newCol, int, pdf.DrawTextRC(text,,,true)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
             end
@@ -801,7 +801,7 @@ eof,            close ch
                 display(mPrintChannel,text)
             else if (PrintMode) then
             begin
-                data newCol, int, pdf.PrintText(text,true)
+                data newCol, int, pdf.DrawTextRC(text,,,true)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
             end
@@ -820,7 +820,7 @@ eof,            close ch
                 display(mPrintChannel,text)
             else if (PrintMode) then
             begin
-                data newCol, int, pdf.PrintText(text)
+                data newCol, int, pdf.DrawTextRC(text)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
             end
@@ -841,7 +841,7 @@ eof,            close ch
                 nop
             else if (PrintMode) then
             begin
-                data newCol, int, pdf.PrintText(row,col,text)
+                data newCol, int, pdf.DrawTextRC(text,row,col)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
             end
@@ -862,7 +862,7 @@ eof,            close ch
                 nop
             else if (PrintMode) then
             begin
-                data newCol, int, pdf.PrintText(row,col,text)
+                data newCol, int, pdf.DrawTextRC(text,row,col)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
             end
@@ -885,7 +885,7 @@ eof,            close ch
                 nop
             else if (PrintMode) then
             begin
-                data newCol, int, pdf.PrintText(row,col,text,true)
+                data newCol, int, pdf.DrawTextRC(text,row,col,true)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
             end
@@ -906,7 +906,7 @@ eof,            close ch
                 nop
             else if (PrintMode) then
             begin
-                data newCol, int, pdf.PrintText(row,col,text) ;TODO: Needs reverse support
+                data newCol, int, pdf.DrawTextRC(text,row,col) ;TODO: Needs reverse support
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
             end
@@ -927,7 +927,7 @@ eof,            close ch
                 nop
             else if (PrintMode) then
             begin
-                data newCol, int, pdf.PrintText(row,col,text) ;TODO: Needs underline support
+                data newCol, int, pdf.DrawTextRC(text,row,col) ;TODO: Needs underline support
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
             end
@@ -969,7 +969,7 @@ eof,            close ch
             end
             else if (PrintMode) then
             begin
-                data newCol, int, pdf.PrintText(text,,,,true)
+                data newCol, int, pdf.DrawTextRC(text,,,,,,true)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
             end
@@ -999,7 +999,7 @@ eof,            close ch
             begin
                 data newCol, int
                 pdf.NewLine()
-                newCol = pdf.PrintText(text,,,,true)
+                newCol = pdf.DrawTextRC(text,,,,,,true)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
             end
@@ -1030,7 +1030,7 @@ eof,            close ch
             begin
                 data newCol, int
                 pdf.NewLine()
-                newCol = pdf.PrintText(text)
+                newCol = pdf.DrawTextRC(text)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
             end
@@ -1545,7 +1545,7 @@ eof,            close ch
                 footerRows = 0
 
             ;;Create a new PdfFile object
-            pdf = new PdfFile(orientation,aLeftMargin,aTopMargin,aRightMargin,aLeftMargin,headerRows,footerRows)
+            pdf = new PdfFile(,orientation,aLeftMargin,aTopMargin,aRightMargin,aLeftMargin,headerRows,footerRows)
             PrintMode = true
 
             ;;Add any page headers

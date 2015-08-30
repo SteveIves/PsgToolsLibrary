@@ -114,7 +114,7 @@ proc
         UI.PositionCursor(6,1)
         UI.ClearToEndOfScreen()
 
-        pdf = new PdfFile(orientation,margin,margin,margin,margin,3,2)
+        pdf = new PdfFile(,orientation,margin,margin,margin,margin,3,2)
 
         if (pdf.Initialize("TEMP:","PDF Test",width,,center)) then
         begin
@@ -154,7 +154,7 @@ proc
             UI.DisplayLine(" - Footer rows       : " + %string(pdf.FooterRows))
 
             for ix from 1 thru %integer(pdf.Rows)
-                pdf.PrintText(ix,1,"Text explicitly positioned at " + %string(ix) + ",1")
+                pdf.DrawTextRC("Text explicitly positioned at " + %string(ix) + ",1",ix,1)
 
             pdf.NewPage()
 
@@ -162,10 +162,10 @@ proc
             bold = false
             for ix from 1 thru %integer(pdf.Rows * 2.5)
             begin
-                pdf.PrintText("Text written a line at a time. Row " + %string(ix),bold)
+                pdf.DrawTextRC("Text written a line at a time. Row " + %string(ix),,,bold,,,true)
                 if ((iy += 1)==5)
                 begin
-                    pdf.DrawLine(true,5,PDfColor.AppleGreen)
+                    pdf.DrawLineRow(true,5,PDfColor.AppleGreen)
                     iy = 0
                 end
                 bold = !bold
