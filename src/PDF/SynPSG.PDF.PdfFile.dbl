@@ -4,7 +4,7 @@
 ;;
 ;; Title:       PdfFile
 ;;
-;; Type:        Partial Class (see also SynPSG.PfdFile.Private.dbl)
+;; Type:        Class
 ;;
 ;; Description: Provides the ability to create a PDF file. This class provides
 ;;              a more usable wrapper around the underlying functionality that
@@ -69,6 +69,9 @@ namespace SynPSG.PDF
     ;;; </summary>
     public partial class PdfFile
 
+        ;;********************************************************************************
+        ;;PRIVATE DATA
+
         private doc,                            @HPdfDoc
         private fontNormal,                     @HPdfFont
         private fontBold,                       @HPdfFont
@@ -96,7 +99,49 @@ namespace SynPSG.PDF
         private pageIsNew,                      boolean
 
         ;;********************************************************************************
-        ;;CONSTRUCTOR
+        ;;FACTORY METHODS
+
+        public static method Create, @PdfFile
+
+            optional in aPageSize,          PdfPageSize
+            optional in aOrientation,       PdfOrientation
+
+            optional in  aMinimumColumns,   int
+            optional in  aMaxFontSize,      int
+            optional in  aCenterBodyInPage, boolean
+
+            optional in aLeftMargin,        float
+            optional in aTopMargin,         float
+            optional in aRightMargin,       float
+            optional in aBottomMargin,      float
+
+            optional in aHeaderRows,        int
+            optional in aFooterRows,        int
+
+            optional in  aFileLocation,     string
+            optional in  aPartialFileName,  string
+
+            optional in aBackgroundColor,   PdfColor
+
+            endparams
+
+            record
+                pdf, @PdfFile
+            endrecord
+
+        proc
+
+            pdf = new PdfFile(aPageSize,aOrientation,aLeftMargin,aTopMargin,aRightMargin,aBottomMargin,aHeaderRows,aFooterRows,aBackgroundColor)
+
+            if (!pdf.Initialize(aFileLocation,aPartialFileName,aMinimumColumns,aMaxFontSize,aCenterBodyInPage))
+                pdf = ^null
+
+            mreturn pdf
+
+        endmethod
+
+        ;;********************************************************************************
+        ;;CONSTRUCTORS
 
         ;;; <summary>
         ;;; Constructs a new PdfFile object.
@@ -109,17 +154,18 @@ namespace SynPSG.PDF
         ;;; <param name="aBottomMargin">Establishes a bottom margin for the pages of the document. The value is specified in inches. If you don't specify a left margin then a default value of 0.16 inches will be used. If you don't want any margin then specify a value of 0.</param>
         ;;; <param name="aHeaderRows">Establishes the number of header rows that are to be allocated on each page of the document. Header rows are displayed below the top margin and above the main body of each page of the document.</param>
         ;;; <param name="aFooterRows">Establishes the number of footer rows that are to be allocated on each page of the document. Footer rows are displayed below main body and above the bottom margin of each page of the document.</param>
-        ;;; <param name="aPageBackgroundColor">Establishes a custom page background color and implements that color on the first page. The default page background color is white.</param>
-        public method PdfFile
-            optional in aPageSize,              PdfPageSize
-            optional in aOrientation,           PdfOrientation
-            optional in aLeftMargin,            float
-            optional in aTopMargin,             float
-            optional in aRightMargin,           float
-            optional in aBottomMargin,          float
-            optional in aHeaderRows,            int
-            optional in aFooterRows,            int
-            optional in aPageBackgroundColor,   PdfColor
+        ;;; <param name="aBackgroundColor">Establishes a custom page background color and implements that color on the first page. The default page background color is white.</param>
+        private method PdfFile
+            optional in aPageSize,        PdfPageSize
+            optional in aOrientation,     PdfOrientation
+            optional in aLeftMargin,      float
+            optional in aTopMargin,       float
+            optional in aRightMargin,     float
+            optional in aBottomMargin,    float
+            optional in aHeaderRows,      int
+            optional in aFooterRows,      int
+            optional in aBackgroundColor, PdfColor
+            endparams
         proc
 
             ;;Set page orientation
@@ -189,6 +235,10 @@ namespace SynPSG.PDF
             ;;Start a text writer with the current font and size
             pg.StartPageWithFont(fontNormal,fontSizeFloat)
 
+            ;;Record the current font being used
+            this.CurrentFont = fontNormal.GetFontName()
+            this.CurrentFontSize = this.FontSize
+
             ;;Make sure that text is drawn as solid letters, not an outline with a seperate fill
             pg.SetTextRenderingMode(HPdfTextRenderingMode.HPDF_FILL)
 
@@ -232,18 +282,35 @@ namespace SynPSG.PDF
             ;;Set the default colors to black
             this.StrokeColor = PdfColor.Black
             this.FillColor = PdfColor.Black
-            this.PageBackgroundColor = PdfColor.White
+            this.BackgroundColor = PdfColor.White
 
             ;;Initialize the auto items collection
             this.AutoItems = new ArrayList()
 
             ;;If we were given a custom backgound color then save it
-            if (^passed(aPageBackgroundColor) && (aPageBackgroundColor != PageBackgroundColor))
+            if (^passed(aBackgroundColor) && (aBackgroundColor != BackgroundColor))
             begin
-                PageBackgroundColor = aPageBackgroundColor
+                BackgroundColor = aBackgroundColor
                 ;;And use it for the first page
-                setPageBackroundColor()
+                setBackroundColor()
             end
+
+            ;;Populate the list of available fonts
+            mAvailableFonts = new ArrayList()
+            mAvailableFonts.Add((string)"Courier")
+            mAvailableFonts.Add((string)"Courier-Bold")
+            mAvailableFonts.Add((string)"Courier-Oblique")
+            mAvailableFonts.Add((string)"Courier-BoldOblique")
+            mAvailableFonts.Add((string)"Helvetica")
+            mAvailableFonts.Add((string)"Helvetica-Bold")
+            mAvailableFonts.Add((string)"Helvetica-Oblique")
+            mAvailableFonts.Add((string)"Helvetica-BoldOblique")
+            mAvailableFonts.Add((string)"Times-Roman")
+            mAvailableFonts.Add((string)"Times-Bold")
+            mAvailableFonts.Add((string)"Times-Italic")
+            mAvailableFonts.Add((string)"Times-BoldItalic")
+            mAvailableFonts.Add((string)"Symbol")
+            mAvailableFonts.Add((string)"ZapfDingbats")
 
             ;Set the default creator name
             this.Creator = "Synergex PSG PdfFile Class"
@@ -932,216 +999,6 @@ namespace SynPSG.PDF
 
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
-        ;;; Initializes the PdfFile for use. You must call initialize before attempting
-        ;;; to add any content to the document. The first page is created during initialization.
-        ;;; </summary>
-        ;;; <param name="aFileLocation">The location where the PDF file should be created. This can either be a path, a logical name followed by a colon.</param>
-        ;;; <param name="aPartialFileName">Text to be used as part of the PDF file name.</param>
-        ;;; <param name="aMinimumColumns">The minimum number of columns required for the document. An appropriate font size will be determined based on this value.</param>
-        ;;; <param name="aMaxFontSize">The maximum font size that you want to be selected. If a larger font is calculated then this font size will be used instead.</param>
-        ;;; <param name="aCenterBodyInPage">Should the page be configured for the exact number of columns specified, and the content horizontally centered in the page?</param>
-        public method Initialize,           boolean
-            optional in  aFileLocation,     string
-            optional in  aPartialFileName,  string
-            optional in  aMinimumColumns,   int
-            optional in  aMaxFontSize,      int
-            optional in  aCenterBodyInPage, boolean
-            endparams
-            record
-                ok,         boolean
-                attempts,       int
-            endrecord
-        proc
-            ;;Define the output file location
-            if (^passed(aFileLocation) && (aFileLocation.Trim().Length > 0)) then
-            begin
-                this.FileLocation = expandLogicalInFileSpec(aFileLocation)
-                if (this.FileLocation == %char(0)) then
-                begin
-                    this.ErrorMessage = "Invalid location " + aFileLocation
-                    mreturn false
-                end
-                else
-                begin
-                    if (!this.FileLocation.Trim().EndsWith("\"))
-                        this.FileLocation = this.FileLocation.Trim() + "\"
-                end
-            end
-            else
-            begin
-                this.FileLocation = expandLogicalInFileSpec("TEMP:")
-                if (!this.FileLocation.Trim().EndsWith("\"))
-                    this.FileLocation = this.FileLocation.Trim() + "\"
-            end
-
-            ;;Make sure the output file location exists
-            if (!directoryExists(this.FileLocation))
-            begin
-                mErrorMessage = "Destination folder " + mFileLocation + " does not exist!"
-                mreturn false
-            end
-
-            ;;Define the output file name
-            attempts = 0
-            repeat
-            begin
-                ;;Construct the file name
-                if (^passed(aPartialFileName) && (aPartialFileName.Trim().Length > 0)) then
-                    this.FileName = DateTimeTools.GetTempFilePrefix() + " " + aPartialFileName.Trim() + ".pdf"
-                else
-                    this.FileName = DateTimeTools.GetTempFilePrefix() + ".pdf"
-
-                ;;Make sure the file doesn't already exist
-                if (fileExists(this.FileLocation + this.FileName)) then
-                begin
-                    if ((attempts+=1)>5)
-                    begin
-                        this.ErrorMessage = "Failed to construct unique output file name!"
-                        mreturn false
-                    end
-                    sleep 0.1
-                end
-                else
-                    exitloop
-            end
-
-            ;;Are we going to center the body at the requested with within the
-            ;;page by manipulating the left and right margins
-            if (^passed(aCenterBodyInPage)) then
-                this.CenterBodyInPage = aCenterBodyInPage
-            else
-                this.CenterBodyInPage = true
-
-            ;;Save the number of requested minimum columns
-            if (^passed(aMinimumColumns) && aMinimumColumns) then
-                this.RequestedColumns = aMinimumColumns
-            else
-                this.RequestedColumns = 80
-
-            ok = false
-
-            if (this.Columns < this.RequestedColumns) then
-            begin
-                ;;Not enough columns, decrease the font size until we get a match
-                data newFontSize, int
-                for newFontSize from mFontSize-1 thru 6 by -1
-                begin
-                    FontSize = newFontSize
-                    pg.SetFontAndSize(fontNormal,fontSizeFloat)
-                    this.ColumnWidth = pg.TextWidth("W")
-                    totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
-                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
-                    this.Columns = totalColsDefaultOrientation
-                    if (this.Columns >= this.RequestedColumns)
-                    begin
-                        ok = true
-                        exitloop
-                    end
-                end
-            end
-            else if (this.Columns > this.RequestedColumns) then
-            begin
-                ;;Too many columns, increase the font size until we have gone too far
-                data newFontSize, int
-                for newFontSize from mFontSize+1 thru 64
-                begin
-                    FontSize = newFontSize
-                    pg.SetFontAndSize(fontNormal,fontSizeFloat)
-                    this.ColumnWidth = pg.TextWidth("W")
-                    totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
-                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
-                    this.Columns = totalColsDefaultOrientation
-                    if (this.Columns < this.RequestedColumns)
-                    begin
-                        ;;We went too far so back off to the previous font size
-                        FontSize = mFontSize - 1
-                        pg.SetFontAndSize(fontNormal,fontSizeFloat)
-                        this.ColumnWidth = pg.TextWidth("W")
-                        totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
-                        totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
-                        this.Columns = totalColsDefaultOrientation
-                        ok = true
-                        exitloop
-                    end
-                end
-            end
-            else if (this.Columns == this.RequestedColumns)
-            begin
-                ;;Perfect match!
-                ok = true
-            end
-
-            ;;If we were able to find a font size that provides the width that we need then we can continue
-            if (ok) then
-            begin
-                ;;Were we given a maximum font size?
-                if (^passed(aMaxFontSize) && aMaxFontSize)
-                begin
-                    if (this.FontSize > aMaxFontSize)
-                    begin
-                        ;;Selected font is bigger than maximum requested. Reduce to the requested size.
-                        this.FontSize = aMaxFontSize
-                        pg.SetFontAndSize(fontNormal,fontSizeFloat)
-                        this.ColumnWidth = pg.TextWidth("W")
-                        totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
-                        totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
-                        this.Columns = totalColsDefaultOrientation
-                    end
-                end
-
-                ;;How many rows fit on the page at the selected font size?
-                this.RowHeight = fontSizeFloat
-
-                totalRowsDefaultOrientation = %truncate((this.Height-topOffset-bottomOffset)/this.RowHeight)
-                totalRowsOtherOrientation = %truncate((this.Width-topOffset-bottomOffset)/this.RowHeight)
-
-                this.Rows = totalRowsDefaultOrientation - this.HeaderRows - this.FooterRows
-
-                ;;If the page is wider than requested, should we manipulate the margins so that the
-                ;;requested width is centered horizontally within the page?
-
-                if ((this.Columns != this.RequestedColumns) && this.CenterBodyInPage)
-                begin
-                    data additionalColumns, int, this.Columns - this.RequestedColumns
-                    data additionalPixels, int, additionalColumns * this.ColumnWidth
-
-                    ;;Divide the additional space between the left and right margins
-                    leftOffset += (additionalPixels / 2.0)
-                    rightOffset += (additionalPixels / 2.0)
-
-                    this.LeftMargin = leftOffset / 72.0
-                    this.RightMargin = rightOffset / 72.0
-
-                    totalColsDefaultOrientation = this.RequestedColumns
-                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
-                    this.Columns = totalColsDefaultOrientation
-                end
-
-                ;;Record where we're at
-                this.PageNumber = 1
-                this.Row = 1
-                this.Column = 1
-
-                ;;Add any begin page auto items
-                if (this.AutoItems.Count > 0)
-                begin
-                    this.pageIsNew = false
-                    this.printBeginPageItems()
-                end
-
-            end
-            else
-            begin
-                this.ErrorMessage = "Failed to select a font size to produce the requested results!"
-                Dispose()
-            end
-
-            mreturn ok
-
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;; <summary>
         ;;; Loads a TrueType font and embeds it in the PDF document ready for use.
         ;;; </summary>
         ;;; <param name="aFontFile">Full path to the font file (.ttf)</param>
@@ -1163,7 +1020,11 @@ namespace SynPSG.PDF
                 ok = false
 
             if (ok)
+            begin
                 fontName = doc.LoadTTFontFromFile(fileSpec,true)
+                if (fontName!=^null)
+                    mAvailableFonts.Add(fontName)
+            end
 
             mreturn fontName
 
@@ -1247,14 +1108,19 @@ namespace SynPSG.PDF
             this.Orientation = orientation
 
             ;;Activate the font for the new page
-            pg.StartPageWithFont(fontNormal,fontSizeFloat)
+            begin
+                data tmpFont, @HPdfFont, doc.GetFont(this.CurrentFont,^null)
+                data tmpFontSize, float, this.CurrentFontSize
+                pg.StartPageWithFont(tmpFont,tmpFontSize)
+            end
+
             pg.EndText()
 
             ;;Make sure that text is drawn as solid letters, not an outline with a seperate fill
             pg.SetTextRenderingMode(HPdfTextRenderingMode.HPDF_FILL)
 
             ;;Set any custom page background color
-            setPageBackroundColor()
+            setBackroundColor()
 
             ;;Put the default colors in place for the new page
             pg.SetRGBFill(textRed,textGreen,textBlue)
@@ -1356,6 +1222,8 @@ namespace SynPSG.PDF
             endparams
         proc
             pg.SetFontAndSize(fontNormal,fontSizeFloat)
+            this.CurrentFont = fontNormal.GetFontName()
+            this.CurrentFontSize = this.FontSize
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -1401,10 +1269,28 @@ namespace SynPSG.PDF
             record
                 fontSize, float
                 newFont, @HPdfFont
+                fontName, string
+                found, boolean
             endrecord
         proc
-            newFont = doc.GetFont(aFontName, ^null)
-            pg.SetFontAndSize(newFont,fontSize = aFontSize)
+            ;;Make sure the font is available
+            found = false
+            foreach fontName in mAvailableFonts
+            begin
+                if (fontName==aFontName)
+                begin
+                    found = true
+                    exitloop
+                end
+            end
+            ;;If the font is available then switch to it
+            if (found)
+            begin
+                newFont = doc.GetFont(aFontName, ^null)
+                pg.SetFontAndSize(newFont,fontSize = aFontSize)
+                this.CurrentFont = aFontName
+                this.CurrentFontSize = aFontSize
+            end
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -1474,6 +1360,25 @@ namespace SynPSG.PDF
             method set
             proc
                 mAutoItems = value
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private mAvailableFonts, @ArrayList
+
+        ;;; <summary>
+        ;;; Gets or sets a collection of available font names.
+        ;;; </summary>
+        public property AvailableFonts, @ArrayList
+            method get
+            proc
+                mreturn mAvailableFonts
+            endmethod
+            method set
+            proc
+                mAvailableFonts = value
             endmethod
         endproperty
 
@@ -1596,6 +1501,42 @@ namespace SynPSG.PDF
             method set
             proc
                 doc.SetInfoAttr(HPdfInfoType.HPDF_INFO_CREATOR,value)
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Gets the name of the currently selected font.
+        ;;; </summary>
+
+        private mCurrentFont, string
+
+        public property CurrentFont, string
+            method get
+            proc
+                mreturn mCurrentFont
+            endmethod
+            private method set
+            proc
+                mCurrentFont = value
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Gets the currently selected font size.
+        ;;; </summary>
+
+        private mCurrentFontSize, int
+
+        public property CurrentFontSize, int
+            method get
+            proc
+                mreturn mCurrentFontSize
+            endmethod
+            private method set
+            proc
+                mCurrentFontSize = value
             endmethod
         endproperty
 
@@ -1921,23 +1862,23 @@ namespace SynPSG.PDF
         ;;--------------------------------------------------------------------------------
         ;;
 
-        private mPageBackgroundColor,   PdfColor
-        private pageBackgroundRed,  float
-        private pageBackgroundGreen,    float
-        private pageBackgroundBlue, float
+        private mBackgroundColor, PdfColor
+        private backgroundRed,    float
+        private backgroundGreen,  float
+        private backgroundBlue,   float
 
         ;;; <summary>
         ;;; Gets or sets the page background color. A custom value for page background color can be established via an optional parameter passed to the constructor method, and will be used for the first page. Subsequently changing the page background color will affect only new pages that are created after the background color is changed. There is no way to change the background color of a page after the page has been created. The default page background color is white.
         ;;; </summary>
-        public property PageBackgroundColor, PdfColor
+        public property BackgroundColor, PdfColor
             method get
             proc
-                mreturn mPageBackgroundColor
+                mreturn mBackgroundColor
             endmethod
             method set
             proc
-                mPageBackgroundColor = value
-                rgbFromPdfColor(mPageBackgroundColor,pageBackgroundRed,pageBackgroundGreen,pageBackgroundBlue)
+                mBackgroundColor = value
+                rgbFromPdfColor(mBackgroundColor,backgroundRed,backgroundGreen,backgroundBlue)
             endmethod
         endproperty
 
@@ -2236,7 +2177,5399 @@ namespace SynPSG.PDF
             endmethod
         endproperty
 
+        ;;********************************************************************************
+        ;;PRIVATE METHODS
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method Body_YfromRow, float
+            required in aRow, int
+        proc
+            mreturn this.Height - topOffset - (this.HeaderRows * this.RowHeight) - (aRow * this.RowHeight)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;;Determines whether the given path refers to an existing directory on disk.
+        ;;; </summary>
+        ;;; <param name="path">The path to test. </param>
+        ;;; <returns>true if path refers to an existing directory; false if the directory does not exist or an error occurs when trying to determine if the specified file exists.</returns>
+        private method directoryExists, boolean
+            required in path, string
+            endparams
+            stack record
+                dll     ,D_ADDR ;;DLL Handle
+                folder      ,a260   ;;Null terminated folder spec
+                attributes  ,i4
+            endrecord
+            .define INVALID_FILE_ATTRIBUTES     -1
+            .define FILE_ATTRIBUTE_DIRECTORY    %x(10)
+        proc
+            dll = %dll_open("kernel32.dll")
+            xcall fill(char(0),folder)
+            folder(1,path.Trim().Length) = path.Trim()
+            attributes = %dll_call(dll,DLL_TYPE_WINAPI,"GetFileAttributesA",^addr(folder))
+            dll = dll_close(dll)
+            if (attributes == INVALID_FILE_ATTRIBUTES)
+                mreturn false
+            mreturn (attributes & FILE_ATTRIBUTE_DIRECTORY)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method expandLogicalInFileSpec, string
+            required in fileSpec,               string
+            endparams
+            stack record
+                colon,                          int
+                file,                           string
+                path,                           string
+                translation,                    a256
+                length,                         i4
+            endrecord
+        proc
+            ;;This routine assumes a file spec like LOGICAL:file.ext
+            ;;and returns D:\path\to\file.ext
+
+            if ((colon=%instr(1,fileSpec,":")) && (!%instr(1,fileSpec,"\"))) then
+            begin
+                ;;We have a : and no \
+
+                xcall getlog(fileSpec(1:colon-1),translation,length)
+                path = %atrim(translation)
+
+                ;;Looks like we have a logical name, but is it JUST a logical name, or is there also a file name?
+                if (colon==%trim(fileSpec)) then
+                begin
+                    ;;Just a logical, just return the translation
+                    mreturn path
+                end
+                else
+                begin
+                    ;;Also a file spec
+                    if (path(%trim(path):1)!="\")
+                        path = path + "\"
+                    file = fileSpec(colon+1,%trim(fileSpec))
+                    mreturn path + file
+                end
+            end
+            else
+            begin
+                ;;No : or both : and \
+                ;;Don't mess with it!
+                mreturn fileSpec.Trim()
+            end
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method expandTokens, string
+            required in aBuffer, string
+            record
+                tmpbuf, string
+            endrecord
+        proc
+            if ((aBuffer==^null) || (aBuffer.Trim().Length==0))
+                mreturn ""
+
+            tmpbuf = aBuffer
+
+            if (tmpbuf.Contains("MM/DD/YYYY"))
+                tmpbuf = tmpbuf.Replace("MM/DD/YYYY",DateTimeTools.GetFormattedDateMMDDYYYY())
+            if (tmpbuf.Contains("DD/MM/YYYY"))
+                tmpbuf = tmpbuf.Replace("MM/DD/YYYY",DateTimeTools.GetFormattedDateDDMMYYYY())
+            if (tmpbuf.Contains("HH:MM"))
+                tmpbuf = tmpbuf.Replace("HH:MM",DateTimeTools.GetFormattedTimeHHMM())
+            if (tmpbuf.Contains("HH:MM:SS"))
+                tmpbuf = tmpbuf.Replace("HH:MM",DateTimeTools.GetFormattedTimeHHMMSS())
+            if (tmpbuf.Contains("[PAGE#]"))
+                tmpbuf = tmpbuf.Replace("[PAGE#]",%string(this.PageNumber))
+            if (tmpbuf.Contains("[LOCATION]"))
+                tmpbuf = tmpbuf.Replace("[LOCATION]",this.FileLocation)
+            if (tmpbuf.Contains("[FILE]"))
+                tmpbuf = tmpbuf.Replace("[FILE]",this.FileName)
+            if (tmpbuf.Contains("[FONT_SIZE]"))
+                tmpbuf = tmpbuf.Replace("[FONT_SIZE]",%string(this.FontSize))
+
+            mreturn tmpbuf
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method fileExists, boolean
+            required in path, string
+            endparams
+        proc
+            try
+            begin
+                data ch, int, 0
+                open(ch,i,path)
+                close ch
+                mreturn true
+            end
+            catch (e)
+            begin
+                mreturn false
+            end
+            endtry
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method Footer_YfromRow, float
+            required in aFooterRow, int
+        proc
+            mreturn mHeight - topOffset - (mHeaderRows * mRowHeight) - (mRows * mRowHeight) - (aFooterRow * mRowHeight)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method Header_YfromRow, float
+            required in aHeaderRow, int
+        proc
+            mreturn this.Height - topOffset - (aHeaderRow * this.RowHeight)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Initializes the PdfFile for use. You must call initialize before attempting
+        ;;; to add any content to the document. The first page is created during initialization.
+        ;;; </summary>
+        ;;; <param name="aFileLocation">The location where the PDF file should be created. This can either be a path, a logical name followed by a colon.</param>
+        ;;; <param name="aPartialFileName">Text to be used as part of the PDF file name.</param>
+        ;;; <param name="aMinimumColumns">The minimum number of columns required for the document. An appropriate font size will be determined based on this value.</param>
+        ;;; <param name="aMaxFontSize">The maximum font size that you want to be selected. If a larger font is calculated then this font size will be used instead.</param>
+        ;;; <param name="aCenterBodyInPage">Should the page be configured for the exact number of columns specified, and the content horizontally centered in the page?</param>
+        private method Initialize,          boolean
+            optional in  aFileLocation,     string
+            optional in  aPartialFileName,  string
+            optional in  aMinimumColumns,   int
+            optional in  aMaxFontSize,      int
+            optional in  aCenterBodyInPage, boolean
+            endparams
+            record
+                ok,         boolean
+                attempts,       int
+            endrecord
+        proc
+            ;;Define the output file location
+            if (^passed(aFileLocation) && (aFileLocation.Trim().Length > 0)) then
+            begin
+                this.FileLocation = expandLogicalInFileSpec(aFileLocation)
+                if (this.FileLocation == %char(0)) then
+                begin
+                    this.ErrorMessage = "Invalid location " + aFileLocation
+                    mreturn false
+                end
+                else
+                begin
+                    if (!this.FileLocation.Trim().EndsWith("\"))
+                        this.FileLocation = this.FileLocation.Trim() + "\"
+                end
+            end
+            else
+            begin
+                this.FileLocation = expandLogicalInFileSpec("TEMP:")
+                if (!this.FileLocation.Trim().EndsWith("\"))
+                    this.FileLocation = this.FileLocation.Trim() + "\"
+            end
+
+            ;;Make sure the output file location exists
+            if (!directoryExists(this.FileLocation))
+            begin
+                mErrorMessage = "Destination folder " + mFileLocation + " does not exist!"
+                mreturn false
+            end
+
+            ;;Define the output file name
+            attempts = 0
+            repeat
+            begin
+                ;;Construct the file name
+                if (^passed(aPartialFileName) && (aPartialFileName.Trim().Length > 0)) then
+                    this.FileName = DateTimeTools.GetTempFilePrefix() + " " + aPartialFileName.Trim() + ".pdf"
+                else
+                    this.FileName = DateTimeTools.GetTempFilePrefix() + ".pdf"
+
+                ;;Make sure the file doesn't already exist
+                if (fileExists(this.FileLocation + this.FileName)) then
+                begin
+                    if ((attempts+=1)>5)
+                    begin
+                        this.ErrorMessage = "Failed to construct unique output file name!"
+                        mreturn false
+                    end
+                    sleep 0.1
+                end
+                else
+                    exitloop
+            end
+
+            ;;Are we going to center the body at the requested with within the
+            ;;page by manipulating the left and right margins
+            if (^passed(aCenterBodyInPage)) then
+                this.CenterBodyInPage = aCenterBodyInPage
+            else
+                this.CenterBodyInPage = true
+
+            ;;Save the number of requested minimum columns
+            if (^passed(aMinimumColumns) && aMinimumColumns) then
+                this.RequestedColumns = aMinimumColumns
+            else
+                this.RequestedColumns = 80
+
+            ok = false
+
+            if (this.Columns < this.RequestedColumns) then
+            begin
+                ;;Not enough columns, decrease the font size until we get a match
+                data newFontSize, int
+                for newFontSize from mFontSize-1 thru 6 by -1
+                begin
+                    FontSize = newFontSize
+                    pg.SetFontAndSize(fontNormal,fontSizeFloat)
+                    this.ColumnWidth = pg.TextWidth("W")
+                    totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                    this.Columns = totalColsDefaultOrientation
+                    if (this.Columns >= this.RequestedColumns)
+                    begin
+                        ok = true
+                        exitloop
+                    end
+                end
+            end
+            else if (this.Columns > this.RequestedColumns) then
+            begin
+                ;;Too many columns, increase the font size until we have gone too far
+                data newFontSize, int
+                for newFontSize from mFontSize+1 thru 64
+                begin
+                    FontSize = newFontSize
+                    pg.SetFontAndSize(fontNormal,fontSizeFloat)
+                    this.ColumnWidth = pg.TextWidth("W")
+                    totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                    this.Columns = totalColsDefaultOrientation
+                    if (this.Columns < this.RequestedColumns)
+                    begin
+                        ;;We went too far so back off to the previous font size
+                        FontSize = mFontSize - 1
+                        pg.SetFontAndSize(fontNormal,fontSizeFloat)
+                        this.ColumnWidth = pg.TextWidth("W")
+                        totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                        totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                        this.Columns = totalColsDefaultOrientation
+                        ok = true
+                        exitloop
+                    end
+                end
+            end
+            else if (this.Columns == this.RequestedColumns)
+            begin
+                ;;Perfect match!
+                ok = true
+            end
+
+            ;;If we were able to find a font size that provides the width that we need then we can continue
+            if (ok) then
+            begin
+                ;;Were we given a maximum font size?
+                if (^passed(aMaxFontSize) && aMaxFontSize)
+                begin
+                    if (this.FontSize > aMaxFontSize)
+                    begin
+                        ;;Selected font is bigger than maximum requested. Reduce to the requested size.
+                        this.FontSize = aMaxFontSize
+                        pg.SetFontAndSize(fontNormal,fontSizeFloat)
+                        this.ColumnWidth = pg.TextWidth("W")
+                        totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                        totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                        this.Columns = totalColsDefaultOrientation
+                    end
+                end
+
+                ;;How many rows fit on the page at the selected font size?
+                this.RowHeight = fontSizeFloat
+
+                totalRowsDefaultOrientation = %truncate((this.Height-topOffset-bottomOffset)/this.RowHeight)
+                totalRowsOtherOrientation = %truncate((this.Width-topOffset-bottomOffset)/this.RowHeight)
+
+                this.Rows = totalRowsDefaultOrientation - this.HeaderRows - this.FooterRows
+
+                ;;If the page is wider than requested, should we manipulate the margins so that the
+                ;;requested width is centered horizontally within the page?
+
+                if ((this.Columns != this.RequestedColumns) && this.CenterBodyInPage)
+                begin
+                    data additionalColumns, int, this.Columns - this.RequestedColumns
+                    data additionalPixels, int, additionalColumns * this.ColumnWidth
+
+                    ;;Divide the additional space between the left and right margins
+                    leftOffset += (additionalPixels / 2.0)
+                    rightOffset += (additionalPixels / 2.0)
+
+                    this.LeftMargin = leftOffset / 72.0
+                    this.RightMargin = rightOffset / 72.0
+
+                    totalColsDefaultOrientation = this.RequestedColumns
+                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                    this.Columns = totalColsDefaultOrientation
+                end
+
+                ;;Record where we're at
+                this.PageNumber = 1
+                this.Row = 1
+                this.Column = 1
+
+                ;;Add any begin page auto items
+                if (this.AutoItems.Count > 0)
+                begin
+                    this.pageIsNew = false
+                    this.printBeginPageItems()
+                end
+
+            end
+            else
+            begin
+                this.ErrorMessage = "Failed to select a font size to produce the requested results!"
+                Dispose()
+            end
+
+            mreturn ok
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method printAutoItem, void
+            required in aItem, @AutoItem
+        proc
+
+            if (aItem.is.AutoTextAbsolute) then
+                DrawTextObject((AutoTextAbsolute)aItem)
+
+            else if (aItem.is.AutoTextRowCol) then
+                DrawTextObjectRC((AutoTextRowCol)aItem)
+
+            else if (aItem.is.AutoLineAbsolute) then
+                DrawLineObject((AutoLineAbsolute)aItem)
+
+            else if (aItem.is.AutoLineRowCol) then
+                DrawLineObjectRC((AutoLineRowCol)aItem)
+
+            else if (aItem.is.AutoBoxAbsolute) then
+                DrawBoxObject((AutoBoxAbsolute)aItem)
+
+            else if (aItem.is.AutoBoxRowCol) then
+                DrawBoxObjectRC((AutoBoxRowCol)aItem)
+
+            else if (aItem.is.AutoImage)
+                DrawImageObject((AutoImage)aItem)
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method printBeginPageItems, void
+        proc
+            if (this.AutoItems.Count > 0)
+            begin
+                data item, @Object
+                foreach item in this.AutoItems
+                begin
+                    ;;Only print the "end of page" auto items
+                    if (((AutoItem)item).Mode == AutoItemMode.BeginPage)
+                        printAutoItem((AutoItem)item)
+                end
+            end
+
+            pageIsNew = false
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method printEndPageItems, void
+        proc
+            ;;Print headers and footers on the current page
+            printPageHeaders()
+            printPageFooters()
+
+            ;;Then auto items
+            if (this.AutoItems.Count > 0)
+            begin
+                data item, @Object
+                foreach item in this.AutoItems
+                begin
+                    ;;Only print the "end of page" auto items
+                    if (((AutoItem)item).Mode == AutoItemMode.EndPage)
+                        printAutoItem((AutoItem)item)
+                end
+            end
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method printPageFooters, void
+        proc
+            if (this.FooterRows)
+            begin
+                data ix, int
+                for ix from 1 thru this.FooterRows
+                begin
+                    data footer, string
+                    if ((this.Orientation==this.DefaultOrientation) || (this.UseAlternateFooters==false)) then
+                    begin
+                        ;;Default orientation page or alternate orientation page using default footers
+                        footer = this.FooterText[ix]
+                    end
+                    else
+                    begin
+                        ;;Alternate orientation page
+                        footer = this.FooterTextAlternate[ix]
+                    end
+
+                    if (footer.Trim().Length==0) then
+                        nop
+                    else if (footer=="[LINE]") then
+                    begin
+                        ;;Calculate the start and end points for a full width line
+                        data penWidth, float, 1.0
+                        data start_x,  float, XfromCol(1)
+                        data start_y,  float, Footer_YfromRow(ix) + ((this.RowHeight-penWidth)/2)
+                        data end_x,    float, XfromCol(this.Columns) + this.ColumnWidth
+                        data end_y,    float, start_y
+
+                        ;;Draw the line
+                        pg.SetLineWidth(penWidth)
+                        pg.MoveTo(start_x,start_y)
+                        pg.LineTo(end_x,end_y)
+                        pg.Stroke()
+                    end
+                    else
+                    begin
+                        pg.BeginText()
+                        pg.MoveTextPos(XfromCol(1),Footer_YFromRow(ix))
+                        pg.ShowText(expandTokens(footer))
+                        pg.EndText()
+                    end
+                end
+            end
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method printPageHeaders, void
+        proc
+            if (this.HeaderRows)
+            begin
+                data ix, int
+                for ix from 1 thru this.HeaderRows
+                begin
+                    data header, string
+                    if ((this.Orientation==this.DefaultOrientation) || (this.UseAlternateHeaders==false)) then
+                    begin
+                        ;;Default orientation page or alternate orientation page using default headers
+                        header = this.HeaderText[ix]
+                    end
+                    else
+                    begin
+                        ;;Alternate orientation page
+                        header = this.HeaderTextAlternate[ix]
+                    end
+
+                    if (header.Trim().Length==0) then
+                        nop
+                    else if (header=="[LINE]") then
+                    begin
+                        ;;Calculate the start and end points for a full width line
+                        data penWidth, float, 1.0
+                        data start_x,  float, XfromCol(1)
+                        data start_y,  float, Header_YfromRow(ix) + ((this.RowHeight-penWidth)/2)
+                        data end_x,    float, XfromCol(this.Columns) + this.ColumnWidth
+                        data end_y,    float, start_y
+
+                        ;;Draw the line
+                        pg.SetLineWidth(penWidth)
+                        pg.MoveTo(start_x,start_y)
+                        pg.LineTo(end_x,end_y)
+                        pg.Stroke()
+                    end
+                    else
+                    begin
+                        pg.BeginText()
+                        pg.MoveTextPos(XfromCol(1),Header_YFromRow(ix))
+                        pg.ShowText(expandTokens(header))
+                        pg.EndText()
+                    end
+                end
+            end
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method resetFillColor , void
+        proc
+            pg.SetRGBFill(textRed,textGreen,textBlue)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method resetFont, void
+            optional in aBold, boolean
+            optional in aItalic, boolean
+        proc
+            if ((^passed(aBold) && aBold) || (^passed(aItalic) && aItalic))
+                pg.SetFontAndSize(fontNormal,fontSizeFloat)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method resetStrokeColor, void
+        proc
+            pg.SetRGBStroke(lineRed,lineGreen,lineBlue)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method rgbFromPdfColor, void
+            required in  aColor, PdfColor
+            required out aRed, float
+            required out aGreen, float
+            required out aBlue, float
+        proc
+
+            using aColor select
+            (PdfColor.AirForceblue),
+            begin
+                aRed = 93 / 255.0
+                aGreen = 138 / 255.0
+                aBlue = 168 / 255.0
+            end
+            (PdfColor.AliceBlue),
+            begin
+                aRed = 240 / 255.0
+                aGreen = 248 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.AlizarinCrimson),
+            begin
+                aRed = 227 / 255.0
+                aGreen = 38 / 255.0
+                aBlue = 54 / 255.0
+            end
+            (PdfColor.Almond),
+            begin
+                aRed = 239 / 255.0
+                aGreen = 222 / 255.0
+                aBlue = 205 / 255.0
+            end
+            (PdfColor.Amaranth),
+            begin
+                aRed = 229 / 255.0
+                aGreen = 43 / 255.0
+                aBlue = 80 / 255.0
+            end
+            (PdfColor.Amber),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 191 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.AmericanRose),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 3 / 255.0
+                aBlue = 62 / 255.0
+            end
+            (PdfColor.Amethyst),
+            begin
+                aRed = 153 / 255.0
+                aGreen = 102 / 255.0
+                aBlue = 204 / 255.0
+            end
+            (PdfColor.AndroidGreen),
+            begin
+                aRed = 164 / 255.0
+                aGreen = 198 / 255.0
+                aBlue = 57 / 255.0
+            end
+            (PdfColor.AntiFlashWhite),
+            begin
+                aRed = 242 / 255.0
+                aGreen = 243 / 255.0
+                aBlue = 244 / 255.0
+            end
+            (PdfColor.AntiqueBrass),
+            begin
+                aRed = 205 / 255.0
+                aGreen = 149 / 255.0
+                aBlue = 117 / 255.0
+            end
+            (PdfColor.AntiqueFuchsia),
+            begin
+                aRed = 145 / 255.0
+                aGreen = 92 / 255.0
+                aBlue = 131 / 255.0
+            end
+            (PdfColor.AntiqueWhite),
+            begin
+                aRed = 250 / 255.0
+                aGreen = 235 / 255.0
+                aBlue = 215 / 255.0
+            end
+            (PdfColor.Ao),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 128 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.AppleGreen),
+            begin
+                aRed = 141 / 255.0
+                aGreen = 182 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Apricot),
+            begin
+                aRed = 251 / 255.0
+                aGreen = 206 / 255.0
+                aBlue = 177 / 255.0
+            end
+            (PdfColor.Aqua),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.Aquamarine),
+            begin
+                aRed = 127 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 212 / 255.0
+            end
+            (PdfColor.ArmyGreen),
+            begin
+                aRed = 75 / 255.0
+                aGreen = 83 / 255.0
+                aBlue = 32 / 255.0
+            end
+            (PdfColor.Arsenic),
+            begin
+                aRed = 59 / 255.0
+                aGreen = 68 / 255.0
+                aBlue = 75 / 255.0
+            end
+            (PdfColor.ArylideYellow),
+            begin
+                aRed = 233 / 255.0
+                aGreen = 214 / 255.0
+                aBlue = 107 / 255.0
+            end
+            (PdfColor.AshGray),
+            begin
+                aRed = 178 / 255.0
+                aGreen = 190 / 255.0
+                aBlue = 181 / 255.0
+            end
+            (PdfColor.Asparagus),
+            begin
+                aRed = 135 / 255.0
+                aGreen = 169 / 255.0
+                aBlue = 107 / 255.0
+            end
+            (PdfColor.AtomicTangerine),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 153 / 255.0
+                aBlue = 102 / 255.0
+            end
+            (PdfColor.Auburn),
+            begin
+                aRed = 165 / 255.0
+                aGreen = 42 / 255.0
+                aBlue = 42 / 255.0
+            end
+            (PdfColor.Aureolin),
+            begin
+                aRed = 253 / 255.0
+                aGreen = 238 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.AuroMetalSaurus),
+            begin
+                aRed = 110 / 255.0
+                aGreen = 127 / 255.0
+                aBlue = 128 / 255.0
+            end
+            (PdfColor.Awesome),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 32 / 255.0
+                aBlue = 82 / 255.0
+            end
+            (PdfColor.Azure),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 127 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.AzureMist),
+            begin
+                aRed = 240 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.BabyBlue),
+            begin
+                aRed = 137 / 255.0
+                aGreen = 207 / 255.0
+                aBlue = 240 / 255.0
+            end
+            (PdfColor.BabyBlueEyes),
+            begin
+                aRed = 161 / 255.0
+                aGreen = 202 / 255.0
+                aBlue = 241 / 255.0
+            end
+            (PdfColor.BabyPink),
+            begin
+                aRed = 244 / 255.0
+                aGreen = 194 / 255.0
+                aBlue = 194 / 255.0
+            end
+            (PdfColor.BallBlue),
+            begin
+                aRed = 33 / 255.0
+                aGreen = 171 / 255.0
+                aBlue = 205 / 255.0
+            end
+            (PdfColor.BananaMania),
+            begin
+                aRed = 250 / 255.0
+                aGreen = 231 / 255.0
+                aBlue = 181 / 255.0
+            end
+            (PdfColor.BananaYellow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 225 / 255.0
+                aBlue = 53 / 255.0
+            end
+            (PdfColor.BattleShipGray),
+            begin
+                aRed = 132 / 255.0
+                aGreen = 132 / 255.0
+                aBlue = 130 / 255.0
+            end
+            (PdfColor.Bazaar),
+            begin
+                aRed = 152 / 255.0
+                aGreen = 119 / 255.0
+                aBlue = 123 / 255.0
+            end
+            (PdfColor.BeauBlue),
+            begin
+                aRed = 188 / 255.0
+                aGreen = 212 / 255.0
+                aBlue = 230 / 255.0
+            end
+            (PdfColor.Beaver),
+            begin
+                aRed = 159 / 255.0
+                aGreen = 129 / 255.0
+                aBlue = 112 / 255.0
+            end
+            (PdfColor.Beige),
+            begin
+                aRed = 245 / 255.0
+                aGreen = 245 / 255.0
+                aBlue = 220 / 255.0
+            end
+            (PdfColor.Bisque),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 228 / 255.0
+                aBlue = 196 / 255.0
+            end
+            (PdfColor.Bistre),
+            begin
+                aRed = 61 / 255.0
+                aGreen = 43 / 255.0
+                aBlue = 31 / 255.0
+            end
+            (PdfColor.BitterSweet),
+            begin
+                aRed = 254 / 255.0
+                aGreen = 111 / 255.0
+                aBlue = 94 / 255.0
+            end
+            (PdfColor.Black),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.BlanchedAlmond),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 235 / 255.0
+                aBlue = 205 / 255.0
+            end
+            (PdfColor.BleudeFrance),
+            begin
+                aRed = 49 / 255.0
+                aGreen = 140 / 255.0
+                aBlue = 231 / 255.0
+            end
+            (PdfColor.BlizzardBlue),
+            begin
+                aRed = 172 / 255.0
+                aGreen = 229 / 255.0
+                aBlue = 238 / 255.0
+            end
+            (PdfColor.Blond),
+            begin
+                aRed = 250 / 255.0
+                aGreen = 240 / 255.0
+                aBlue = 190 / 255.0
+            end
+            (PdfColor.Blue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.BlueBell),
+            begin
+                aRed = 162 / 255.0
+                aGreen = 162 / 255.0
+                aBlue = 208 / 255.0
+            end
+            (PdfColor.BlueGray),
+            begin
+                aRed = 102 / 255.0
+                aGreen = 153 / 255.0
+                aBlue = 204 / 255.0
+            end
+            (PdfColor.BlueGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 221 / 255.0
+                aBlue = 221 / 255.0
+            end
+            (PdfColor.BlueViolet),
+            begin
+                aRed = 138 / 255.0
+                aGreen = 43 / 255.0
+                aBlue = 226 / 255.0
+            end
+            (PdfColor.Blush),
+            begin
+                aRed = 222 / 255.0
+                aGreen = 93 / 255.0
+                aBlue = 131 / 255.0
+            end
+            (PdfColor.Bole),
+            begin
+                aRed = 121 / 255.0
+                aGreen = 68 / 255.0
+                aBlue = 59 / 255.0
+            end
+            (PdfColor.BondiBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 149 / 255.0
+                aBlue = 182 / 255.0
+            end
+            (PdfColor.BostonUniversityRed),
+            begin
+                aRed = 204 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.BrandeisBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 112 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.Brass),
+            begin
+                aRed = 181 / 255.0
+                aGreen = 166 / 255.0
+                aBlue = 66 / 255.0
+            end
+            (PdfColor.BrickRed),
+            begin
+                aRed = 203 / 255.0
+                aGreen = 65 / 255.0
+                aBlue = 84 / 255.0
+            end
+            (PdfColor.BrightCerulean),
+            begin
+                aRed = 29 / 255.0
+                aGreen = 172 / 255.0
+                aBlue = 214 / 255.0
+            end
+            (PdfColor.BrightGreen),
+            begin
+                aRed = 102 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.BrightLavender),
+            begin
+                aRed = 191 / 255.0
+                aGreen = 148 / 255.0
+                aBlue = 228 / 255.0
+            end
+            (PdfColor.BrightMaroon),
+            begin
+                aRed = 195 / 255.0
+                aGreen = 33 / 255.0
+                aBlue = 72 / 255.0
+            end
+            (PdfColor.BrightPink),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 127 / 255.0
+            end
+            (PdfColor.BrightTurquoise),
+            begin
+                aRed = 8 / 255.0
+                aGreen = 232 / 255.0
+                aBlue = 222 / 255.0
+            end
+            (PdfColor.BrightUbe),
+            begin
+                aRed = 209 / 255.0
+                aGreen = 159 / 255.0
+                aBlue = 232 / 255.0
+            end
+            (PdfColor.BrilliantLavender),
+            begin
+                aRed = 244 / 255.0
+                aGreen = 187 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.BrillianRrose),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 85 / 255.0
+                aBlue = 163 / 255.0
+            end
+            (PdfColor.BrinkPink),
+            begin
+                aRed = 251 / 255.0
+                aGreen = 96 / 255.0
+                aBlue = 127 / 255.0
+            end
+            (PdfColor.BritishRacingGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 66 / 255.0
+                aBlue = 37 / 255.0
+            end
+            (PdfColor.Bronze),
+            begin
+                aRed = 205 / 255.0
+                aGreen = 127 / 255.0
+                aBlue = 50 / 255.0
+            end
+            (PdfColor.Brown),
+            begin
+                aRed = 150 / 255.0
+                aGreen = 75 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.BubbleGum),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 193 / 255.0
+                aBlue = 204 / 255.0
+            end
+            (PdfColor.Bubbles),
+            begin
+                aRed = 231 / 255.0
+                aGreen = 254 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.Buff),
+            begin
+                aRed = 240 / 255.0
+                aGreen = 220 / 255.0
+                aBlue = 130 / 255.0
+            end
+            (PdfColor.BulgarianRose),
+            begin
+                aRed = 72 / 255.0
+                aGreen = 6 / 255.0
+                aBlue = 7 / 255.0
+            end
+            (PdfColor.Burgundy),
+            begin
+                aRed = 128 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 32 / 255.0
+            end
+            (PdfColor.Burlywood),
+            begin
+                aRed = 222 / 255.0
+                aGreen = 184 / 255.0
+                aBlue = 135 / 255.0
+            end
+            (PdfColor.BurntOrange),
+            begin
+                aRed = 204 / 255.0
+                aGreen = 85 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.BurntSienna),
+            begin
+                aRed = 233 / 255.0
+                aGreen = 116 / 255.0
+                aBlue = 81 / 255.0
+            end
+            (PdfColor.BurntUmber),
+            begin
+                aRed = 138 / 255.0
+                aGreen = 51 / 255.0
+                aBlue = 36 / 255.0
+            end
+            (PdfColor.Byzantine),
+            begin
+                aRed = 189 / 255.0
+                aGreen = 51 / 255.0
+                aBlue = 164 / 255.0
+            end
+            (PdfColor.Byzantium),
+            begin
+                aRed = 112 / 255.0
+                aGreen = 41 / 255.0
+                aBlue = 99 / 255.0
+            end
+            (PdfColor.Cadet),
+            begin
+                aRed = 83 / 255.0
+                aGreen = 104 / 255.0
+                aBlue = 114 / 255.0
+            end
+            (PdfColor.CadetBlue),
+            begin
+                aRed = 95 / 255.0
+                aGreen = 158 / 255.0
+                aBlue = 160 / 255.0
+            end
+            (PdfColor.CadetGray),
+            begin
+                aRed = 145 / 255.0
+                aGreen = 163 / 255.0
+                aBlue = 176 / 255.0
+            end
+            (PdfColor.CadmiumGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 107 / 255.0
+                aBlue = 60 / 255.0
+            end
+            (PdfColor.CadmiumOrange),
+            begin
+                aRed = 237 / 255.0
+                aGreen = 135 / 255.0
+                aBlue = 45 / 255.0
+            end
+            (PdfColor.CadmiumRed),
+            begin
+                aRed = 227 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 34 / 255.0
+            end
+            (PdfColor.CadmiumYellow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 246 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.CalPolyPomonaGreen),
+            begin
+                aRed = 30 / 255.0
+                aGreen = 77 / 255.0
+                aBlue = 43 / 255.0
+            end
+            (PdfColor.CambridgeBlue),
+            begin
+                aRed = 163 / 255.0
+                aGreen = 193 / 255.0
+                aBlue = 173 / 255.0
+            end
+            (PdfColor.Camel),
+            begin
+                aRed = 193 / 255.0
+                aGreen = 154 / 255.0
+                aBlue = 107 / 255.0
+            end
+            (PdfColor.CamouflageGreen),
+            begin
+                aRed = 120 / 255.0
+                aGreen = 134 / 255.0
+                aBlue = 107 / 255.0
+            end
+            (PdfColor.CanaryYellow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 239 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.CandyAppleRed),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 8 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.CandyPink),
+            begin
+                aRed = 228 / 255.0
+                aGreen = 113 / 255.0
+                aBlue = 122 / 255.0
+            end
+            (PdfColor.Capri),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 191 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.CaputMortuum),
+            begin
+                aRed = 89 / 255.0
+                aGreen = 39 / 255.0
+                aBlue = 32 / 255.0
+            end
+            (PdfColor.Cardinal),
+            begin
+                aRed = 196 / 255.0
+                aGreen = 30 / 255.0
+                aBlue = 58 / 255.0
+            end
+            (PdfColor.CaribbeanGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 204 / 255.0
+                aBlue = 153 / 255.0
+            end
+            (PdfColor.Carmine),
+            begin
+                aRed = 150 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 24 / 255.0
+            end
+            (PdfColor.CarminePink),
+            begin
+                aRed = 235 / 255.0
+                aGreen = 76 / 255.0
+                aBlue = 66 / 255.0
+            end
+            (PdfColor.CarmineRed),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 56 / 255.0
+            end
+            (PdfColor.CarnationPink),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 166 / 255.0
+                aBlue = 201 / 255.0
+            end
+            (PdfColor.Carnelian),
+            begin
+                aRed = 179 / 255.0
+                aGreen = 27 / 255.0
+                aBlue = 27 / 255.0
+            end
+            (PdfColor.CarolinaBlue),
+            begin
+                aRed = 153 / 255.0
+                aGreen = 186 / 255.0
+                aBlue = 221 / 255.0
+            end
+            (PdfColor.CarrotOrange),
+            begin
+                aRed = 237 / 255.0
+                aGreen = 145 / 255.0
+                aBlue = 33 / 255.0
+            end
+            (PdfColor.Ceil),
+            begin
+                aRed = 146 / 255.0
+                aGreen = 161 / 255.0
+                aBlue = 207 / 255.0
+            end
+            (PdfColor.Celadon),
+            begin
+                aRed = 172 / 255.0
+                aGreen = 225 / 255.0
+                aBlue = 175 / 255.0
+            end
+            (PdfColor.CelestialBlue),
+            begin
+                aRed = 73 / 255.0
+                aGreen = 151 / 255.0
+                aBlue = 208 / 255.0
+            end
+            (PdfColor.Cerise),
+            begin
+                aRed = 222 / 255.0
+                aGreen = 49 / 255.0
+                aBlue = 99 / 255.0
+            end
+            (PdfColor.CerisePink),
+            begin
+                aRed = 236 / 255.0
+                aGreen = 59 / 255.0
+                aBlue = 131 / 255.0
+            end
+            (PdfColor.Cerulean),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 123 / 255.0
+                aBlue = 167 / 255.0
+            end
+            (PdfColor.CeruleanBlue),
+            begin
+                aRed = 42 / 255.0
+                aGreen = 82 / 255.0
+                aBlue = 190 / 255.0
+            end
+            (PdfColor.CGBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 122 / 255.0
+                aBlue = 165 / 255.0
+            end
+            (PdfColor.CGRed),
+            begin
+                aRed = 224 / 255.0
+                aGreen = 60 / 255.0
+                aBlue = 49 / 255.0
+            end
+            (PdfColor.Chamoisee),
+            begin
+                aRed = 160 / 255.0
+                aGreen = 120 / 255.0
+                aBlue = 90 / 255.0
+            end
+            (PdfColor.Champagne),
+            begin
+                aRed = 247 / 255.0
+                aGreen = 231 / 255.0
+                aBlue = 206 / 255.0
+            end
+            (PdfColor.Charcoal),
+            begin
+                aRed = 54 / 255.0
+                aGreen = 69 / 255.0
+                aBlue = 79 / 255.0
+            end
+            (PdfColor.Chartreuse),
+            begin
+                aRed = 223 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.CherryBlossomPink),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 183 / 255.0
+                aBlue = 197 / 255.0
+            end
+            (PdfColor.Chestnut),
+            begin
+                aRed = 205 / 255.0
+                aGreen = 92 / 255.0
+                aBlue = 92 / 255.0
+            end
+            (PdfColor.Chocolate),
+            begin
+                aRed = 123 / 255.0
+                aGreen = 63 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.ChromeYellow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 167 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Cinereous),
+            begin
+                aRed = 152 / 255.0
+                aGreen = 129 / 255.0
+                aBlue = 123 / 255.0
+            end
+            (PdfColor.Cinnabar),
+            begin
+                aRed = 227 / 255.0
+                aGreen = 66 / 255.0
+                aBlue = 52 / 255.0
+            end
+            (PdfColor.Cinnamon),
+            begin
+                aRed = 210 / 255.0
+                aGreen = 105 / 255.0
+                aBlue = 30 / 255.0
+            end
+            (PdfColor.Citrine),
+            begin
+                aRed = 228 / 255.0
+                aGreen = 208 / 255.0
+                aBlue = 10 / 255.0
+            end
+            (PdfColor.ClassicRose),
+            begin
+                aRed = 251 / 255.0
+                aGreen = 204 / 255.0
+                aBlue = 231 / 255.0
+            end
+            (PdfColor.Cobalt),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 71 / 255.0
+                aBlue = 171 / 255.0
+            end
+            (PdfColor.Coffee),
+            begin
+                aRed = 200 / 255.0
+                aGreen = 100 / 255.0
+                aBlue = 40 / 255.0
+            end
+            (PdfColor.ColumbiaBlue),
+            begin
+                aRed = 155 / 255.0
+                aGreen = 221 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.CoolBlack),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 46 / 255.0
+                aBlue = 99 / 255.0
+            end
+            (PdfColor.CoolGray),
+            begin
+                aRed = 140 / 255.0
+                aGreen = 146 / 255.0
+                aBlue = 172 / 255.0
+            end
+            (PdfColor.Copper),
+            begin
+                aRed = 184 / 255.0
+                aGreen = 115 / 255.0
+                aBlue = 51 / 255.0
+            end
+            (PdfColor.CopperRose),
+            begin
+                aRed = 153 / 255.0
+                aGreen = 102 / 255.0
+                aBlue = 102 / 255.0
+            end
+            (PdfColor.Coquelicot),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 56 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Coral),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 127 / 255.0
+                aBlue = 80 / 255.0
+            end
+            (PdfColor.CoralPink),
+            begin
+                aRed = 248 / 255.0
+                aGreen = 131 / 255.0
+                aBlue = 121 / 255.0
+            end
+            (PdfColor.CoralRed),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 64 / 255.0
+                aBlue = 64 / 255.0
+            end
+            (PdfColor.Cordovan),
+            begin
+                aRed = 137 / 255.0
+                aGreen = 63 / 255.0
+                aBlue = 69 / 255.0
+            end
+            (PdfColor.Corn),
+            begin
+                aRed = 251 / 255.0
+                aGreen = 236 / 255.0
+                aBlue = 93 / 255.0
+            end
+            (PdfColor.CornFlowerBlue),
+            begin
+                aRed = 100 / 255.0
+                aGreen = 149 / 255.0
+                aBlue = 237 / 255.0
+            end
+            (PdfColor.CornSilk),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 248 / 255.0
+                aBlue = 220 / 255.0
+            end
+            (PdfColor.CosmicLatte),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 248 / 255.0
+                aBlue = 231 / 255.0
+            end
+            (PdfColor.CottonCandy),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 188 / 255.0
+                aBlue = 217 / 255.0
+            end
+            (PdfColor.Cream),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 253 / 255.0
+                aBlue = 208 / 255.0
+            end
+            (PdfColor.Crimson),
+            begin
+                aRed = 220 / 255.0
+                aGreen = 20 / 255.0
+                aBlue = 60 / 255.0
+            end
+            (PdfColor.CrimsonGlory),
+            begin
+                aRed = 190 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 50 / 255.0
+            end
+            (PdfColor.Cyan),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 183 / 255.0
+                aBlue = 235 / 255.0
+            end
+            (PdfColor.Daffodil),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 49 / 255.0
+            end
+            (PdfColor.Dandelion),
+            begin
+                aRed = 240 / 255.0
+                aGreen = 225 / 255.0
+                aBlue = 48 / 255.0
+            end
+            (PdfColor.DarkBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 139 / 255.0
+            end
+            (PdfColor.DarkBrown),
+            begin
+                aRed = 101 / 255.0
+                aGreen = 67 / 255.0
+                aBlue = 33 / 255.0
+            end
+            (PdfColor.DarkByzantium),
+            begin
+                aRed = 93 / 255.0
+                aGreen = 57 / 255.0
+                aBlue = 84 / 255.0
+            end
+            (PdfColor.DarkCandyapplered),
+            begin
+                aRed = 164 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.DarkCerulean),
+            begin
+                aRed = 8 / 255.0
+                aGreen = 69 / 255.0
+                aBlue = 126 / 255.0
+            end
+            (PdfColor.DarkChampagne),
+            begin
+                aRed = 194 / 255.0
+                aGreen = 178 / 255.0
+                aBlue = 128 / 255.0
+            end
+            (PdfColor.DarkChestnut),
+            begin
+                aRed = 152 / 255.0
+                aGreen = 105 / 255.0
+                aBlue = 96 / 255.0
+            end
+            (PdfColor.DarkCoral),
+            begin
+                aRed = 205 / 255.0
+                aGreen = 91 / 255.0
+                aBlue = 69 / 255.0
+            end
+            (PdfColor.DarkCyan),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 139 / 255.0
+                aBlue = 139 / 255.0
+            end
+            (PdfColor.DarkElectricBlue),
+            begin
+                aRed = 83 / 255.0
+                aGreen = 104 / 255.0
+                aBlue = 120 / 255.0
+            end
+            (PdfColor.DarkGoldenRod),
+            begin
+                aRed = 184 / 255.0
+                aGreen = 134 / 255.0
+                aBlue = 11 / 255.0
+            end
+            (PdfColor.DarkGray),
+            begin
+                aRed = 169 / 255.0
+                aGreen = 169 / 255.0
+                aBlue = 169 / 255.0
+            end
+            (PdfColor.DarkGreen),
+            begin
+                aRed = 1 / 255.0
+                aGreen = 50 / 255.0
+                aBlue = 32 / 255.0
+            end
+            (PdfColor.DarkJungleGreen),
+            begin
+                aRed = 26 / 255.0
+                aGreen = 36 / 255.0
+                aBlue = 33 / 255.0
+            end
+            (PdfColor.DarkKhaki),
+            begin
+                aRed = 189 / 255.0
+                aGreen = 183 / 255.0
+                aBlue = 107 / 255.0
+            end
+            (PdfColor.DarkLava),
+            begin
+                aRed = 72 / 255.0
+                aGreen = 60 / 255.0
+                aBlue = 50 / 255.0
+            end
+            (PdfColor.DarkLavender),
+            begin
+                aRed = 115 / 255.0
+                aGreen = 79 / 255.0
+                aBlue = 150 / 255.0
+            end
+            (PdfColor.DarkMagenta),
+            begin
+                aRed = 139 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 139 / 255.0
+            end
+            (PdfColor.DarkMidnightBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 51 / 255.0
+                aBlue = 102 / 255.0
+            end
+            (PdfColor.DarkOliveGreen),
+            begin
+                aRed = 85 / 255.0
+                aGreen = 107 / 255.0
+                aBlue = 47 / 255.0
+            end
+            (PdfColor.DarkOrange),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 140 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.DarkOrchid),
+            begin
+                aRed = 153 / 255.0
+                aGreen = 50 / 255.0
+                aBlue = 204 / 255.0
+            end
+            (PdfColor.DarkPastelBlue),
+            begin
+                aRed = 119 / 255.0
+                aGreen = 158 / 255.0
+                aBlue = 203 / 255.0
+            end
+            (PdfColor.DarkPastelGreen),
+            begin
+                aRed = 3 / 255.0
+                aGreen = 192 / 255.0
+                aBlue = 60 / 255.0
+            end
+            (PdfColor.DarkPastelPurple),
+            begin
+                aRed = 150 / 255.0
+                aGreen = 111 / 255.0
+                aBlue = 214 / 255.0
+            end
+            (PdfColor.DarkPastelRed),
+            begin
+                aRed = 194 / 255.0
+                aGreen = 59 / 255.0
+                aBlue = 34 / 255.0
+            end
+            (PdfColor.DarkPink),
+            begin
+                aRed = 231 / 255.0
+                aGreen = 84 / 255.0
+                aBlue = 128 / 255.0
+            end
+            (PdfColor.DarkPowderBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 51 / 255.0
+                aBlue = 153 / 255.0
+            end
+            (PdfColor.DarkRaspberry),
+            begin
+                aRed = 135 / 255.0
+                aGreen = 38 / 255.0
+                aBlue = 87 / 255.0
+            end
+            (PdfColor.DarkRed),
+            begin
+                aRed = 139 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.DarkSalmon),
+            begin
+                aRed = 233 / 255.0
+                aGreen = 150 / 255.0
+                aBlue = 122 / 255.0
+            end
+            (PdfColor.DarkScarlet),
+            begin
+                aRed = 86 / 255.0
+                aGreen = 3 / 255.0
+                aBlue = 25 / 255.0
+            end
+            (PdfColor.DarkSeaGreen),
+            begin
+                aRed = 143 / 255.0
+                aGreen = 188 / 255.0
+                aBlue = 143 / 255.0
+            end
+            (PdfColor.DarkSienna),
+            begin
+                aRed = 60 / 255.0
+                aGreen = 20 / 255.0
+                aBlue = 20 / 255.0
+            end
+            (PdfColor.DarkSlateBlue),
+            begin
+                aRed = 72 / 255.0
+                aGreen = 61 / 255.0
+                aBlue = 139 / 255.0
+            end
+            (PdfColor.DarkSlateGray),
+            begin
+                aRed = 47 / 255.0
+                aGreen = 79 / 255.0
+                aBlue = 79 / 255.0
+            end
+            (PdfColor.DarkspringGreen),
+            begin
+                aRed = 23 / 255.0
+                aGreen = 114 / 255.0
+                aBlue = 69 / 255.0
+            end
+            (PdfColor.DarkTan),
+            begin
+                aRed = 145 / 255.0
+                aGreen = 129 / 255.0
+                aBlue = 81 / 255.0
+            end
+            (PdfColor.DarkTangerine),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 168 / 255.0
+                aBlue = 18 / 255.0
+            end
+            (PdfColor.DarkTerracotta),
+            begin
+                aRed = 204 / 255.0
+                aGreen = 78 / 255.0
+                aBlue = 92 / 255.0
+            end
+            (PdfColor.DarkTurquoise),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 206 / 255.0
+                aBlue = 209 / 255.0
+            end
+            (PdfColor.DarkViolet),
+            begin
+                aRed = 148 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 211 / 255.0
+            end
+            (PdfColor.DartMouthGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 105 / 255.0
+                aBlue = 62 / 255.0
+            end
+            (PdfColor.DavysGray),
+            begin
+                aRed = 85 / 255.0
+                aGreen = 85 / 255.0
+                aBlue = 85 / 255.0
+            end
+            (PdfColor.DebianRed),
+            begin
+                aRed = 215 / 255.0
+                aGreen = 10 / 255.0
+                aBlue = 83 / 255.0
+            end
+            (PdfColor.DeepCarmine),
+            begin
+                aRed = 169 / 255.0
+                aGreen = 32 / 255.0
+                aBlue = 62 / 255.0
+            end
+            (PdfColor.DeepCarminepink),
+            begin
+                aRed = 239 / 255.0
+                aGreen = 48 / 255.0
+                aBlue = 56 / 255.0
+            end
+            (PdfColor.DeepcarrotOrange),
+            begin
+                aRed = 233 / 255.0
+                aGreen = 105 / 255.0
+                aBlue = 44 / 255.0
+            end
+            (PdfColor.Deepcerise),
+            begin
+                aRed = 218 / 255.0
+                aGreen = 50 / 255.0
+                aBlue = 135 / 255.0
+            end
+            (PdfColor.Deepchampagne),
+            begin
+                aRed = 250 / 255.0
+                aGreen = 214 / 255.0
+                aBlue = 165 / 255.0
+            end
+            (PdfColor.Deepchestnut),
+            begin
+                aRed = 185 / 255.0
+                aGreen = 78 / 255.0
+                aBlue = 72 / 255.0
+            end
+            (PdfColor.DeepFuchsia),
+            begin
+                aRed = 193 / 255.0
+                aGreen = 84 / 255.0
+                aBlue = 193 / 255.0
+            end
+            (PdfColor.DeepJunglegreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 75 / 255.0
+                aBlue = 73 / 255.0
+            end
+            (PdfColor.DeepLilac),
+            begin
+                aRed = 153 / 255.0
+                aGreen = 85 / 255.0
+                aBlue = 187 / 255.0
+            end
+            (PdfColor.DeepMagenta),
+            begin
+                aRed = 204 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 204 / 255.0
+            end
+            (PdfColor.DeepPeach),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 203 / 255.0
+                aBlue = 164 / 255.0
+            end
+            (PdfColor.DeepPink),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 20 / 255.0
+                aBlue = 147 / 255.0
+            end
+            (PdfColor.Deepsaffron),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 153 / 255.0
+                aBlue = 51 / 255.0
+            end
+            (PdfColor.Denim),
+            begin
+                aRed = 21 / 255.0
+                aGreen = 96 / 255.0
+                aBlue = 189 / 255.0
+            end
+            (PdfColor.DesertSand),
+            begin
+                aRed = 237 / 255.0
+                aGreen = 201 / 255.0
+                aBlue = 175 / 255.0
+            end
+            (PdfColor.DimGray),
+            begin
+                aRed = 105 / 255.0
+                aGreen = 105 / 255.0
+                aBlue = 105 / 255.0
+            end
+            (PdfColor.DodgerBlue),
+            begin
+                aRed = 30 / 255.0
+                aGreen = 144 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.DogWoodRose),
+            begin
+                aRed = 215 / 255.0
+                aGreen = 24 / 255.0
+                aBlue = 104 / 255.0
+            end
+            (PdfColor.DollarBill),
+            begin
+                aRed = 133 / 255.0
+                aGreen = 187 / 255.0
+                aBlue = 101 / 255.0
+            end
+            (PdfColor.Drab),
+            begin
+                aRed = 150 / 255.0
+                aGreen = 113 / 255.0
+                aBlue = 23 / 255.0
+            end
+            (PdfColor.DukeBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 156 / 255.0
+            end
+            (PdfColor.EarthYellow),
+            begin
+                aRed = 225 / 255.0
+                aGreen = 169 / 255.0
+                aBlue = 95 / 255.0
+            end
+            (PdfColor.EggPlant),
+            begin
+                aRed = 97 / 255.0
+                aGreen = 64 / 255.0
+                aBlue = 81 / 255.0
+            end
+            (PdfColor.EggShell),
+            begin
+                aRed = 240 / 255.0
+                aGreen = 234 / 255.0
+                aBlue = 214 / 255.0
+            end
+            (PdfColor.EgyptianBlue),
+            begin
+                aRed = 16 / 255.0
+                aGreen = 52 / 255.0
+                aBlue = 166 / 255.0
+            end
+            (PdfColor.ElectricBlue),
+            begin
+                aRed = 125 / 255.0
+                aGreen = 249 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.ElectricCrimson),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 63 / 255.0
+            end
+            (PdfColor.ElectricGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 254 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.ElectricIndigo),
+            begin
+                aRed = 111 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.ElectricLime),
+            begin
+                aRed = 204 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.ElectricPurple),
+            begin
+                aRed = 191 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.ElectricUltraMarine),
+            begin
+                aRed = 63 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.ElectricViolet),
+            begin
+                aRed = 143 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.ElectricYellow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 254 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Emerald),
+            begin
+                aRed = 80 / 255.0
+                aGreen = 200 / 255.0
+                aBlue = 120 / 255.0
+            end
+            (PdfColor.EtonBlue),
+            begin
+                aRed = 150 / 255.0
+                aGreen = 200 / 255.0
+                aBlue = 162 / 255.0
+            end
+            (PdfColor.FaluRed),
+            begin
+                aRed = 128 / 255.0
+                aGreen = 24 / 255.0
+                aBlue = 24 / 255.0
+            end
+            (PdfColor.Fandango),
+            begin
+                aRed = 181 / 255.0
+                aGreen = 51 / 255.0
+                aBlue = 137 / 255.0
+            end
+            (PdfColor.FashionFuchsia),
+            begin
+                aRed = 244 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 161 / 255.0
+            end
+            (PdfColor.Fawn),
+            begin
+                aRed = 229 / 255.0
+                aGreen = 170 / 255.0
+                aBlue = 112 / 255.0
+            end
+            (PdfColor.Feldgrau),
+            begin
+                aRed = 77 / 255.0
+                aGreen = 93 / 255.0
+                aBlue = 83 / 255.0
+            end
+            (PdfColor.FernGreen),
+            begin
+                aRed = 79 / 255.0
+                aGreen = 121 / 255.0
+                aBlue = 66 / 255.0
+            end
+            (PdfColor.FerrariRed),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 40 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.FieldDrab),
+            begin
+                aRed = 108 / 255.0
+                aGreen = 84 / 255.0
+                aBlue = 30 / 255.0
+            end
+            (PdfColor.FireBrick),
+            begin
+                aRed = 178 / 255.0
+                aGreen = 34 / 255.0
+                aBlue = 34 / 255.0
+            end
+            (PdfColor.FireEngineRed),
+            begin
+                aRed = 206 / 255.0
+                aGreen = 32 / 255.0
+                aBlue = 41 / 255.0
+            end
+            (PdfColor.Flame),
+            begin
+                aRed = 226 / 255.0
+                aGreen = 88 / 255.0
+                aBlue = 34 / 255.0
+            end
+            (PdfColor.FlamingoPink),
+            begin
+                aRed = 252 / 255.0
+                aGreen = 142 / 255.0
+                aBlue = 172 / 255.0
+            end
+            (PdfColor.Flavescent),
+            begin
+                aRed = 247 / 255.0
+                aGreen = 233 / 255.0
+                aBlue = 142 / 255.0
+            end
+            (PdfColor.Flax),
+            begin
+                aRed = 238 / 255.0
+                aGreen = 220 / 255.0
+                aBlue = 130 / 255.0
+            end
+            (PdfColor.FloralWhite),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 250 / 255.0
+                aBlue = 240 / 255.0
+            end
+            (PdfColor.Folly),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 79 / 255.0
+            end
+            (PdfColor.ForestGreen),
+            begin
+                aRed = 1 / 255.0
+                aGreen = 68 / 255.0
+                aBlue = 33 / 255.0
+            end
+            (PdfColor.FrenchBeige),
+            begin
+                aRed = 166 / 255.0
+                aGreen = 123 / 255.0
+                aBlue = 91 / 255.0
+            end
+            (PdfColor.FrenchBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 114 / 255.0
+                aBlue = 187 / 255.0
+            end
+            (PdfColor.FrenchLilac),
+            begin
+                aRed = 134 / 255.0
+                aGreen = 96 / 255.0
+                aBlue = 142 / 255.0
+            end
+            (PdfColor.FrenchRose),
+            begin
+                aRed = 246 / 255.0
+                aGreen = 74 / 255.0
+                aBlue = 138 / 255.0
+            end
+            (PdfColor.Fuchsia),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.FuchsiaPink),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 119 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.Fulvous),
+            begin
+                aRed = 228 / 255.0
+                aGreen = 132 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.FuzzyWuzzy),
+            begin
+                aRed = 204 / 255.0
+                aGreen = 102 / 255.0
+                aBlue = 102 / 255.0
+            end
+            (PdfColor.Gainsboro),
+            begin
+                aRed = 220 / 255.0
+                aGreen = 220 / 255.0
+                aBlue = 220 / 255.0
+            end
+            (PdfColor.Gamboge),
+            begin
+                aRed = 228 / 255.0
+                aGreen = 155 / 255.0
+                aBlue = 15 / 255.0
+            end
+            (PdfColor.GhostWhite),
+            begin
+                aRed = 248 / 255.0
+                aGreen = 248 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.Ginger),
+            begin
+                aRed = 176 / 255.0
+                aGreen = 101 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Glaucous),
+            begin
+                aRed = 96 / 255.0
+                aGreen = 130 / 255.0
+                aBlue = 182 / 255.0
+            end
+            (PdfColor.Gold),
+            begin
+                aRed = 212 / 255.0
+                aGreen = 175 / 255.0
+                aBlue = 55 / 255.0
+            end
+            (PdfColor.GoldenBrown),
+            begin
+                aRed = 153 / 255.0
+                aGreen = 101 / 255.0
+                aBlue = 21 / 255.0
+            end
+            (PdfColor.GoldenPoppy),
+            begin
+                aRed = 252 / 255.0
+                aGreen = 194 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.GoldenRod),
+            begin
+                aRed = 218 / 255.0
+                aGreen = 165 / 255.0
+                aBlue = 32 / 255.0
+            end
+            (PdfColor.GoldenYellow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 223 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.GrannySmithApple),
+            begin
+                aRed = 168 / 255.0
+                aGreen = 228 / 255.0
+                aBlue = 160 / 255.0
+            end
+            (PdfColor.Gray),
+            begin
+                aRed = 128 / 255.0
+                aGreen = 128 / 255.0
+                aBlue = 128 / 255.0
+            end
+            (PdfColor.GrayAsparagus),
+            begin
+                aRed = 70 / 255.0
+                aGreen = 89 / 255.0
+                aBlue = 69 / 255.0
+            end
+            (PdfColor.Green),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.GreenYellow),
+            begin
+                aRed = 173 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 47 / 255.0
+            end
+            (PdfColor.Grullo),
+            begin
+                aRed = 169 / 255.0
+                aGreen = 154 / 255.0
+                aBlue = 134 / 255.0
+            end
+            (PdfColor.GuppieGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 127 / 255.0
+            end
+            (PdfColor.Halayaube),
+            begin
+                aRed = 102 / 255.0
+                aGreen = 56 / 255.0
+                aBlue = 84 / 255.0
+            end
+            (PdfColor.HanBlue),
+            begin
+                aRed = 68 / 255.0
+                aGreen = 108 / 255.0
+                aBlue = 207 / 255.0
+            end
+            (PdfColor.HanPurple),
+            begin
+                aRed = 82 / 255.0
+                aGreen = 24 / 255.0
+                aBlue = 250 / 255.0
+            end
+            (PdfColor.Harlequin),
+            begin
+                aRed = 63 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.HarvardCrimson),
+            begin
+                aRed = 201 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 22 / 255.0
+            end
+            (PdfColor.HarvestGold),
+            begin
+                aRed = 218 / 255.0
+                aGreen = 145 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Heliotrope),
+            begin
+                aRed = 223 / 255.0
+                aGreen = 115 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.Honeydew),
+            begin
+                aRed = 240 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 240 / 255.0
+            end
+            (PdfColor.HookersGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 112 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.HotMagenta),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 29 / 255.0
+                aBlue = 206 / 255.0
+            end
+            (PdfColor.HotPink),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 105 / 255.0
+                aBlue = 180 / 255.0
+            end
+            (PdfColor.HunterGreen),
+            begin
+                aRed = 53 / 255.0
+                aGreen = 94 / 255.0
+                aBlue = 59 / 255.0
+            end
+            (PdfColor.Iceberg),
+            begin
+                aRed = 113 / 255.0
+                aGreen = 166 / 255.0
+                aBlue = 210 / 255.0
+            end
+            (PdfColor.Icterine),
+            begin
+                aRed = 252 / 255.0
+                aGreen = 247 / 255.0
+                aBlue = 94 / 255.0
+            end
+            (PdfColor.Inchworm),
+            begin
+                aRed = 178 / 255.0
+                aGreen = 236 / 255.0
+                aBlue = 93 / 255.0
+            end
+            (PdfColor.IndiaGreen),
+            begin
+                aRed = 19 / 255.0
+                aGreen = 136 / 255.0
+                aBlue = 8 / 255.0
+            end
+            (PdfColor.IndianYellow),
+            begin
+                aRed = 227 / 255.0
+                aGreen = 168 / 255.0
+                aBlue = 87 / 255.0
+            end
+            (PdfColor.Indigo),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 65 / 255.0
+                aBlue = 106 / 255.0
+            end
+            (PdfColor.InternationalKleinBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 47 / 255.0
+                aBlue = 167 / 255.0
+            end
+            (PdfColor.InternationalOrange),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 79 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Iris),
+            begin
+                aRed = 90 / 255.0
+                aGreen = 79 / 255.0
+                aBlue = 207 / 255.0
+            end
+            (PdfColor.Isabelline),
+            begin
+                aRed = 244 / 255.0
+                aGreen = 240 / 255.0
+                aBlue = 236 / 255.0
+            end
+            (PdfColor.IslamicGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 144 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Ivory),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 240 / 255.0
+            end
+            (PdfColor.Jade),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 168 / 255.0
+                aBlue = 107 / 255.0
+            end
+            (PdfColor.Jasmine),
+            begin
+                aRed = 248 / 255.0
+                aGreen = 222 / 255.0
+                aBlue = 126 / 255.0
+            end
+            (PdfColor.Jasper),
+            begin
+                aRed = 215 / 255.0
+                aGreen = 59 / 255.0
+                aBlue = 62 / 255.0
+            end
+            (PdfColor.JazzberryJam),
+            begin
+                aRed = 165 / 255.0
+                aGreen = 11 / 255.0
+                aBlue = 94 / 255.0
+            end
+            (PdfColor.Jonquil),
+            begin
+                aRed = 250 / 255.0
+                aGreen = 218 / 255.0
+                aBlue = 94 / 255.0
+            end
+            (PdfColor.Junebud),
+            begin
+                aRed = 189 / 255.0
+                aGreen = 218 / 255.0
+                aBlue = 87 / 255.0
+            end
+            (PdfColor.JungleGreen),
+            begin
+                aRed = 41 / 255.0
+                aGreen = 171 / 255.0
+                aBlue = 135 / 255.0
+            end
+            (PdfColor.KellyGreen),
+            begin
+                aRed = 76 / 255.0
+                aGreen = 187 / 255.0
+                aBlue = 23 / 255.0
+            end
+            (PdfColor.Khaki),
+            begin
+                aRed = 195 / 255.0
+                aGreen = 176 / 255.0
+                aBlue = 145 / 255.0
+            end
+            (PdfColor.KUCrimson),
+            begin
+                aRed = 232 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 13 / 255.0
+            end
+            (PdfColor.LanguidLavender),
+            begin
+                aRed = 214 / 255.0
+                aGreen = 202 / 255.0
+                aBlue = 221 / 255.0
+            end
+            (PdfColor.Lapislazuli),
+            begin
+                aRed = 38 / 255.0
+                aGreen = 97 / 255.0
+                aBlue = 156 / 255.0
+            end
+            (PdfColor.LaSalleGreen),
+            begin
+                aRed = 8 / 255.0
+                aGreen = 120 / 255.0
+                aBlue = 48 / 255.0
+            end
+            (PdfColor.LaserLemon),
+            begin
+                aRed = 254 / 255.0
+                aGreen = 254 / 255.0
+                aBlue = 34 / 255.0
+            end
+            (PdfColor.Lava),
+            begin
+                aRed = 207 / 255.0
+                aGreen = 16 / 255.0
+                aBlue = 32 / 255.0
+            end
+            (PdfColor.Lavender),
+            begin
+                aRed = 181 / 255.0
+                aGreen = 126 / 255.0
+                aBlue = 220 / 255.0
+            end
+            (PdfColor.LavenderBlue),
+            begin
+                aRed = 204 / 255.0
+                aGreen = 204 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.LavenderBlush),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 240 / 255.0
+                aBlue = 245 / 255.0
+            end
+            (PdfColor.LavenderGray),
+            begin
+                aRed = 196 / 255.0
+                aGreen = 195 / 255.0
+                aBlue = 208 / 255.0
+            end
+            (PdfColor.LavenderIndigo),
+            begin
+                aRed = 148 / 255.0
+                aGreen = 87 / 255.0
+                aBlue = 235 / 255.0
+            end
+            (PdfColor.LavenderMagenta),
+            begin
+                aRed = 238 / 255.0
+                aGreen = 130 / 255.0
+                aBlue = 238 / 255.0
+            end
+            (PdfColor.LavenderMist),
+            begin
+                aRed = 230 / 255.0
+                aGreen = 230 / 255.0
+                aBlue = 250 / 255.0
+            end
+            (PdfColor.LavenderPink),
+            begin
+                aRed = 251 / 255.0
+                aGreen = 174 / 255.0
+                aBlue = 210 / 255.0
+            end
+            (PdfColor.LavenderPurple),
+            begin
+                aRed = 150 / 255.0
+                aGreen = 123 / 255.0
+                aBlue = 182 / 255.0
+            end
+            (PdfColor.LavenderRose),
+            begin
+                aRed = 251 / 255.0
+                aGreen = 160 / 255.0
+                aBlue = 227 / 255.0
+            end
+            (PdfColor.LawnGreen),
+            begin
+                aRed = 124 / 255.0
+                aGreen = 252 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Lemon),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 247 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.LemonChiffon),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 250 / 255.0
+                aBlue = 205 / 255.0
+            end
+            (PdfColor.LightApricot),
+            begin
+                aRed = 253 / 255.0
+                aGreen = 213 / 255.0
+                aBlue = 177 / 255.0
+            end
+            (PdfColor.LightBlue),
+            begin
+                aRed = 173 / 255.0
+                aGreen = 216 / 255.0
+                aBlue = 230 / 255.0
+            end
+            (PdfColor.LightBrown),
+            begin
+                aRed = 181 / 255.0
+                aGreen = 101 / 255.0
+                aBlue = 29 / 255.0
+            end
+            (PdfColor.LightCarminePink),
+            begin
+                aRed = 230 / 255.0
+                aGreen = 103 / 255.0
+                aBlue = 113 / 255.0
+            end
+            (PdfColor.LightCoral),
+            begin
+                aRed = 240 / 255.0
+                aGreen = 128 / 255.0
+                aBlue = 128 / 255.0
+            end
+            (PdfColor.LightCornFlowerBlue),
+            begin
+                aRed = 147 / 255.0
+                aGreen = 204 / 255.0
+                aBlue = 234 / 255.0
+            end
+            (PdfColor.LightCrimson),
+            begin
+                aRed = 245 / 255.0
+                aGreen = 105 / 255.0
+                aBlue = 145 / 255.0
+            end
+            (PdfColor.LightCyan),
+            begin
+                aRed = 224 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.LightFuchsiaPink),
+            begin
+                aRed = 249 / 255.0
+                aGreen = 132 / 255.0
+                aBlue = 239 / 255.0
+            end
+            (PdfColor.LightGoldenrodYellow),
+            begin
+                aRed = 250 / 255.0
+                aGreen = 250 / 255.0
+                aBlue = 210 / 255.0
+            end
+            (PdfColor.LightGray),
+            begin
+                aRed = 211 / 255.0
+                aGreen = 211 / 255.0
+                aBlue = 211 / 255.0
+            end
+            (PdfColor.LightGreen),
+            begin
+                aRed = 144 / 255.0
+                aGreen = 238 / 255.0
+                aBlue = 144 / 255.0
+            end
+            (PdfColor.LightKhaki),
+            begin
+                aRed = 240 / 255.0
+                aGreen = 230 / 255.0
+                aBlue = 140 / 255.0
+            end
+            (PdfColor.LightMauve),
+            begin
+                aRed = 220 / 255.0
+                aGreen = 208 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.LightPastelPurple),
+            begin
+                aRed = 177 / 255.0
+                aGreen = 156 / 255.0
+                aBlue = 217 / 255.0
+            end
+            (PdfColor.LightPink),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 182 / 255.0
+                aBlue = 193 / 255.0
+            end
+            (PdfColor.LightSalmon),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 160 / 255.0
+                aBlue = 122 / 255.0
+            end
+            (PdfColor.LightSalmonPink),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 153 / 255.0
+                aBlue = 153 / 255.0
+            end
+            (PdfColor.LightSeaGreen),
+            begin
+                aRed = 32 / 255.0
+                aGreen = 178 / 255.0
+                aBlue = 170 / 255.0
+            end
+            (PdfColor.LightSkyBlue),
+            begin
+                aRed = 135 / 255.0
+                aGreen = 206 / 255.0
+                aBlue = 250 / 255.0
+            end
+            (PdfColor.LightSlateGray),
+            begin
+                aRed = 119 / 255.0
+                aGreen = 136 / 255.0
+                aBlue = 153 / 255.0
+            end
+            (PdfColor.LightTaupe),
+            begin
+                aRed = 179 / 255.0
+                aGreen = 139 / 255.0
+                aBlue = 109 / 255.0
+            end
+            (PdfColor.LightThulianPink),
+            begin
+                aRed = 230 / 255.0
+                aGreen = 143 / 255.0
+                aBlue = 172 / 255.0
+            end
+            (PdfColor.LightYellow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 237 / 255.0
+            end
+            (PdfColor.Lilac),
+            begin
+                aRed = 200 / 255.0
+                aGreen = 162 / 255.0
+                aBlue = 200 / 255.0
+            end
+            (PdfColor.Lime),
+            begin
+                aRed = 191 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.LimeGreen),
+            begin
+                aRed = 50 / 255.0
+                aGreen = 205 / 255.0
+                aBlue = 50 / 255.0
+            end
+            (PdfColor.LincolnGreen),
+            begin
+                aRed = 25 / 255.0
+                aGreen = 89 / 255.0
+                aBlue = 5 / 255.0
+            end
+            (PdfColor.Linen),
+            begin
+                aRed = 250 / 255.0
+                aGreen = 240 / 255.0
+                aBlue = 230 / 255.0
+            end
+            (PdfColor.Liver),
+            begin
+                aRed = 83 / 255.0
+                aGreen = 75 / 255.0
+                aBlue = 79 / 255.0
+            end
+            (PdfColor.Lust),
+            begin
+                aRed = 230 / 255.0
+                aGreen = 32 / 255.0
+                aBlue = 32 / 255.0
+            end
+            (PdfColor.Magenta),
+            begin
+                aRed = 202 / 255.0
+                aGreen = 31 / 255.0
+                aBlue = 123 / 255.0
+            end
+            (PdfColor.Magicmint),
+            begin
+                aRed = 170 / 255.0
+                aGreen = 240 / 255.0
+                aBlue = 209 / 255.0
+            end
+            (PdfColor.Magnolia),
+            begin
+                aRed = 248 / 255.0
+                aGreen = 244 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.Mahogany),
+            begin
+                aRed = 192 / 255.0
+                aGreen = 64 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.MajorelleBlue),
+            begin
+                aRed = 96 / 255.0
+                aGreen = 80 / 255.0
+                aBlue = 220 / 255.0
+            end
+            (PdfColor.Malachite),
+            begin
+                aRed = 11 / 255.0
+                aGreen = 218 / 255.0
+                aBlue = 81 / 255.0
+            end
+            (PdfColor.Manatee),
+            begin
+                aRed = 151 / 255.0
+                aGreen = 154 / 255.0
+                aBlue = 170 / 255.0
+            end
+            (PdfColor.MangoTango),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 130 / 255.0
+                aBlue = 67 / 255.0
+            end
+            (PdfColor.Maroon),
+            begin
+                aRed = 128 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Mauve),
+            begin
+                aRed = 224 / 255.0
+                aGreen = 176 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.Mauvelous),
+            begin
+                aRed = 239 / 255.0
+                aGreen = 152 / 255.0
+                aBlue = 170 / 255.0
+            end
+            (PdfColor.Mauvetaupe),
+            begin
+                aRed = 145 / 255.0
+                aGreen = 95 / 255.0
+                aBlue = 109 / 255.0
+            end
+            (PdfColor.MayaBlue),
+            begin
+                aRed = 115 / 255.0
+                aGreen = 194 / 255.0
+                aBlue = 251 / 255.0
+            end
+            (PdfColor.MeatBrown),
+            begin
+                aRed = 229 / 255.0
+                aGreen = 183 / 255.0
+                aBlue = 59 / 255.0
+            end
+            (PdfColor.MediumAquaMarine),
+            begin
+                aRed = 102 / 255.0
+                aGreen = 221 / 255.0
+                aBlue = 170 / 255.0
+            end
+            (PdfColor.MediumMlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 205 / 255.0
+            end
+            (PdfColor.MediumCandyAppleRed),
+            begin
+                aRed = 226 / 255.0
+                aGreen = 6 / 255.0
+                aBlue = 44 / 255.0
+            end
+            (PdfColor.MediumCarmine),
+            begin
+                aRed = 175 / 255.0
+                aGreen = 64 / 255.0
+                aBlue = 53 / 255.0
+            end
+            (PdfColor.MediumChampagne),
+            begin
+                aRed = 243 / 255.0
+                aGreen = 229 / 255.0
+                aBlue = 171 / 255.0
+            end
+            (PdfColor.MediumElectricBlue),
+            begin
+                aRed = 3 / 255.0
+                aGreen = 80 / 255.0
+                aBlue = 150 / 255.0
+            end
+            (PdfColor.MediumJungleGreen),
+            begin
+                aRed = 28 / 255.0
+                aGreen = 53 / 255.0
+                aBlue = 45 / 255.0
+            end
+            (PdfColor.MediumLavenderMagenta),
+            begin
+                aRed = 221 / 255.0
+                aGreen = 160 / 255.0
+                aBlue = 221 / 255.0
+            end
+            (PdfColor.MediumOrchid),
+            begin
+                aRed = 186 / 255.0
+                aGreen = 85 / 255.0
+                aBlue = 211 / 255.0
+            end
+            (PdfColor.MediumPersianBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 103 / 255.0
+                aBlue = 165 / 255.0
+            end
+            (PdfColor.MediumPurple),
+            begin
+                aRed = 147 / 255.0
+                aGreen = 112 / 255.0
+                aBlue = 219 / 255.0
+            end
+            (PdfColor.MediumRedViolet),
+            begin
+                aRed = 187 / 255.0
+                aGreen = 51 / 255.0
+                aBlue = 133 / 255.0
+            end
+            (PdfColor.MediumSeaGreen),
+            begin
+                aRed = 60 / 255.0
+                aGreen = 179 / 255.0
+                aBlue = 113 / 255.0
+            end
+            (PdfColor.MediumSlateBlue),
+            begin
+                aRed = 123 / 255.0
+                aGreen = 104 / 255.0
+                aBlue = 238 / 255.0
+            end
+            (PdfColor.MediumSpringBud),
+            begin
+                aRed = 201 / 255.0
+                aGreen = 220 / 255.0
+                aBlue = 135 / 255.0
+            end
+            (PdfColor.MediumSpringGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 250 / 255.0
+                aBlue = 154 / 255.0
+            end
+            (PdfColor.MediumTaupe),
+            begin
+                aRed = 103 / 255.0
+                aGreen = 76 / 255.0
+                aBlue = 71 / 255.0
+            end
+            (PdfColor.MediumTealBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 84 / 255.0
+                aBlue = 180 / 255.0
+            end
+            (PdfColor.MediumTurquoise),
+            begin
+                aRed = 72 / 255.0
+                aGreen = 209 / 255.0
+                aBlue = 204 / 255.0
+            end
+            (PdfColor.MediumVioletRed),
+            begin
+                aRed = 199 / 255.0
+                aGreen = 21 / 255.0
+                aBlue = 133 / 255.0
+            end
+            (PdfColor.Melon),
+            begin
+                aRed = 253 / 255.0
+                aGreen = 188 / 255.0
+                aBlue = 180 / 255.0
+            end
+            (PdfColor.MidnightBlue),
+            begin
+                aRed = 25 / 255.0
+                aGreen = 25 / 255.0
+                aBlue = 112 / 255.0
+            end
+            (PdfColor.MidnightGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 73 / 255.0
+                aBlue = 83 / 255.0
+            end
+            (PdfColor.MikadoYellow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 196 / 255.0
+                aBlue = 12 / 255.0
+            end
+            (PdfColor.Mint),
+            begin
+                aRed = 62 / 255.0
+                aGreen = 180 / 255.0
+                aBlue = 137 / 255.0
+            end
+            (PdfColor.MintCream),
+            begin
+                aRed = 245 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 250 / 255.0
+            end
+            (PdfColor.MintGreen),
+            begin
+                aRed = 152 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 152 / 255.0
+            end
+            (PdfColor.MistyRose),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 228 / 255.0
+                aBlue = 225 / 255.0
+            end
+            (PdfColor.MoonStoneBlue),
+            begin
+                aRed = 115 / 255.0
+                aGreen = 169 / 255.0
+                aBlue = 194 / 255.0
+            end
+            (PdfColor.MordantRed19),
+            begin
+                aRed = 174 / 255.0
+                aGreen = 12 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.MossGreen),
+            begin
+                aRed = 173 / 255.0
+                aGreen = 223 / 255.0
+                aBlue = 173 / 255.0
+            end
+            (PdfColor.MountainMeadow),
+            begin
+                aRed = 48 / 255.0
+                aGreen = 186 / 255.0
+                aBlue = 143 / 255.0
+            end
+            (PdfColor.MountBattenPink),
+            begin
+                aRed = 153 / 255.0
+                aGreen = 122 / 255.0
+                aBlue = 141 / 255.0
+            end
+            (PdfColor.MSUGreen),
+            begin
+                aRed = 24 / 255.0
+                aGreen = 69 / 255.0
+                aBlue = 59 / 255.0
+            end
+            (PdfColor.Mulberry),
+            begin
+                aRed = 197 / 255.0
+                aGreen = 75 / 255.0
+                aBlue = 140 / 255.0
+            end
+            (PdfColor.Mustard),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 219 / 255.0
+                aBlue = 88 / 255.0
+            end
+            (PdfColor.Myrtle),
+            begin
+                aRed = 33 / 255.0
+                aGreen = 66 / 255.0
+                aBlue = 30 / 255.0
+            end
+            (PdfColor.NadeshikoPink),
+            begin
+                aRed = 246 / 255.0
+                aGreen = 173 / 255.0
+                aBlue = 198 / 255.0
+            end
+            (PdfColor.NapierGreen),
+            begin
+                aRed = 42 / 255.0
+                aGreen = 128 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.NavajoWhite),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 222 / 255.0
+                aBlue = 173 / 255.0
+            end
+            (PdfColor.Navy),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 128 / 255.0
+            end
+            (PdfColor.NeonCarrot),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 163 / 255.0
+                aBlue = 67 / 255.0
+            end
+            (PdfColor.NeonFuchsia),
+            begin
+                aRed = 254 / 255.0
+                aGreen = 89 / 255.0
+                aBlue = 194 / 255.0
+            end
+            (PdfColor.NeonGreen),
+            begin
+                aRed = 57 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 20 / 255.0
+            end
+            (PdfColor.NonPhotoBlue),
+            begin
+                aRed = 164 / 255.0
+                aGreen = 221 / 255.0
+                aBlue = 237 / 255.0
+            end
+            (PdfColor.OceanBoatBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 119 / 255.0
+                aBlue = 190 / 255.0
+            end
+            (PdfColor.Ochre),
+            begin
+                aRed = 204 / 255.0
+                aGreen = 119 / 255.0
+                aBlue = 34 / 255.0
+            end
+            (PdfColor.OldGold),
+            begin
+                aRed = 207 / 255.0
+                aGreen = 181 / 255.0
+                aBlue = 59 / 255.0
+            end
+            (PdfColor.OldLace),
+            begin
+                aRed = 253 / 255.0
+                aGreen = 245 / 255.0
+                aBlue = 230 / 255.0
+            end
+            (PdfColor.OldLavender),
+            begin
+                aRed = 121 / 255.0
+                aGreen = 104 / 255.0
+                aBlue = 120 / 255.0
+            end
+            (PdfColor.OldMauve),
+            begin
+                aRed = 103 / 255.0
+                aGreen = 49 / 255.0
+                aBlue = 71 / 255.0
+            end
+            (PdfColor.OldRose),
+            begin
+                aRed = 192 / 255.0
+                aGreen = 128 / 255.0
+                aBlue = 129 / 255.0
+            end
+            (PdfColor.Olive),
+            begin
+                aRed = 128 / 255.0
+                aGreen = 128 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.OliveDrab),
+            begin
+                aRed = 107 / 255.0
+                aGreen = 142 / 255.0
+                aBlue = 35 / 255.0
+            end
+            (PdfColor.OliveDrab7),
+            begin
+                aRed = 60 / 255.0
+                aGreen = 52 / 255.0
+                aBlue = 31 / 255.0
+            end
+            (PdfColor.Olivine),
+            begin
+                aRed = 154 / 255.0
+                aGreen = 185 / 255.0
+                aBlue = 115 / 255.0
+            end
+            (PdfColor.Onyx),
+            begin
+                aRed = 15 / 255.0
+                aGreen = 15 / 255.0
+                aBlue = 15 / 255.0
+            end
+            (PdfColor.OperaNauve),
+            begin
+                aRed = 183 / 255.0
+                aGreen = 132 / 255.0
+                aBlue = 167 / 255.0
+            end
+            (PdfColor.Orange),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 127 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.OrangePeel),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 159 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.OrangeRed),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 69 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Orchid),
+            begin
+                aRed = 218 / 255.0
+                aGreen = 112 / 255.0
+                aBlue = 214 / 255.0
+            end
+            (PdfColor.OUCrimsonRed),
+            begin
+                aRed = 153 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.OuterSpace),
+            begin
+                aRed = 65 / 255.0
+                aGreen = 74 / 255.0
+                aBlue = 76 / 255.0
+            end
+            (PdfColor.OutrageousOrange),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 110 / 255.0
+                aBlue = 74 / 255.0
+            end
+            (PdfColor.OxfordBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 33 / 255.0
+                aBlue = 71 / 255.0
+            end
+            (PdfColor.PakistanGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 102 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.PalatinateBlue),
+            begin
+                aRed = 39 / 255.0
+                aGreen = 59 / 255.0
+                aBlue = 226 / 255.0
+            end
+            (PdfColor.PalatinatePurple),
+            begin
+                aRed = 104 / 255.0
+                aGreen = 40 / 255.0
+                aBlue = 96 / 255.0
+            end
+            (PdfColor.PaleBlue),
+            begin
+                aRed = 175 / 255.0
+                aGreen = 238 / 255.0
+                aBlue = 238 / 255.0
+            end
+            (PdfColor.PaleBrown),
+            begin
+                aRed = 152 / 255.0
+                aGreen = 118 / 255.0
+                aBlue = 84 / 255.0
+            end
+            (PdfColor.PaleCerulean),
+            begin
+                aRed = 155 / 255.0
+                aGreen = 196 / 255.0
+                aBlue = 226 / 255.0
+            end
+            (PdfColor.PaleChestnut),
+            begin
+                aRed = 221 / 255.0
+                aGreen = 173 / 255.0
+                aBlue = 175 / 255.0
+            end
+            (PdfColor.PaleCopper),
+            begin
+                aRed = 218 / 255.0
+                aGreen = 138 / 255.0
+                aBlue = 103 / 255.0
+            end
+            (PdfColor.PaleCornFlowerBlue),
+            begin
+                aRed = 171 / 255.0
+                aGreen = 205 / 255.0
+                aBlue = 239 / 255.0
+            end
+            (PdfColor.PaleGold),
+            begin
+                aRed = 230 / 255.0
+                aGreen = 190 / 255.0
+                aBlue = 138 / 255.0
+            end
+            (PdfColor.PaleGoldenRod),
+            begin
+                aRed = 238 / 255.0
+                aGreen = 232 / 255.0
+                aBlue = 170 / 255.0
+            end
+            (PdfColor.PaleGreen),
+            begin
+                aRed = 152 / 255.0
+                aGreen = 251 / 255.0
+                aBlue = 152 / 255.0
+            end
+            (PdfColor.PaleMagenta),
+            begin
+                aRed = 249 / 255.0
+                aGreen = 132 / 255.0
+                aBlue = 229 / 255.0
+            end
+            (PdfColor.PalePink),
+            begin
+                aRed = 250 / 255.0
+                aGreen = 218 / 255.0
+                aBlue = 221 / 255.0
+            end
+            (PdfColor.PaleRedViolet),
+            begin
+                aRed = 219 / 255.0
+                aGreen = 112 / 255.0
+                aBlue = 147 / 255.0
+            end
+            (PdfColor.PaleRobinEggBlue),
+            begin
+                aRed = 150 / 255.0
+                aGreen = 222 / 255.0
+                aBlue = 209 / 255.0
+            end
+            (PdfColor.PaleSilver),
+            begin
+                aRed = 201 / 255.0
+                aGreen = 192 / 255.0
+                aBlue = 187 / 255.0
+            end
+            (PdfColor.PaleSpringBud),
+            begin
+                aRed = 236 / 255.0
+                aGreen = 235 / 255.0
+                aBlue = 189 / 255.0
+            end
+            (PdfColor.PaleTaupe),
+            begin
+                aRed = 188 / 255.0
+                aGreen = 152 / 255.0
+                aBlue = 126 / 255.0
+            end
+            (PdfColor.PansyPurple),
+            begin
+                aRed = 120 / 255.0
+                aGreen = 24 / 255.0
+                aBlue = 74 / 255.0
+            end
+            (PdfColor.PapayaWhip),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 239 / 255.0
+                aBlue = 213 / 255.0
+            end
+            (PdfColor.PastelBlue),
+            begin
+                aRed = 174 / 255.0
+                aGreen = 198 / 255.0
+                aBlue = 207 / 255.0
+            end
+            (PdfColor.PastelBrown),
+            begin
+                aRed = 131 / 255.0
+                aGreen = 105 / 255.0
+                aBlue = 83 / 255.0
+            end
+            (PdfColor.PastelGray),
+            begin
+                aRed = 207 / 255.0
+                aGreen = 207 / 255.0
+                aBlue = 196 / 255.0
+            end
+            (PdfColor.PastelGreen),
+            begin
+                aRed = 119 / 255.0
+                aGreen = 221 / 255.0
+                aBlue = 119 / 255.0
+            end
+            (PdfColor.PastelMagenta),
+            begin
+                aRed = 244 / 255.0
+                aGreen = 154 / 255.0
+                aBlue = 194 / 255.0
+            end
+            (PdfColor.PastelOrange),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 179 / 255.0
+                aBlue = 71 / 255.0
+            end
+            (PdfColor.PastelPink),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 209 / 255.0
+                aBlue = 220 / 255.0
+            end
+            (PdfColor.PastelPurple),
+            begin
+                aRed = 179 / 255.0
+                aGreen = 158 / 255.0
+                aBlue = 181 / 255.0
+            end
+            (PdfColor.PastelRed),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 105 / 255.0
+                aBlue = 97 / 255.0
+            end
+            (PdfColor.PastelViolet),
+            begin
+                aRed = 203 / 255.0
+                aGreen = 153 / 255.0
+                aBlue = 201 / 255.0
+            end
+            (PdfColor.PastelYellow),
+            begin
+                aRed = 253 / 255.0
+                aGreen = 253 / 255.0
+                aBlue = 150 / 255.0
+            end
+            (PdfColor.Patriarch),
+            begin
+                aRed = 128 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 128 / 255.0
+            end
+            (PdfColor.PaynesGray),
+            begin
+                aRed = 64 / 255.0
+                aGreen = 64 / 255.0
+                aBlue = 79 / 255.0
+            end
+            (PdfColor.Peach),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 229 / 255.0
+                aBlue = 180 / 255.0
+            end
+            (PdfColor.PeachOrange),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 204 / 255.0
+                aBlue = 153 / 255.0
+            end
+            (PdfColor.PeachPuff),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 218 / 255.0
+                aBlue = 185 / 255.0
+            end
+            (PdfColor.PeachYellow),
+            begin
+                aRed = 250 / 255.0
+                aGreen = 223 / 255.0
+                aBlue = 173 / 255.0
+            end
+            (PdfColor.Pear),
+            begin
+                aRed = 209 / 255.0
+                aGreen = 226 / 255.0
+                aBlue = 49 / 255.0
+            end
+            (PdfColor.PearlAqua),
+            begin
+                aRed = 136 / 255.0
+                aGreen = 216 / 255.0
+                aBlue = 192 / 255.0
+            end
+            (PdfColor.Peridot),
+            begin
+                aRed = 230 / 255.0
+                aGreen = 226 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.PersianBlue),
+            begin
+                aRed = 28 / 255.0
+                aGreen = 57 / 255.0
+                aBlue = 187 / 255.0
+            end
+            (PdfColor.PersianGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 166 / 255.0
+                aBlue = 147 / 255.0
+            end
+            (PdfColor.PersianIndigo),
+            begin
+                aRed = 50 / 255.0
+                aGreen = 18 / 255.0
+                aBlue = 122 / 255.0
+            end
+            (PdfColor.PersianOrange),
+            begin
+                aRed = 217 / 255.0
+                aGreen = 144 / 255.0
+                aBlue = 88 / 255.0
+            end
+            (PdfColor.PersianPink),
+            begin
+                aRed = 247 / 255.0
+                aGreen = 127 / 255.0
+                aBlue = 190 / 255.0
+            end
+            (PdfColor.PersianPlum),
+            begin
+                aRed = 112 / 255.0
+                aGreen = 28 / 255.0
+                aBlue = 28 / 255.0
+            end
+            (PdfColor.PersianRed),
+            begin
+                aRed = 204 / 255.0
+                aGreen = 51 / 255.0
+                aBlue = 51 / 255.0
+            end
+            (PdfColor.PersianRose),
+            begin
+                aRed = 254 / 255.0
+                aGreen = 40 / 255.0
+                aBlue = 162 / 255.0
+            end
+            (PdfColor.Persimmon),
+            begin
+                aRed = 236 / 255.0
+                aGreen = 88 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Phlox),
+            begin
+                aRed = 223 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.PhthaloBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 15 / 255.0
+                aBlue = 137 / 255.0
+            end
+            (PdfColor.PhthaloGreen),
+            begin
+                aRed = 18 / 255.0
+                aGreen = 53 / 255.0
+                aBlue = 36 / 255.0
+            end
+            (PdfColor.PiggyPink),
+            begin
+                aRed = 253 / 255.0
+                aGreen = 221 / 255.0
+                aBlue = 230 / 255.0
+            end
+            (PdfColor.PineGreen),
+            begin
+                aRed = 1 / 255.0
+                aGreen = 121 / 255.0
+                aBlue = 111 / 255.0
+            end
+            (PdfColor.Pink),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 192 / 255.0
+                aBlue = 203 / 255.0
+            end
+            (PdfColor.PinkPearl),
+            begin
+                aRed = 231 / 255.0
+                aGreen = 172 / 255.0
+                aBlue = 207 / 255.0
+            end
+            (PdfColor.PinkSherbet),
+            begin
+                aRed = 247 / 255.0
+                aGreen = 143 / 255.0
+                aBlue = 167 / 255.0
+            end
+            (PdfColor.Pistachio),
+            begin
+                aRed = 147 / 255.0
+                aGreen = 197 / 255.0
+                aBlue = 114 / 255.0
+            end
+            (PdfColor.Platinum),
+            begin
+                aRed = 229 / 255.0
+                aGreen = 228 / 255.0
+                aBlue = 226 / 255.0
+            end
+            (PdfColor.Plum),
+            begin
+                aRed = 142 / 255.0
+                aGreen = 69 / 255.0
+                aBlue = 133 / 255.0
+            end
+            (PdfColor.PortlandOrange),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 90 / 255.0
+                aBlue = 54 / 255.0
+            end
+            (PdfColor.PowderBlue),
+            begin
+                aRed = 176 / 255.0
+                aGreen = 224 / 255.0
+                aBlue = 230 / 255.0
+            end
+            (PdfColor.PrincetonOrange),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 143 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.PrussianBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 49 / 255.0
+                aBlue = 83 / 255.0
+            end
+            (PdfColor.Puce),
+            begin
+                aRed = 204 / 255.0
+                aGreen = 136 / 255.0
+                aBlue = 153 / 255.0
+            end
+            (PdfColor.Pumpkin),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 117 / 255.0
+                aBlue = 24 / 255.0
+            end
+            (PdfColor.Purple),
+            begin
+                aRed = 159 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 197 / 255.0
+            end
+            (PdfColor.PurpleHeart),
+            begin
+                aRed = 105 / 255.0
+                aGreen = 53 / 255.0
+                aBlue = 156 / 255.0
+            end
+            (PdfColor.PurpleMountainMajesty),
+            begin
+                aRed = 150 / 255.0
+                aGreen = 120 / 255.0
+                aBlue = 182 / 255.0
+            end
+            (PdfColor.PurplePizzazz),
+            begin
+                aRed = 254 / 255.0
+                aGreen = 78 / 255.0
+                aBlue = 218 / 255.0
+            end
+            (PdfColor.PurpleTaupe),
+            begin
+                aRed = 80 / 255.0
+                aGreen = 64 / 255.0
+                aBlue = 77 / 255.0
+            end
+            (PdfColor.Quartz),
+            begin
+                aRed = 81 / 255.0
+                aGreen = 72 / 255.0
+                aBlue = 79 / 255.0
+            end
+            (PdfColor.RadicalRed),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 53 / 255.0
+                aBlue = 94 / 255.0
+            end
+            (PdfColor.Raspberry),
+            begin
+                aRed = 227 / 255.0
+                aGreen = 11 / 255.0
+                aBlue = 93 / 255.0
+            end
+            (PdfColor.RaspberryPink),
+            begin
+                aRed = 226 / 255.0
+                aGreen = 80 / 255.0
+                aBlue = 152 / 255.0
+            end
+            (PdfColor.RaspberryRose),
+            begin
+                aRed = 179 / 255.0
+                aGreen = 68 / 255.0
+                aBlue = 108 / 255.0
+            end
+            (PdfColor.RawUmber),
+            begin
+                aRed = 130 / 255.0
+                aGreen = 102 / 255.0
+                aBlue = 68 / 255.0
+            end
+            (PdfColor.RazzleDazzleRose),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 51 / 255.0
+                aBlue = 204 / 255.0
+            end
+            (PdfColor.Razzmatazz),
+            begin
+                aRed = 227 / 255.0
+                aGreen = 37 / 255.0
+                aBlue = 107 / 255.0
+            end
+            (PdfColor.Red),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Redwood),
+            begin
+                aRed = 171 / 255.0
+                aGreen = 78 / 255.0
+                aBlue = 82 / 255.0
+            end
+            (PdfColor.Regalia),
+            begin
+                aRed = 82 / 255.0
+                aGreen = 45 / 255.0
+                aBlue = 128 / 255.0
+            end
+            (PdfColor.RichBlack),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 64 / 255.0
+                aBlue = 64 / 255.0
+            end
+            (PdfColor.RichBrilliantLavender),
+            begin
+                aRed = 241 / 255.0
+                aGreen = 167 / 255.0
+                aBlue = 254 / 255.0
+            end
+            (PdfColor.RichCarmine),
+            begin
+                aRed = 215 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 64 / 255.0
+            end
+            (PdfColor.RichElectricBlue),
+            begin
+                aRed = 8 / 255.0
+                aGreen = 146 / 255.0
+                aBlue = 208 / 255.0
+            end
+            (PdfColor.RichLavender),
+            begin
+                aRed = 167 / 255.0
+                aGreen = 107 / 255.0
+                aBlue = 207 / 255.0
+            end
+            (PdfColor.RichLilac),
+            begin
+                aRed = 182 / 255.0
+                aGreen = 102 / 255.0
+                aBlue = 210 / 255.0
+            end
+            (PdfColor.RichMaroon),
+            begin
+                aRed = 176 / 255.0
+                aGreen = 48 / 255.0
+                aBlue = 96 / 255.0
+            end
+            (PdfColor.RifleGreen),
+            begin
+                aRed = 65 / 255.0
+                aGreen = 72 / 255.0
+                aBlue = 51 / 255.0
+            end
+            (PdfColor.RobinEggBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 204 / 255.0
+                aBlue = 204 / 255.0
+            end
+            (PdfColor.RoseBonBon),
+            begin
+                aRed = 249 / 255.0
+                aGreen = 66 / 255.0
+                aBlue = 158 / 255.0
+            end
+            (PdfColor.RoseEbony),
+            begin
+                aRed = 103 / 255.0
+                aGreen = 72 / 255.0
+                aBlue = 70 / 255.0
+            end
+            (PdfColor.RoseGold),
+            begin
+                aRed = 183 / 255.0
+                aGreen = 110 / 255.0
+                aBlue = 121 / 255.0
+            end
+            (PdfColor.RosePink),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 102 / 255.0
+                aBlue = 204 / 255.0
+            end
+            (PdfColor.RoseQuartz),
+            begin
+                aRed = 170 / 255.0
+                aGreen = 152 / 255.0
+                aBlue = 169 / 255.0
+            end
+            (PdfColor.RoseTaupe),
+            begin
+                aRed = 144 / 255.0
+                aGreen = 93 / 255.0
+                aBlue = 93 / 255.0
+            end
+            (PdfColor.RoseWood),
+            begin
+                aRed = 101 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 11 / 255.0
+            end
+            (PdfColor.RossoCorsa),
+            begin
+                aRed = 212 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.RosyBrown),
+            begin
+                aRed = 188 / 255.0
+                aGreen = 143 / 255.0
+                aBlue = 143 / 255.0
+            end
+            (PdfColor.RoyalAzure),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 56 / 255.0
+                aBlue = 168 / 255.0
+            end
+            (PdfColor.RoyalBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 35 / 255.0
+                aBlue = 102 / 255.0
+            end
+            (PdfColor.RoyalFuchsia),
+            begin
+                aRed = 202 / 255.0
+                aGreen = 44 / 255.0
+                aBlue = 146 / 255.0
+            end
+            (PdfColor.RoyalPurple),
+            begin
+                aRed = 120 / 255.0
+                aGreen = 81 / 255.0
+                aBlue = 169 / 255.0
+            end
+            (PdfColor.Ruby),
+            begin
+                aRed = 224 / 255.0
+                aGreen = 17 / 255.0
+                aBlue = 95 / 255.0
+            end
+            (PdfColor.Ruddy),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 40 / 255.0
+            end
+            (PdfColor.RuddyBrown),
+            begin
+                aRed = 187 / 255.0
+                aGreen = 101 / 255.0
+                aBlue = 40 / 255.0
+            end
+            (PdfColor.RuddyPink),
+            begin
+                aRed = 225 / 255.0
+                aGreen = 142 / 255.0
+                aBlue = 150 / 255.0
+            end
+            (PdfColor.Rufous),
+            begin
+                aRed = 168 / 255.0
+                aGreen = 28 / 255.0
+                aBlue = 7 / 255.0
+            end
+            (PdfColor.Russet),
+            begin
+                aRed = 128 / 255.0
+                aGreen = 70 / 255.0
+                aBlue = 27 / 255.0
+            end
+            (PdfColor.Rust),
+            begin
+                aRed = 183 / 255.0
+                aGreen = 65 / 255.0
+                aBlue = 14 / 255.0
+            end
+            (PdfColor.SacramentoStateGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 86 / 255.0
+                aBlue = 63 / 255.0
+            end
+            (PdfColor.SaddleBrown),
+            begin
+                aRed = 139 / 255.0
+                aGreen = 69 / 255.0
+                aBlue = 19 / 255.0
+            end
+            (PdfColor.SafetyOrange),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 103 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Saffron),
+            begin
+                aRed = 244 / 255.0
+                aGreen = 196 / 255.0
+                aBlue = 48 / 255.0
+            end
+            (PdfColor.Salmon),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 140 / 255.0
+                aBlue = 105 / 255.0
+            end
+            (PdfColor.SalmonPink),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 145 / 255.0
+                aBlue = 164 / 255.0
+            end
+            (PdfColor.SandStorm),
+            begin
+                aRed = 236 / 255.0
+                aGreen = 213 / 255.0
+                aBlue = 64 / 255.0
+            end
+            (PdfColor.SandyBrown),
+            begin
+                aRed = 244 / 255.0
+                aGreen = 164 / 255.0
+                aBlue = 96 / 255.0
+            end
+            (PdfColor.Sangria),
+            begin
+                aRed = 146 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 10 / 255.0
+            end
+            (PdfColor.SapGreen),
+            begin
+                aRed = 80 / 255.0
+                aGreen = 125 / 255.0
+                aBlue = 42 / 255.0
+            end
+            (PdfColor.Sapphire),
+            begin
+                aRed = 8 / 255.0
+                aGreen = 37 / 255.0
+                aBlue = 103 / 255.0
+            end
+            (PdfColor.SatinSheenGold),
+            begin
+                aRed = 203 / 255.0
+                aGreen = 161 / 255.0
+                aBlue = 53 / 255.0
+            end
+            (PdfColor.Scarlet),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 36 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.SchoolBusYellow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 216 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.ScreaminGreen),
+            begin
+                aRed = 118 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 122 / 255.0
+            end
+            (PdfColor.SeaGreen),
+            begin
+                aRed = 46 / 255.0
+                aGreen = 139 / 255.0
+                aBlue = 87 / 255.0
+            end
+            (PdfColor.SealBrown),
+            begin
+                aRed = 50 / 255.0
+                aGreen = 20 / 255.0
+                aBlue = 20 / 255.0
+            end
+            (PdfColor.SeaShell),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 245 / 255.0
+                aBlue = 238 / 255.0
+            end
+            (PdfColor.SelectiveYellow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 186 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Sepia),
+            begin
+                aRed = 112 / 255.0
+                aGreen = 66 / 255.0
+                aBlue = 20 / 255.0
+            end
+            (PdfColor.Shadow),
+            begin
+                aRed = 138 / 255.0
+                aGreen = 121 / 255.0
+                aBlue = 93 / 255.0
+            end
+            (PdfColor.ShamrockGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 158 / 255.0
+                aBlue = 96 / 255.0
+            end
+            (PdfColor.ShockingPink),
+            begin
+                aRed = 252 / 255.0
+                aGreen = 15 / 255.0
+                aBlue = 192 / 255.0
+            end
+            (PdfColor.Sienna),
+            begin
+                aRed = 136 / 255.0
+                aGreen = 45 / 255.0
+                aBlue = 23 / 255.0
+            end
+            (PdfColor.Silver),
+            begin
+                aRed = 192 / 255.0
+                aGreen = 192 / 255.0
+                aBlue = 192 / 255.0
+            end
+            (PdfColor.Sinopia),
+            begin
+                aRed = 203 / 255.0
+                aGreen = 65 / 255.0
+                aBlue = 11 / 255.0
+            end
+            (PdfColor.Skobeloff),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 116 / 255.0
+                aBlue = 116 / 255.0
+            end
+            (PdfColor.SkyBlue),
+            begin
+                aRed = 135 / 255.0
+                aGreen = 206 / 255.0
+                aBlue = 235 / 255.0
+            end
+            (PdfColor.SkyMagenta),
+            begin
+                aRed = 207 / 255.0
+                aGreen = 113 / 255.0
+                aBlue = 175 / 255.0
+            end
+            (PdfColor.SlateBlue),
+            begin
+                aRed = 106 / 255.0
+                aGreen = 90 / 255.0
+                aBlue = 205 / 255.0
+            end
+            (PdfColor.SlateGray),
+            begin
+                aRed = 112 / 255.0
+                aGreen = 128 / 255.0
+                aBlue = 144 / 255.0
+            end
+            (PdfColor.SmokeyTopaz),
+            begin
+                aRed = 147 / 255.0
+                aGreen = 61 / 255.0
+                aBlue = 65 / 255.0
+            end
+            (PdfColor.SmokyBlack),
+            begin
+                aRed = 16 / 255.0
+                aGreen = 12 / 255.0
+                aBlue = 8 / 255.0
+            end
+            (PdfColor.Snow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 250 / 255.0
+                aBlue = 250 / 255.0
+            end
+            (PdfColor.SpiroDiscoBall),
+            begin
+                aRed = 15 / 255.0
+                aGreen = 192 / 255.0
+                aBlue = 252 / 255.0
+            end
+            (PdfColor.SplashedWhite),
+            begin
+                aRed = 254 / 255.0
+                aGreen = 253 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.SpringBud),
+            begin
+                aRed = 167 / 255.0
+                aGreen = 252 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.SteelBlue),
+            begin
+                aRed = 70 / 255.0
+                aGreen = 130 / 255.0
+                aBlue = 180 / 255.0
+            end
+            (PdfColor.SaintPatricksBlue),
+            begin
+                aRed = 35 / 255.0
+                aGreen = 41 / 255.0
+                aBlue = 122 / 255.0
+            end
+            (PdfColor.Straw),
+            begin
+                aRed = 228 / 255.0
+                aGreen = 217 / 255.0
+                aBlue = 111 / 255.0
+            end
+            (PdfColor.Sunglow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 204 / 255.0
+                aBlue = 51 / 255.0
+            end
+            (PdfColor.Tan),
+            begin
+                aRed = 210 / 255.0
+                aGreen = 180 / 255.0
+                aBlue = 140 / 255.0
+            end
+            (PdfColor.Tangelo),
+            begin
+                aRed = 249 / 255.0
+                aGreen = 77 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Tangerine),
+            begin
+                aRed = 242 / 255.0
+                aGreen = 133 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.TangerineYellow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 204 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.TaupeGray),
+            begin
+                aRed = 139 / 255.0
+                aGreen = 133 / 255.0
+                aBlue = 137 / 255.0
+            end
+            (PdfColor.TeaGreen),
+            begin
+                aRed = 208 / 255.0
+                aGreen = 240 / 255.0
+                aBlue = 192 / 255.0
+            end
+            (PdfColor.Teal),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 128 / 255.0
+                aBlue = 128 / 255.0
+            end
+            (PdfColor.TealBlue),
+            begin
+                aRed = 54 / 255.0
+                aGreen = 117 / 255.0
+                aBlue = 136 / 255.0
+            end
+            (PdfColor.TealGreen),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 109 / 255.0
+                aBlue = 91 / 255.0
+            end
+            (PdfColor.Tenne),
+            begin
+                aRed = 205 / 255.0
+                aGreen = 87 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Terracotta),
+            begin
+                aRed = 226 / 255.0
+                aGreen = 114 / 255.0
+                aBlue = 91 / 255.0
+            end
+            (PdfColor.Thistle),
+            begin
+                aRed = 216 / 255.0
+                aGreen = 191 / 255.0
+                aBlue = 216 / 255.0
+            end
+            (PdfColor.ThulianPink),
+            begin
+                aRed = 222 / 255.0
+                aGreen = 111 / 255.0
+                aBlue = 161 / 255.0
+            end
+            (PdfColor.TickleMePink),
+            begin
+                aRed = 252 / 255.0
+                aGreen = 137 / 255.0
+                aBlue = 172 / 255.0
+            end
+            (PdfColor.TiffanyBlue),
+            begin
+                aRed = 10 / 255.0
+                aGreen = 186 / 255.0
+                aBlue = 181 / 255.0
+            end
+            (PdfColor.TigersEye),
+            begin
+                aRed = 224 / 255.0
+                aGreen = 141 / 255.0
+                aBlue = 60 / 255.0
+            end
+            (PdfColor.TimberWolf),
+            begin
+                aRed = 219 / 255.0
+                aGreen = 215 / 255.0
+                aBlue = 210 / 255.0
+            end
+            (PdfColor.TitaniumYellow),
+            begin
+                aRed = 238 / 255.0
+                aGreen = 230 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.Tomato),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 99 / 255.0
+                aBlue = 71 / 255.0
+            end
+            (PdfColor.Toolbox),
+            begin
+                aRed = 116 / 255.0
+                aGreen = 108 / 255.0
+                aBlue = 192 / 255.0
+            end
+            (PdfColor.Topaz),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 200 / 255.0
+                aBlue = 124 / 255.0
+            end
+            (PdfColor.TractorRed),
+            begin
+                aRed = 253 / 255.0
+                aGreen = 14 / 255.0
+                aBlue = 53 / 255.0
+            end
+            (PdfColor.TropicalRainForest),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 117 / 255.0
+                aBlue = 94 / 255.0
+            end
+            (PdfColor.TrueBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 115 / 255.0
+                aBlue = 207 / 255.0
+            end
+            (PdfColor.TuftsBlue),
+            begin
+                aRed = 65 / 255.0
+                aGreen = 125 / 255.0
+                aBlue = 193 / 255.0
+            end
+            (PdfColor.Tumbleweed),
+            begin
+                aRed = 222 / 255.0
+                aGreen = 170 / 255.0
+                aBlue = 136 / 255.0
+            end
+            (PdfColor.TurkishRose),
+            begin
+                aRed = 181 / 255.0
+                aGreen = 114 / 255.0
+                aBlue = 129 / 255.0
+            end
+            (PdfColor.Turquoise),
+            begin
+                aRed = 48 / 255.0
+                aGreen = 213 / 255.0
+                aBlue = 200 / 255.0
+            end
+            (PdfColor.TurquoiseBlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 239 / 255.0
+            end
+            (PdfColor.TurquoiseGreen),
+            begin
+                aRed = 160 / 255.0
+                aGreen = 214 / 255.0
+                aBlue = 180 / 255.0
+            end
+            (PdfColor.TuscanRed),
+            begin
+                aRed = 102 / 255.0
+                aGreen = 66 / 255.0
+                aBlue = 77 / 255.0
+            end
+            (PdfColor.TwilightLavender),
+            begin
+                aRed = 138 / 255.0
+                aGreen = 73 / 255.0
+                aBlue = 107 / 255.0
+            end
+            (PdfColor.TyrianPurple),
+            begin
+                aRed = 102 / 255.0
+                aGreen = 2 / 255.0
+                aBlue = 60 / 255.0
+            end
+            (PdfColor.UABlue),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 51 / 255.0
+                aBlue = 170 / 255.0
+            end
+            (PdfColor.UARed),
+            begin
+                aRed = 217 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 76 / 255.0
+            end
+            (PdfColor.Ube),
+            begin
+                aRed = 136 / 255.0
+                aGreen = 120 / 255.0
+                aBlue = 195 / 255.0
+            end
+            (PdfColor.UCLABlue),
+            begin
+                aRed = 83 / 255.0
+                aGreen = 104 / 255.0
+                aBlue = 149 / 255.0
+            end
+            (PdfColor.UCLAGold),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 179 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.UFOGreen),
+            begin
+                aRed = 60 / 255.0
+                aGreen = 208 / 255.0
+                aBlue = 112 / 255.0
+            end
+            (PdfColor.UltraMarine),
+            begin
+                aRed = 18 / 255.0
+                aGreen = 10 / 255.0
+                aBlue = 143 / 255.0
+            end
+            (PdfColor.UltraMarineBlue),
+            begin
+                aRed = 65 / 255.0
+                aGreen = 102 / 255.0
+                aBlue = 245 / 255.0
+            end
+            (PdfColor.UltraPink),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 111 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.Umber),
+            begin
+                aRed = 99 / 255.0
+                aGreen = 81 / 255.0
+                aBlue = 71 / 255.0
+            end
+            (PdfColor.UnitedNationsBlue),
+            begin
+                aRed = 91 / 255.0
+                aGreen = 146 / 255.0
+                aBlue = 229 / 255.0
+            end
+            (PdfColor.UniversityOfCaliforniaGold),
+            begin
+                aRed = 183 / 255.0
+                aGreen = 135 / 255.0
+                aBlue = 39 / 255.0
+            end
+            (PdfColor.UnmellowYellow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 102 / 255.0
+            end
+            (PdfColor.UPMaroon),
+            begin
+                aRed = 123 / 255.0
+                aGreen = 17 / 255.0
+                aBlue = 19 / 255.0
+            end
+            (PdfColor.UpsdellRed),
+            begin
+                aRed = 174 / 255.0
+                aGreen = 32 / 255.0
+                aBlue = 41 / 255.0
+            end
+            (PdfColor.Urobilin),
+            begin
+                aRed = 225 / 255.0
+                aGreen = 173 / 255.0
+                aBlue = 33 / 255.0
+            end
+            (PdfColor.UtahCrimson),
+            begin
+                aRed = 211 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 63 / 255.0
+            end
+            (PdfColor.VegasGold),
+            begin
+                aRed = 197 / 255.0
+                aGreen = 179 / 255.0
+                aBlue = 88 / 255.0
+            end
+            (PdfColor.VenetianRed),
+            begin
+                aRed = 200 / 255.0
+                aGreen = 8 / 255.0
+                aBlue = 21 / 255.0
+            end
+            (PdfColor.Verdigris),
+            begin
+                aRed = 67 / 255.0
+                aGreen = 179 / 255.0
+                aBlue = 174 / 255.0
+            end
+            (PdfColor.Veronica),
+            begin
+                aRed = 160 / 255.0
+                aGreen = 32 / 255.0
+                aBlue = 240 / 255.0
+            end
+            (PdfColor.Violet),
+            begin
+                aRed = 127 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.Viridian),
+            begin
+                aRed = 64 / 255.0
+                aGreen = 130 / 255.0
+                aBlue = 109 / 255.0
+            end
+            (PdfColor.VividAuburn),
+            begin
+                aRed = 146 / 255.0
+                aGreen = 39 / 255.0
+                aBlue = 36 / 255.0
+            end
+            (PdfColor.VividBurgundy),
+            begin
+                aRed = 159 / 255.0
+                aGreen = 29 / 255.0
+                aBlue = 53 / 255.0
+            end
+            (PdfColor.VividCerise),
+            begin
+                aRed = 218 / 255.0
+                aGreen = 29 / 255.0
+                aBlue = 129 / 255.0
+            end
+            (PdfColor.VividTangerine),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 160 / 255.0
+                aBlue = 137 / 255.0
+            end
+            (PdfColor.VividViolet),
+            begin
+                aRed = 159 / 255.0
+                aGreen = 0 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.WarmBlack),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 66 / 255.0
+                aBlue = 66 / 255.0
+            end
+            (PdfColor.Wenge),
+            begin
+                aRed = 100 / 255.0
+                aGreen = 84 / 255.0
+                aBlue = 82 / 255.0
+            end
+            (PdfColor.Wheat),
+            begin
+                aRed = 245 / 255.0
+                aGreen = 222 / 255.0
+                aBlue = 179 / 255.0
+            end
+            (PdfColor.White),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 255 / 255.0
+            end
+            (PdfColor.WhiteSmoke),
+            begin
+                aRed = 245 / 255.0
+                aGreen = 245 / 255.0
+                aBlue = 245 / 255.0
+            end
+            (PdfColor.WildBlueYonder),
+            begin
+                aRed = 162 / 255.0
+                aGreen = 173 / 255.0
+                aBlue = 208 / 255.0
+            end
+            (PdfColor.WildStrawberry),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 67 / 255.0
+                aBlue = 164 / 255.0
+            end
+            (PdfColor.WildWatermelon),
+            begin
+                aRed = 252 / 255.0
+                aGreen = 108 / 255.0
+                aBlue = 133 / 255.0
+            end
+            (PdfColor.Wine),
+            begin
+                aRed = 114 / 255.0
+                aGreen = 47 / 255.0
+                aBlue = 55 / 255.0
+            end
+            (PdfColor.Wisteria),
+            begin
+                aRed = 201 / 255.0
+                aGreen = 160 / 255.0
+                aBlue = 220 / 255.0
+            end
+            (PdfColor.Xanadu),
+            begin
+                aRed = 115 / 255.0
+                aGreen = 134 / 255.0
+                aBlue = 120 / 255.0
+            end
+            (PdfColor.YaleBlue),
+            begin
+                aRed = 15 / 255.0
+                aGreen = 77 / 255.0
+                aBlue = 146 / 255.0
+            end
+            (PdfColor.Yellow),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 255 / 255.0
+                aBlue = 0 / 255.0
+            end
+            (PdfColor.YellowGreen),
+            begin
+                aRed = 154 / 255.0
+                aGreen = 205 / 255.0
+                aBlue = 50 / 255.0
+            end
+            (PdfColor.YellowOrange),
+            begin
+                aRed = 255 / 255.0
+                aGreen = 239 / 255.0
+                aBlue = 2 / 255.0
+            end
+            (PdfColor.Zaffre),
+            begin
+                aRed = 0 / 255.0
+                aGreen = 20 / 255.0
+                aBlue = 168 / 255.0
+            end
+            (PdfColor.ZinnwalditeBrown),
+            begin
+                aRed = 44 / 255.0
+                aGreen = 22 / 255.0
+                aBlue = 8 / 255.0
+            end
+            endusing
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method setBackroundColor, void
+        proc
+            if (BackgroundColor != PdfColor.White)
+            begin
+                pg.SetLineWidth(1)
+                pg.SetRGBStroke(backgroundRed,backgroundGreen,backgroundBlue)
+                pg.SetRGBFill(backgroundRed,backgroundGreen,backgroundBlue)
+                pg.Rectangle((float)0,(float)0,(float)(this.Width*1.0),(float)(this.Height*1.0))
+                pg.FillStroke()
+                resetFillColor()
+                resetStrokeColor()
+            end
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method setCustomFillColor, void
+            required in aColor, PdfColor
+            record
+                tmpRed, float
+                tmpGreen, float
+                tmpBlue, float
+            endrecord
+        proc
+            rgbFromPdfColor(aColor,tmpRed,tmpGreen,tmpBlue)
+            pg.SetRGBFill(tmpRed,tmpGreen,tmpBlue)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method setCustomStrokeColor, void
+            required in aColor, PdfColor
+            record
+                tmpRed, float
+                tmpGreen, float
+                tmpBlue, float
+            endrecord
+        proc
+            rgbFromPdfColor(aColor,tmpRed,tmpGreen,tmpBlue)
+            pg.SetRGBStroke(tmpRed,tmpGreen,tmpBlue)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method setFontAttributes, void
+            optional in aBold, boolean
+            optional in aItalic, boolean
+        proc
+            if (^passed(aBold) && aBold && ^passed(aItalic) && aItalic) then
+                pg.SetFontAndSize(fontBoldItalic,fontSizeFloat)
+            else if (^passed(aBold) && aBold) then
+                pg.SetFontAndSize(fontBold,fontSizeFloat)
+            else if (^passed(aItalic) && aItalic)
+                pg.SetFontAndSize(fontItalic,fontSizeFloat)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private method XfromCol, float
+            required in aCol, int
+        proc
+            mreturn rightOffset + (aCol-1) * this.ColumnWidth
+        endmethod
+
     endclass
+
+    ;;********************************************************************************
+    ;;ENUMERATIONS
+
+    public enum AutoItemMode
+        BeginPage, 0
+        EndPage
+    endenum
+
+    public enum PdfPageSize
+        LETTER, 0
+        LEGAL
+        A3
+        A4
+        A5
+        B4
+        B5
+        EXECUTIVE
+        US4x6
+        US4x8
+        US5x7
+        COMM10
+        EOF
+    endenum
+
+    public enum PdfOrientation
+        Portrait, 0
+        Landscape
+    endenum
+
+    public enum PdfColor
+        AirForceblue,   1
+        AliceBlue
+        AlizarinCrimson
+        Almond
+        Amaranth
+        Amber
+        AmericanRose
+        Amethyst
+        AndroidGreen
+        AntiFlashWhite
+        AntiqueBrass
+        AntiqueFuchsia
+        AntiqueWhite
+        Ao
+        AppleGreen
+        Apricot
+        Aqua
+        Aquamarine
+        ArmyGreen
+        Arsenic
+        ArylideYellow
+        AshGray
+        Asparagus
+        AtomicTangerine
+        Auburn
+        Aureolin
+        AuroMetalSaurus
+        Awesome
+        Azure
+        AzureMist
+        BabyBlue
+        BabyBlueEyes
+        BabyPink
+        BallBlue
+        BananaMania
+        BananaYellow
+        BattleShipGray
+        Bazaar
+        BeauBlue
+        Beaver
+        Beige
+        Bisque
+        Bistre
+        BitterSweet
+        Black
+        BlanchedAlmond
+        BleudeFrance
+        BlizzardBlue
+        Blond
+        Blue
+        BlueBell
+        BlueGray
+        BlueGreen
+        BlueViolet
+        Blush
+        Bole
+        BondiBlue
+        BostonUniversityRed
+        BrandeisBlue
+        Brass
+        BrickRed
+        BrightCerulean
+        BrightGreen
+        BrightLavender
+        BrightMaroon
+        BrightPink
+        BrightTurquoise
+        BrightUbe
+        BrilliantLavender
+        BrillianRrose
+        BrinkPink
+        BritishRacingGreen
+        Bronze
+        Brown
+        BubbleGum
+        Bubbles
+        Buff
+        BulgarianRose
+        Burgundy
+        Burlywood
+        BurntOrange
+        BurntSienna
+        BurntUmber
+        Byzantine
+        Byzantium
+        Cadet
+        CadetBlue
+        CadetGray
+        CadmiumGreen
+        CadmiumOrange
+        CadmiumRed
+        CadmiumYellow
+        CalPolyPomonaGreen
+        CambridgeBlue
+        Camel
+        CamouflageGreen
+        CanaryYellow
+        CandyAppleRed
+        CandyPink
+        Capri
+        CaputMortuum
+        Cardinal
+        CaribbeanGreen
+        Carmine
+        CarminePink
+        CarmineRed
+        CarnationPink
+        Carnelian
+        CarolinaBlue
+        CarrotOrange
+        Ceil
+        Celadon
+        CelestialBlue
+        Cerise
+        CerisePink
+        Cerulean
+        CeruleanBlue
+        CGBlue
+        CGRed
+        Chamoisee
+        Champagne
+        Charcoal
+        Chartreuse
+        CherryBlossomPink
+        Chestnut
+        Chocolate
+        ChromeYellow
+        Cinereous
+        Cinnabar
+        Cinnamon
+        Citrine
+        ClassicRose
+        Cobalt
+        Coffee
+        ColumbiaBlue
+        CoolBlack
+        CoolGray
+        Copper
+        CopperRose
+        Coquelicot
+        Coral
+        CoralPink
+        CoralRed
+        Cordovan
+        Corn
+        CornFlowerBlue
+        CornSilk
+        CosmicLatte
+        CottonCandy
+        Cream
+        Crimson
+        CrimsonGlory
+        Cyan
+        Daffodil
+        Dandelion
+        DarkBlue
+        DarkBrown
+        DarkByzantium
+        DarkCandyapplered
+        DarkCerulean
+        DarkChampagne
+        DarkChestnut
+        DarkCoral
+        DarkCyan
+        DarkElectricBlue
+        DarkGoldenRod
+        DarkGray
+        DarkGreen
+        DarkJungleGreen
+        DarkKhaki
+        DarkLava
+        DarkLavender
+        DarkMagenta
+        DarkMidnightBlue
+        DarkOliveGreen
+        DarkOrange
+        DarkOrchid
+        DarkPastelBlue
+        DarkPastelGreen
+        DarkPastelPurple
+        DarkPastelRed
+        DarkPink
+        DarkPowderBlue
+        DarkRaspberry
+        DarkRed
+        DarkSalmon
+        DarkScarlet
+        DarkSeaGreen
+        DarkSienna
+        DarkSlateBlue
+        DarkSlateGray
+        DarkspringGreen
+        DarkTan
+        DarkTangerine
+        DarkTerracotta
+        DarkTurquoise
+        DarkViolet
+        DartMouthGreen
+        DavysGray
+        DebianRed
+        DeepCarmine
+        DeepCarminepink
+        DeepcarrotOrange
+        Deepcerise
+        Deepchampagne
+        Deepchestnut
+        DeepFuchsia
+        DeepJunglegreen
+        DeepLilac
+        DeepMagenta
+        DeepPeach
+        DeepPink
+        Deepsaffron
+        Denim
+        DesertSand
+        DimGray
+        DodgerBlue
+        DogWoodRose
+        DollarBill
+        Drab
+        DukeBlue
+        EarthYellow
+        EggPlant
+        EggShell
+        EgyptianBlue
+        ElectricBlue
+        ElectricCrimson
+        ElectricGreen
+        ElectricIndigo
+        ElectricLime
+        ElectricPurple
+        ElectricUltraMarine
+        ElectricViolet
+        ElectricYellow
+        Emerald
+        EtonBlue
+        FaluRed
+        Fandango
+        FashionFuchsia
+        Fawn
+        Feldgrau
+        FernGreen
+        FerrariRed
+        FieldDrab
+        FireBrick
+        FireEngineRed
+        Flame
+        FlamingoPink
+        Flavescent
+        Flax
+        FloralWhite
+        Folly
+        ForestGreen
+        FrenchBeige
+        FrenchBlue
+        FrenchLilac
+        FrenchRose
+        Fuchsia
+        FuchsiaPink
+        Fulvous
+        FuzzyWuzzy
+        Gainsboro
+        Gamboge
+        GhostWhite
+        Ginger
+        Glaucous
+        Gold
+        GoldenBrown
+        GoldenPoppy
+        GoldenRod
+        GoldenYellow
+        GrannySmithApple
+        Gray
+        GrayAsparagus
+        Green
+        GreenYellow
+        Grullo
+        GuppieGreen
+        Halayaube
+        HanBlue
+        HanPurple
+        Harlequin
+        HarvardCrimson
+        HarvestGold
+        Heliotrope
+        Honeydew
+        HookersGreen
+        HotMagenta
+        HotPink
+        HunterGreen
+        Iceberg
+        Icterine
+        Inchworm
+        IndiaGreen
+        IndianYellow
+        Indigo
+        InternationalKleinBlue
+        InternationalOrange
+        Iris
+        Isabelline
+        IslamicGreen
+        Ivory
+        Jade
+        Jasmine
+        Jasper
+        JazzberryJam
+        Jonquil
+        Junebud
+        JungleGreen
+        KellyGreen
+        Khaki
+        KUCrimson
+        LanguidLavender
+        Lapislazuli
+        LaSalleGreen
+        LaserLemon
+        Lava
+        Lavender
+        LavenderBlue
+        LavenderBlush
+        LavenderGray
+        LavenderIndigo
+        LavenderMagenta
+        LavenderMist
+        LavenderPink
+        LavenderPurple
+        LavenderRose
+        LawnGreen
+        Lemon
+        LemonChiffon
+        LightApricot
+        LightBlue
+        LightBrown
+        LightCarminePink
+        LightCoral
+        LightCornFlowerBlue
+        LightCrimson
+        LightCyan
+        LightFuchsiaPink
+        LightGoldenrodYellow
+        LightGray
+        LightGreen
+        LightKhaki
+        LightMauve
+        LightPastelPurple
+        LightPink
+        LightSalmon
+        LightSalmonPink
+        LightSeaGreen
+        LightSkyBlue
+        LightSlateGray
+        LightTaupe
+        LightThulianPink
+        LightYellow
+        Lilac
+        Lime
+        LimeGreen
+        LincolnGreen
+        Linen
+        Liver
+        Lust
+        Magenta
+        Magicmint
+        Magnolia
+        Mahogany
+        MajorelleBlue
+        Malachite
+        Manatee
+        MangoTango
+        Maroon
+        Mauve
+        Mauvelous
+        Mauvetaupe
+        MayaBlue
+        MeatBrown
+        MediumAquaMarine
+        MediumMlue
+        MediumCandyAppleRed
+        MediumCarmine
+        MediumChampagne
+        MediumElectricBlue
+        MediumJungleGreen
+        MediumLavenderMagenta
+        MediumOrchid
+        MediumPersianBlue
+        MediumPurple
+        MediumRedViolet
+        MediumSeaGreen
+        MediumSlateBlue
+        MediumSpringBud
+        MediumSpringGreen
+        MediumTaupe
+        MediumTealBlue
+        MediumTurquoise
+        MediumVioletRed
+        Melon
+        MidnightBlue
+        MidnightGreen
+        MikadoYellow
+        Mint
+        MintCream
+        MintGreen
+        MistyRose
+        MoonStoneBlue
+        MordantRed19
+        MossGreen
+        MountainMeadow
+        MountBattenPink
+        MSUGreen
+        Mulberry
+        Mustard
+        Myrtle
+        NadeshikoPink
+        NapierGreen
+        NavajoWhite
+        Navy
+        NeonCarrot
+        NeonFuchsia
+        NeonGreen
+        NonPhotoBlue
+        OceanBoatBlue
+        Ochre
+        OldGold
+        OldLace
+        OldLavender
+        OldMauve
+        OldRose
+        Olive
+        OliveDrab
+        OliveDrab7
+        Olivine
+        Onyx
+        OperaNauve
+        Orange
+        OrangePeel
+        OrangeRed
+        Orchid
+        OUCrimsonRed
+        OuterSpace
+        OutrageousOrange
+        OxfordBlue
+        PakistanGreen
+        PalatinateBlue
+        PalatinatePurple
+        PaleBlue
+        PaleBrown
+        PaleCerulean
+        PaleChestnut
+        PaleCopper
+        PaleCornFlowerBlue
+        PaleGold
+        PaleGoldenRod
+        PaleGreen
+        PaleMagenta
+        PalePink
+        PaleRedViolet
+        PaleRobinEggBlue
+        PaleSilver
+        PaleSpringBud
+        PaleTaupe
+        PansyPurple
+        PapayaWhip
+        PastelBlue
+        PastelBrown
+        PastelGray
+        PastelGreen
+        PastelMagenta
+        PastelOrange
+        PastelPink
+        PastelPurple
+        PastelRed
+        PastelViolet
+        PastelYellow
+        Patriarch
+        PaynesGray
+        Peach
+        PeachOrange
+        PeachPuff
+        PeachYellow
+        Pear
+        PearlAqua
+        Peridot
+        PersianBlue
+        PersianGreen
+        PersianIndigo
+        PersianOrange
+        PersianPink
+        PersianPlum
+        PersianRed
+        PersianRose
+        Persimmon
+        Phlox
+        PhthaloBlue
+        PhthaloGreen
+        PiggyPink
+        PineGreen
+        Pink
+        PinkPearl
+        PinkSherbet
+        Pistachio
+        Platinum
+        Plum
+        PortlandOrange
+        PowderBlue
+        PrincetonOrange
+        PrussianBlue
+        Puce
+        Pumpkin
+        Purple
+        PurpleHeart
+        PurpleMountainMajesty
+        PurplePizzazz
+        PurpleTaupe
+        Quartz
+        RadicalRed
+        Raspberry
+        RaspberryPink
+        RaspberryRose
+        RawUmber
+        RazzleDazzleRose
+        Razzmatazz
+        Red
+        Redwood
+        Regalia
+        RichBlack
+        RichBrilliantLavender
+        RichCarmine
+        RichElectricBlue
+        RichLavender
+        RichLilac
+        RichMaroon
+        RifleGreen
+        RobinEggBlue
+        RoseBonBon
+        RoseEbony
+        RoseGold
+        RosePink
+        RoseQuartz
+        RoseTaupe
+        RoseWood
+        RossoCorsa
+        RosyBrown
+        RoyalAzure
+        RoyalBlue
+        RoyalFuchsia
+        RoyalPurple
+        Ruby
+        Ruddy
+        RuddyBrown
+        RuddyPink
+        Rufous
+        Russet
+        Rust
+        SacramentoStateGreen
+        SaddleBrown
+        SafetyOrange
+        Saffron
+        Salmon
+        SalmonPink
+        SandStorm
+        SandyBrown
+        Sangria
+        SapGreen
+        Sapphire
+        SatinSheenGold
+        Scarlet
+        SchoolBusYellow
+        ScreaminGreen
+        SeaGreen
+        SealBrown
+        SeaShell
+        SelectiveYellow
+        Sepia
+        Shadow
+        ShamrockGreen
+        ShockingPink
+        Sienna
+        Silver
+        Sinopia
+        Skobeloff
+        SkyBlue
+        SkyMagenta
+        SlateBlue
+        SlateGray
+        SmokeyTopaz
+        SmokyBlack
+        Snow
+        SpiroDiscoBall
+        SplashedWhite
+        SpringBud
+        SteelBlue
+        SaintPatricksBlue
+        Straw
+        Sunglow
+        Tan
+        Tangelo
+        Tangerine
+        TangerineYellow
+        TaupeGray
+        TeaGreen
+        Teal
+        TealBlue
+        TealGreen
+        Tenne
+        Terracotta
+        Thistle
+        ThulianPink
+        TickleMePink
+        TiffanyBlue
+        TigersEye
+        TimberWolf
+        TitaniumYellow
+        Tomato
+        Toolbox
+        Topaz
+        TractorRed
+        TropicalRainForest
+        TrueBlue
+        TuftsBlue
+        Tumbleweed
+        TurkishRose
+        Turquoise
+        TurquoiseBlue
+        TurquoiseGreen
+        TuscanRed
+        TwilightLavender
+        TyrianPurple
+        UABlue
+        UARed
+        Ube
+        UCLABlue
+        UCLAGold
+        UFOGreen
+        UltraMarine
+        UltraMarineBlue
+        UltraPink
+        Umber
+        UnitedNationsBlue
+        UniversityOfCaliforniaGold
+        UnmellowYellow
+        UPMaroon
+        UpsdellRed
+        Urobilin
+        UtahCrimson
+        VegasGold
+        VenetianRed
+        Verdigris
+        Veronica
+        Violet
+        Viridian
+        VividAuburn
+        VividBurgundy
+        VividCerise
+        VividTangerine
+        VividViolet
+        WarmBlack
+        Wenge
+        Wheat
+        White
+        WhiteSmoke
+        WildBlueYonder
+        WildStrawberry
+        WildWatermelon
+        Wine
+        Wisteria
+        Xanadu
+        YaleBlue
+        Yellow
+        YellowGreen
+        YellowOrange
+        Zaffre
+        ZinnwalditeBrown
+    endenum
 
 endnamespace
 
