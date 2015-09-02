@@ -96,50 +96,6 @@ namespace SynPSG.PDF
         private totalRowsOtherOrientation,      int     ;Total number of rows for the entire page (other orientation)
         private totalColsOtherOrientation,      int     ;Total number of cols for the entire page (other orientation)
 
-        private pageIsNew,                      boolean
-
-        ;;********************************************************************************
-        ;;FACTORY METHODS
-
-        public static method Create, @PdfFile
-
-            optional in aPageSize,          PdfPageSize
-            optional in aOrientation,       PdfOrientation
-
-            optional in  aMinimumColumns,   int
-            optional in  aMaxFontSize,      int
-            optional in  aCenterBodyInPage, boolean
-
-            optional in aLeftMargin,        float
-            optional in aTopMargin,         float
-            optional in aRightMargin,       float
-            optional in aBottomMargin,      float
-
-            optional in aHeaderRows,        int
-            optional in aFooterRows,        int
-
-            optional in  aFileLocation,     string
-            optional in  aPartialFileName,  string
-
-            optional in aBackgroundColor,   PdfColor
-
-            endparams
-
-            record
-                pdf, @PdfFile
-            endrecord
-
-        proc
-
-            pdf = new PdfFile(aPageSize,aOrientation,aLeftMargin,aTopMargin,aRightMargin,aBottomMargin,aHeaderRows,aFooterRows,aBackgroundColor)
-
-            if (!pdf.Initialize(aFileLocation,aPartialFileName,aMinimumColumns,aMaxFontSize,aCenterBodyInPage))
-                pdf = ^null
-
-            mreturn pdf
-
-        endmethod
-
         ;;********************************************************************************
         ;;CONSTRUCTORS
 
@@ -148,25 +104,44 @@ namespace SynPSG.PDF
         ;;; </summary>
         ;;; <param name="aPageSize">Size of pages in the document.</param>
         ;;; <param name="aOrientation">Default orientation of pages, portrait or landscape.</param>
+        ;;; <param name="aMinimumColumns">The minimum number of columns that the report body must include.</param>
+        ;;; <param name="aMaxFontSize">The maximum font size to be selected. If a larger font size is calculated then this size will be used instead.</param>
+        ;;; <param name="aCenterBodyInPage">Should the body be centered horizontally in the page? Pass false to disable this functionality.</param>
         ;;; <param name="aLeftMargin">Establishes a left margin for the pages of the document. The value is specified in inches. If you don't specify a left margin then a default value of 0.16 inches will be used. If you don't want any margin then specify a value of 0.</param>
         ;;; <param name="aTopMargin">Establishes a top margin for the pages of the document. The value is specified in inches. If you don't specify a left margin then a default value of 0.16 inches will be used. If you don't want any margin then specify a value of 0.</param>
         ;;; <param name="aRightMargin">Establishes a right margin for the pages of the document. The value is specified in inches. If you don't specify a left margin then a default value of 0.16 inches will be used. If you don't want any margin then specify a value of 0.</param>
         ;;; <param name="aBottomMargin">Establishes a bottom margin for the pages of the document. The value is specified in inches. If you don't specify a left margin then a default value of 0.16 inches will be used. If you don't want any margin then specify a value of 0.</param>
         ;;; <param name="aHeaderRows">Establishes the number of header rows that are to be allocated on each page of the document. Header rows are displayed below the top margin and above the main body of each page of the document.</param>
         ;;; <param name="aFooterRows">Establishes the number of footer rows that are to be allocated on each page of the document. Footer rows are displayed below main body and above the bottom margin of each page of the document.</param>
+        ;;; <param name="aFileLocation">The location where the PDF file should be created. Logical names are allowed. The default is TEMP:.</param>
+        ;;; <param name="aPartialFileName">Words to be included in the file name. Don't use characters that are not valid in file specifications.</param>
         ;;; <param name="aBackgroundColor">Establishes a custom page background color and implements that color on the first page. The default page background color is white.</param>
-        private method PdfFile
-            optional in aPageSize,        PdfPageSize
-            optional in aOrientation,     PdfOrientation
-            optional in aLeftMargin,      float
-            optional in aTopMargin,       float
-            optional in aRightMargin,     float
-            optional in aBottomMargin,    float
-            optional in aHeaderRows,      int
-            optional in aFooterRows,      int
-            optional in aBackgroundColor, PdfColor
+        public method PdfFile
+            optional in aPageSize,          PdfPageSize
+            optional in aOrientation,       PdfOrientation
+            optional in aMinimumColumns,    int
+            optional in aMaxFontSize,       int
+            optional in aCenterBodyInPage,  boolean
+            optional in aLeftMargin,        float
+            optional in aTopMargin,         float
+            optional in aRightMargin,       float
+            optional in aBottomMargin,      float
+            optional in aHeaderRows,        int
+            optional in aFooterRows,        int
+            optional in aFileLocation,      string
+            optional in aPartialFileName,   string
+            optional in aBackgroundColor,   PdfColor
             endparams
+
+            record
+                ok,       boolean
+                attempts, int
+            endrecord
+
         proc
+
+            ;;-------------------------------------------------------------------------------
+            ;;Original constructor code
 
             ;;Set page orientation
             if (^passed(aPageSize)) then
@@ -284,7 +259,7 @@ namespace SynPSG.PDF
             this.FillColor = PdfColor.Black
             this.BackgroundColor = PdfColor.White
 
-            ;;Initialize the auto items collection
+            ;;Create the auto items collection
             this.AutoItems = new ArrayList()
 
             ;;If we were given a custom backgound color then save it
@@ -315,11 +290,182 @@ namespace SynPSG.PDF
             ;Set the default creator name
             this.Creator = "Synergex PSG PdfFile Class"
 
-            ;;Make sure auto begin page items are added to the first page
-            pageIsNew = true
+            ;;-------------------------------------------------------------------------------
+            ;;Original Initialize code
 
-            ;;Make sure the error message property is blank not null
-            this.ErrorMessage = ""
+            ;;Define the output file location
+            if (^passed(aFileLocation) && (aFileLocation.Trim().Length > 0)) then
+            begin
+                this.FileLocation = expandLogicalInFileSpec(aFileLocation)
+                if (this.FileLocation == %char(0)) then
+                    throw new ApplicationException("Invalid location " + aFileLocation)
+                else
+                begin
+                    if (!this.FileLocation.Trim().EndsWith("\"))
+                        this.FileLocation = this.FileLocation.Trim() + "\"
+                end
+            end
+            else
+            begin
+                this.FileLocation = expandLogicalInFileSpec("TEMP:")
+                if (!this.FileLocation.Trim().EndsWith("\"))
+                    this.FileLocation = this.FileLocation.Trim() + "\"
+            end
+
+            ;;Make sure the output file location exists
+            if (!directoryExists(this.FileLocation))
+                throw new ApplicationException("Destination folder " + mFileLocation + " does not exist!")
+
+            ;;Define the output file name
+            attempts = 0
+            repeat
+            begin
+                ;;Construct the file name
+                if (^passed(aPartialFileName) && (aPartialFileName.Trim().Length > 0)) then
+                    this.FileName = DateTimeTools.GetTempFilePrefix() + " " + aPartialFileName.Trim() + ".pdf"
+                else
+                    this.FileName = DateTimeTools.GetTempFilePrefix() + ".pdf"
+
+                ;;Make sure the file doesn't already exist
+                if (fileExists(this.FileLocation + this.FileName)) then
+                begin
+                    if ((attempts+=1)>5)
+                        throw new ApplicationException("Failed to construct unique output file name!")
+                    sleep 1.1
+                end
+                else
+                    exitloop
+            end
+
+            ;;Are we going to center the body at the requested with within the
+            ;;page by manipulating the left and right margins
+            if (^passed(aCenterBodyInPage)) then
+                this.CenterBodyInPage = aCenterBodyInPage
+            else
+                this.CenterBodyInPage = true
+
+            ;;Save the number of requested minimum columns
+            if (^passed(aMinimumColumns) && aMinimumColumns) then
+                this.RequestedColumns = aMinimumColumns
+            else
+                this.RequestedColumns = 80
+
+            ok = false
+
+            if (this.Columns < this.RequestedColumns) then
+            begin
+                ;;Not enough columns, decrease the font size until we get a match
+                data newFontSize, int
+                for newFontSize from mFontSize-1 thru 6 by -1
+                begin
+                    FontSize = newFontSize
+                    pg.SetFontAndSize(fontNormal,fontSizeFloat)
+                    this.ColumnWidth = pg.TextWidth("W")
+                    totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                    this.Columns = totalColsDefaultOrientation
+                    if (this.Columns >= this.RequestedColumns)
+                    begin
+                        ok = true
+                        exitloop
+                    end
+                end
+            end
+            else if (this.Columns > this.RequestedColumns) then
+            begin
+                ;;Too many columns, increase the font size until we have gone too far
+                data newFontSize, int
+                for newFontSize from mFontSize+1 thru 64
+                begin
+                    FontSize = newFontSize
+                    pg.SetFontAndSize(fontNormal,fontSizeFloat)
+                    this.ColumnWidth = pg.TextWidth("W")
+                    totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                    this.Columns = totalColsDefaultOrientation
+                    if (this.Columns < this.RequestedColumns)
+                    begin
+                        ;;We went too far so back off to the previous font size
+                        FontSize = mFontSize - 1
+                        pg.SetFontAndSize(fontNormal,fontSizeFloat)
+                        this.ColumnWidth = pg.TextWidth("W")
+                        totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                        totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                        this.Columns = totalColsDefaultOrientation
+                        ok = true
+                        exitloop
+                    end
+                end
+            end
+            else if (this.Columns == this.RequestedColumns)
+            begin
+                ;;Perfect match!
+                ok = true
+            end
+
+            ;;If we were able to find a font size that provides the width that we need then we can continue
+            if (ok) then
+            begin
+                ;;Were we given a maximum font size?
+                if (^passed(aMaxFontSize) && aMaxFontSize)
+                begin
+                    if (this.FontSize > aMaxFontSize)
+                    begin
+                        ;;Selected font is bigger than maximum requested. Reduce to the requested size.
+                        this.FontSize = aMaxFontSize
+                        pg.SetFontAndSize(fontNormal,fontSizeFloat)
+                        this.ColumnWidth = pg.TextWidth("W")
+                        totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                        totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                        this.Columns = totalColsDefaultOrientation
+                    end
+                end
+
+                ;;How many rows fit on the page at the selected font size?
+                this.RowHeight = fontSizeFloat
+
+                totalRowsDefaultOrientation = %truncate((this.Height-topOffset-bottomOffset)/this.RowHeight)
+                totalRowsOtherOrientation = %truncate((this.Width-topOffset-bottomOffset)/this.RowHeight)
+
+                this.Rows = totalRowsDefaultOrientation - this.HeaderRows - this.FooterRows
+
+                ;;If the page is wider than requested, should we manipulate the margins so that the
+                ;;requested width is centered horizontally within the page?
+
+                if ((this.Columns != this.RequestedColumns) && this.CenterBodyInPage)
+                begin
+                    data additionalColumns, int, this.Columns - this.RequestedColumns
+                    data additionalPixels, int, additionalColumns * this.ColumnWidth
+
+                    ;;Divide the additional space between the left and right margins
+                    leftOffset += (additionalPixels / 2.0)
+                    rightOffset += (additionalPixels / 2.0)
+
+                    this.LeftMargin = leftOffset / 72.0
+                    this.RightMargin = rightOffset / 72.0
+
+                    totalColsDefaultOrientation = this.RequestedColumns
+                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                    this.Columns = totalColsDefaultOrientation
+                end
+
+                ;;Release the current doucment and start over with a new one. This is done so that we start
+                ;;without a first page so that AutoItems can be added.
+                doc.FreeDoc()
+                doc.NewDoc()
+
+                ;;Reload the standard fonts so that their handles are valid with the new document
+                fontNormal = doc.GetFont("Courier", ^null)
+                fontBold = doc.GetFont("Courier-Bold", ^null)
+                fontItalic = doc.GetFont("Courier-Oblique", ^null)
+                fontBoldItalic = doc.GetFont("Courier-BoldOblique", ^null)
+
+            end
+            else
+            begin
+                Dispose()
+                throw new ApplicationException("Failed to select a font size to produce the requested results!")
+            end
 
         endmethod
 
@@ -337,6 +483,7 @@ namespace SynPSG.PDF
                 y, float
             endrecord
         proc
+
             this.SelectFont("Helvetica",4)
 
             ;Draw horizontal 5 lines
@@ -418,8 +565,9 @@ namespace SynPSG.PDF
                 penWidth,       float
             endrecord
         proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
+            ;;If we don't have a first page then add one
+            if (this.PageNumber==0)
+                NewPage()
 
             ;;Set the line width
             penWidth = ^passed(aWidth) ? aWidth : 1
@@ -502,8 +650,9 @@ namespace SynPSG.PDF
                 end_y,                  float
             endrecord
         proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
+            ;;If we don't have a first page then add one
+            if (this.PageNumber==0)
+                NewPage()
 
             ;;Define origin row
             if (^passed(aFromRow) && (aFromRow > 0) && (aFromRow < this.Rows)) then
@@ -591,28 +740,52 @@ namespace SynPSG.PDF
         ;;; <param name="aY">Y position of the bottom left corner of the image on the current page.</param>
         ;;; <param name="aWidth">Width to occupy in device independent pixels (defaults to the pixel width of the image).</param>
         ;;; <param name="aWidth">Height to occupy in device independent pixels (defaults to the pixel height of the image).</param>
-        public method DrawImage,   void
-            required in aFileSpec, string
-            required in aX,        float
-            required in aY,        float
-            optional in aWidth,    float
-            optional in aHeight,   float
+        public method DrawImage,        boolean
+            required in  aFileSpec,     string
+            required in  aX,            float
+            required in  aY,            float
+            optional in  aWidth,        float
+            optional in  aHeight,       float
+            optional out aErrorMessage, string
             endparams
             record
+                ok, boolean
+                fileSpec, string
+                errorMessage, string
                 image, @HPdfImage
                 width, float
                 height, float
             endrecord
         proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
+            ok = true
+            errorMessage = ""
 
-            if (aFileSpec.Trim().ToLower().EndsWith(".jpg") || aFileSpec.Trim().ToLower().EndsWith(".jpeg")) then
-                image = doc.LoadJpegImageFromFile(aFileSpec)
-            else if (aFileSpec.Trim().ToLower().EndsWith(".png"))
-                image = doc.LoadPngImageFromFile(aFileSpec)
+            ;;If we don't have a first page then add one
+            if (this.PageNumber==0)
+                NewPage()
 
-            if (image != ^null)
+            ;;Remove spaces and expand logical names
+            fileSpec = expandLogicalInFileSpec(aFileSpec.Trim())
+
+            if (fileExists(fileSpec)) then
+            begin
+                if (fileSpec.ToLower().EndsWith(".jpg") || fileSpec.ToLower().EndsWith(".jpeg")) then
+                    image = doc.LoadJpegImageFromFile(fileSpec)
+                else if (fileSpec.ToLower().EndsWith(".png")) then
+                    image = doc.LoadPngImageFromFile(fileSpec)
+                else
+                begin
+                    errorMessage = "Unsupported image format!"
+                    ok = false
+                end
+            end
+            else
+            begin
+                errorMessage = "Image file not found!"
+                ok = false
+            end
+
+            if (ok)
             begin
                 if (^passed(aWidth) && aWidth) then
                     width = aWidth
@@ -625,8 +798,12 @@ namespace SynPSG.PDF
                     height = image.GetHeight()
 
                 pg.DrawImage(image,aX,aY,width,height)
-
             end
+
+            if (^passed(aErrorMessage))
+                aErrorMessage = errorMessage
+
+            mreturn ok
 
         endmethod
 
@@ -635,11 +812,12 @@ namespace SynPSG.PDF
         ;;; Draws the image defined by a AutoImage object.
         ;;; </summary>
         ;;; <param name="aImage">AutoImage object to be drawn.</param>
-        public method DrawImageObject, void
-            required in aImage,        @AutoImage
+        public method DrawImageObject,  boolean
+            required in  aImage,        @AutoImage
+            optional out aErrorMessage, string
             endparams
         proc
-            DrawImage(aImage.FileSpec,aImage.X,aImage.Y,aImage.Width,aImage.Height)
+            mreturn DrawImage(aImage.FileSpec,aImage.X,aImage.Y,aImage.Width,aImage.Height,aErrorMessage)
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -665,8 +843,9 @@ namespace SynPSG.PDF
                 penWidth,   float
             endrecord
         proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
+            ;;If we don't have a first page then add one
+            if (this.PageNumber==0)
+                NewPage()
 
             ;;Set the line width
             penWidth = ^passed(aWidth) ? aWidth : 1
@@ -741,8 +920,9 @@ namespace SynPSG.PDF
                 end_y,      float
             endrecord
         proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
+            ;;If we don't have a first page then add one
+            if (this.PageNumber==0)
+                NewPage()
 
             ;;Set the line width
             penWidth = ^passed(aWidth) ? aWidth : 1
@@ -794,11 +974,14 @@ namespace SynPSG.PDF
                 end_y,      float
             endrecord
         proc
-            if (this.Row > this.Rows)
+            ;;If we don't have a first page then add one
+            if (this.PageNumber==0)
                 NewPage()
 
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
+            ;;If the current position is below the page body then start
+            ;;a new page in the same orientation as the current page
+            if (this.Row > this.Rows)
+                NewPage(this.Orientation)
 
             ;;Set the line width
             penWidth = ^passed(aWidth) ? aWidth : 1
@@ -858,8 +1041,9 @@ namespace SynPSG.PDF
             optional in aFontSize,  int
             endparams
         proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
+            ;;If we don't have a first page then add one
+            if (this.PageNumber==0)
+                NewPage()
 
             if (^passed(aColor) && (aColor != mFillColor))
             begin
@@ -953,8 +1137,9 @@ namespace SynPSG.PDF
                 col,                int
             endrecord
         proc
-            if (pageIsNew) ;Can't be done in NewPage because it would not happen for the first page!
-                printBeginPageItems()
+            ;;If we don't have a first page then add one
+            if (this.PageNumber==0)
+                NewPage()
 
             row = ^passed(aRow) ? aRow : this.Row
             col = ^passed(aCol) ? aCol : this.Column
@@ -972,7 +1157,7 @@ namespace SynPSG.PDF
             pg.ShowText(aText)
             pg.EndText()
 
-            resetFont(aBold,aItalic)
+            resetFontAttributes(aBold,aItalic)
 
             if (^passed(aColor) && (aColor != this.FillColor))
             begin
@@ -1039,6 +1224,10 @@ namespace SynPSG.PDF
         public method NewLine, int
             endparams
         proc
+            ;;If we don't have a first page then add one
+            if (this.PageNumber==0)
+                NewPage()
+
             if (this.Row < this.Rows) then
             begin
                 this.Row = this.Row + 1
@@ -1046,8 +1235,10 @@ namespace SynPSG.PDF
             end
             else
             begin
-                NewPage()
-                printBeginPageItems()
+                ;;If we did a new line then the current position would be below the page
+                ;;body, so instead we'll start a new page in the same orientation as the
+                ;;current page
+                NewPage(this.Orientation)
             end
 
             mreturn this.Row
@@ -1068,7 +1259,8 @@ namespace SynPSG.PDF
         proc
 
             ;;Print page level items on the current page
-            printEndPageItems()
+            if (this.PageNumber>0)
+                printEndPageItems()
 
             ;;Default to the document default arientation
             orientation = this.DefaultOrientation
@@ -1107,12 +1299,12 @@ namespace SynPSG.PDF
             pg = doc.AddPage((HPdfPageSizes)this.PageSize,(HPdfPageDirection)orientation)
             this.Orientation = orientation
 
-            ;;Activate the font for the new page
-            begin
-                data tmpFont, @HPdfFont, doc.GetFont(this.CurrentFont,^null)
-                data tmpFontSize, float, this.CurrentFontSize
-                pg.StartPageWithFont(tmpFont,tmpFontSize)
-            end
+            ;;Start a text writer with the default font and size
+            pg.StartPageWithFont(fontNormal,fontSizeFloat)
+
+            ;;If an alternate font was active then make it active for the new page
+            if (this.CurrentFont != fontNormal.GetFontName())
+                SelectFont(this.CurrentFont,this.CurrentFontSize)
 
             pg.EndText()
 
@@ -1128,10 +1320,12 @@ namespace SynPSG.PDF
 
             ;;Record the new page number and reset the page's current row counter
             this.PageNumber = this.PageNumber + 1
+
+            ;;Add any BeginPage auto items
+            printBeginPageItems()
+
             this.Row = 1
             this.Column = 1
-
-            pageIsNew = true
 
             mreturn this.PageNumber
 
@@ -1146,20 +1340,27 @@ namespace SynPSG.PDF
         ;;; </summary>
         ;;; <returns>Returns true if the PDF file was saved and launched.</returns>
         public method Preview, boolean
+            optional out aErrorMessage, string
             endparams
+            record
+                ok, boolean
+                errorMessage, string
+            endrecord
         proc
-            if (Save()) then
+            if (this.Save(aErrorMessage)) then
             begin
                 ;;And launch the associated application
                 xcall shell(,'"'+this.FileLocation+this.FileName+'"',D_NOCONSOLE|D_NOWAIT)
+                errorMessage = ""
+                ok = true
             end
             else
             begin
-                ;;Error message already set by Save()
-                mreturn false
+                ;;Error message has already been set by Save()
+                ok = false
             end
 
-            mreturn true
+            mreturn ok
 
         endmethod
 
@@ -1170,42 +1371,61 @@ namespace SynPSG.PDF
         ;;; <param name="aPrinterName">Optional printer name</param>
         ;;; <returns></returns>
         public method Print, boolean
-            optional in aPrinterName, string
+            optional in  aPrinterName,  string
+            optional out aErrorMessage, string
             endparams
-            .define D_GSPRINT_EXE 'C:\Program Files\Ghostgum\gsview\gsprint.exe'
+            .define D_SUMATRA_EXE "C:\Program Files (x86)\SumatraPDF\SumatraPDF.exe"
             record
                 ok, boolean
                 pdffile, string
                 command, string
+                errorMessage, string
             endrecord
         proc
-            if (!fileExists(D_GSPRINT_EXE))
-                throw new ApplicationException("GSPRINT.EXE not found!")
-
-            pdffile = this.FileLocation + this.FileName
-
-            if (Save()) then
+            if (this.Save(aErrorMessage)) then
             begin
-                command = D_GSPRINT_EXE + ' -color -option "-q"'
-                if (^passed(aPrinterName) && (aPrinterName.Trim().Length>0))
-                    command = command + ' -printer "'+aPrinterName.Trim()+'"'
-                command = command +  ' "' + pdffile + '"'
-                try
+                pdffile = this.FileLocation + this.FileName
+                if (fileExists(pdffile)) then
                 begin
-                    xcall spawn(command,D_NOCONSOLE|D_NOWINDOW)
-                    ok = true
+                    if (fileExists(D_SUMATRA_EXE)) then
+                    begin
+                        if (^passed(aPrinterName) && (aPrinterName.Trim().Length>0)) then
+                            command = D_SUMATRA_EXE + ' -print-to "'+aPrinterName.Trim()+'" -silent ' + '"' + pdffile + '"'
+                        else
+                            command = D_SUMATRA_EXE + ' -print-to-default -silent ' + '"' + pdffile + '"'
+                        try
+                        begin
+                            xcall spawn(command,D_NOCONSOLE|D_NOWINDOW)
+                            errormessage = ""
+                            ok = true
+                        end
+                        catch (ex)
+                        begin
+                            errorMessage = "Failed to launch SumatraPDF. Error was " + ex.Message
+                            ok = false
+                        end
+                        endtry
+                    end
+                    else
+                    begin
+                        errorMessage = "SumartaPDF was not found!"
+                        ok = false
+                    end
                 end
-                catch (ex)
+                else
                 begin
+                    errorMessage = "PDF file " + pdffile + " not found!"
                     ok = false
                 end
-                endtry
             end
             else
             begin
                 ;;Error message already set by Save()
                 ok = false
             end
+
+            if (^passed(aErrorMessage))
+                aErrorMessage = errorMessage
 
             mreturn ok
 
@@ -1221,6 +1441,7 @@ namespace SynPSG.PDF
         public method ResetFont, void
             endparams
         proc
+            this.CurrentFont = fontNormal.GetFontName()
             pg.SetFontAndSize(fontNormal,fontSizeFloat)
             this.CurrentFont = fontNormal.GetFontName()
             this.CurrentFontSize = this.FontSize
@@ -1232,7 +1453,12 @@ namespace SynPSG.PDF
         ;;; </summary>
         ;;; <returns>Returns true if the PDF file was successfully saved.</returns>
         public method Save, boolean
+            optional out aErrorMessage, string
             endparams
+            record
+                ok, boolean
+                errorMessage, string
+            endrecord
         proc
             ;;Print page level items on the last page
             printEndPageItems()
@@ -1241,18 +1467,23 @@ namespace SynPSG.PDF
             try
             begin
                 doc.SaveToFile(this.FileLocation+this.FileName)
+                errorMessage = ""
+                ok = true
             end
             catch (ex)
             begin
-                this.ErrorMessage = "Failed to save file " + this.FileLocation+mFileName
-                mreturn false
+                errorMessage = "Failed to save " + this.FileLocation+mFileName + ". Error was " + ex.Message
+                ok = false
             end
             endtry
 
             ;;Clean up
             this.Dispose()
 
-            mreturn true
+            if (^passed(aErrorMessage))
+                aErrorMessage = errorMessage
+
+            mreturn ok
 
         endmethod
 
@@ -1304,6 +1535,10 @@ namespace SynPSG.PDF
             optional in aColumn, int
             endparams
         proc
+            ;;If we don't have a first page then add one
+            if (this.PageNumber==0)
+                NewPage()
+
             if (^passed(aRow))
             begin
                 if (aRow < 1) then
@@ -1562,25 +1797,6 @@ namespace SynPSG.PDF
         ;;--------------------------------------------------------------------------------
         ;;
 
-        private mErrorMessage, string
-
-        ;;; <summary>
-        ;;; Gets the last error message. This property is populated by the methods that return a boolean (success) status. If a method returns a false status then the ErrorMessage property will contain a description of the reason for the failure.
-        ;;; </summary>
-        public property ErrorMessage, string
-            method get
-            proc
-                mreturn mErrorMessage
-            endmethod
-            private method set
-            proc
-                mErrorMessage = value
-            endmethod
-        endproperty
-
-        ;;--------------------------------------------------------------------------------
-        ;;
-
         private mFileLocation, string
 
         ;;; <summary>
@@ -1610,7 +1826,7 @@ namespace SynPSG.PDF
             proc
                 mreturn mFileName
             endmethod
-            private method set
+            public method set
             proc
                 mFileName = value
             endmethod
@@ -2339,216 +2555,6 @@ namespace SynPSG.PDF
         endmethod
 
         ;;--------------------------------------------------------------------------------
-        ;;; <summary>
-        ;;; Initializes the PdfFile for use. You must call initialize before attempting
-        ;;; to add any content to the document. The first page is created during initialization.
-        ;;; </summary>
-        ;;; <param name="aFileLocation">The location where the PDF file should be created. This can either be a path, a logical name followed by a colon.</param>
-        ;;; <param name="aPartialFileName">Text to be used as part of the PDF file name.</param>
-        ;;; <param name="aMinimumColumns">The minimum number of columns required for the document. An appropriate font size will be determined based on this value.</param>
-        ;;; <param name="aMaxFontSize">The maximum font size that you want to be selected. If a larger font is calculated then this font size will be used instead.</param>
-        ;;; <param name="aCenterBodyInPage">Should the page be configured for the exact number of columns specified, and the content horizontally centered in the page?</param>
-        private method Initialize,          boolean
-            optional in  aFileLocation,     string
-            optional in  aPartialFileName,  string
-            optional in  aMinimumColumns,   int
-            optional in  aMaxFontSize,      int
-            optional in  aCenterBodyInPage, boolean
-            endparams
-            record
-                ok,         boolean
-                attempts,       int
-            endrecord
-        proc
-            ;;Define the output file location
-            if (^passed(aFileLocation) && (aFileLocation.Trim().Length > 0)) then
-            begin
-                this.FileLocation = expandLogicalInFileSpec(aFileLocation)
-                if (this.FileLocation == %char(0)) then
-                begin
-                    this.ErrorMessage = "Invalid location " + aFileLocation
-                    mreturn false
-                end
-                else
-                begin
-                    if (!this.FileLocation.Trim().EndsWith("\"))
-                        this.FileLocation = this.FileLocation.Trim() + "\"
-                end
-            end
-            else
-            begin
-                this.FileLocation = expandLogicalInFileSpec("TEMP:")
-                if (!this.FileLocation.Trim().EndsWith("\"))
-                    this.FileLocation = this.FileLocation.Trim() + "\"
-            end
-
-            ;;Make sure the output file location exists
-            if (!directoryExists(this.FileLocation))
-            begin
-                mErrorMessage = "Destination folder " + mFileLocation + " does not exist!"
-                mreturn false
-            end
-
-            ;;Define the output file name
-            attempts = 0
-            repeat
-            begin
-                ;;Construct the file name
-                if (^passed(aPartialFileName) && (aPartialFileName.Trim().Length > 0)) then
-                    this.FileName = DateTimeTools.GetTempFilePrefix() + " " + aPartialFileName.Trim() + ".pdf"
-                else
-                    this.FileName = DateTimeTools.GetTempFilePrefix() + ".pdf"
-
-                ;;Make sure the file doesn't already exist
-                if (fileExists(this.FileLocation + this.FileName)) then
-                begin
-                    if ((attempts+=1)>5)
-                    begin
-                        this.ErrorMessage = "Failed to construct unique output file name!"
-                        mreturn false
-                    end
-                    sleep 0.1
-                end
-                else
-                    exitloop
-            end
-
-            ;;Are we going to center the body at the requested with within the
-            ;;page by manipulating the left and right margins
-            if (^passed(aCenterBodyInPage)) then
-                this.CenterBodyInPage = aCenterBodyInPage
-            else
-                this.CenterBodyInPage = true
-
-            ;;Save the number of requested minimum columns
-            if (^passed(aMinimumColumns) && aMinimumColumns) then
-                this.RequestedColumns = aMinimumColumns
-            else
-                this.RequestedColumns = 80
-
-            ok = false
-
-            if (this.Columns < this.RequestedColumns) then
-            begin
-                ;;Not enough columns, decrease the font size until we get a match
-                data newFontSize, int
-                for newFontSize from mFontSize-1 thru 6 by -1
-                begin
-                    FontSize = newFontSize
-                    pg.SetFontAndSize(fontNormal,fontSizeFloat)
-                    this.ColumnWidth = pg.TextWidth("W")
-                    totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
-                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
-                    this.Columns = totalColsDefaultOrientation
-                    if (this.Columns >= this.RequestedColumns)
-                    begin
-                        ok = true
-                        exitloop
-                    end
-                end
-            end
-            else if (this.Columns > this.RequestedColumns) then
-            begin
-                ;;Too many columns, increase the font size until we have gone too far
-                data newFontSize, int
-                for newFontSize from mFontSize+1 thru 64
-                begin
-                    FontSize = newFontSize
-                    pg.SetFontAndSize(fontNormal,fontSizeFloat)
-                    this.ColumnWidth = pg.TextWidth("W")
-                    totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
-                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
-                    this.Columns = totalColsDefaultOrientation
-                    if (this.Columns < this.RequestedColumns)
-                    begin
-                        ;;We went too far so back off to the previous font size
-                        FontSize = mFontSize - 1
-                        pg.SetFontAndSize(fontNormal,fontSizeFloat)
-                        this.ColumnWidth = pg.TextWidth("W")
-                        totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
-                        totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
-                        this.Columns = totalColsDefaultOrientation
-                        ok = true
-                        exitloop
-                    end
-                end
-            end
-            else if (this.Columns == this.RequestedColumns)
-            begin
-                ;;Perfect match!
-                ok = true
-            end
-
-            ;;If we were able to find a font size that provides the width that we need then we can continue
-            if (ok) then
-            begin
-                ;;Were we given a maximum font size?
-                if (^passed(aMaxFontSize) && aMaxFontSize)
-                begin
-                    if (this.FontSize > aMaxFontSize)
-                    begin
-                        ;;Selected font is bigger than maximum requested. Reduce to the requested size.
-                        this.FontSize = aMaxFontSize
-                        pg.SetFontAndSize(fontNormal,fontSizeFloat)
-                        this.ColumnWidth = pg.TextWidth("W")
-                        totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
-                        totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
-                        this.Columns = totalColsDefaultOrientation
-                    end
-                end
-
-                ;;How many rows fit on the page at the selected font size?
-                this.RowHeight = fontSizeFloat
-
-                totalRowsDefaultOrientation = %truncate((this.Height-topOffset-bottomOffset)/this.RowHeight)
-                totalRowsOtherOrientation = %truncate((this.Width-topOffset-bottomOffset)/this.RowHeight)
-
-                this.Rows = totalRowsDefaultOrientation - this.HeaderRows - this.FooterRows
-
-                ;;If the page is wider than requested, should we manipulate the margins so that the
-                ;;requested width is centered horizontally within the page?
-
-                if ((this.Columns != this.RequestedColumns) && this.CenterBodyInPage)
-                begin
-                    data additionalColumns, int, this.Columns - this.RequestedColumns
-                    data additionalPixels, int, additionalColumns * this.ColumnWidth
-
-                    ;;Divide the additional space between the left and right margins
-                    leftOffset += (additionalPixels / 2.0)
-                    rightOffset += (additionalPixels / 2.0)
-
-                    this.LeftMargin = leftOffset / 72.0
-                    this.RightMargin = rightOffset / 72.0
-
-                    totalColsDefaultOrientation = this.RequestedColumns
-                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
-                    this.Columns = totalColsDefaultOrientation
-                end
-
-                ;;Record where we're at
-                this.PageNumber = 1
-                this.Row = 1
-                this.Column = 1
-
-                ;;Add any begin page auto items
-                if (this.AutoItems.Count > 0)
-                begin
-                    this.pageIsNew = false
-                    this.printBeginPageItems()
-                end
-
-            end
-            else
-            begin
-                this.ErrorMessage = "Failed to select a font size to produce the requested results!"
-                Dispose()
-            end
-
-            mreturn ok
-
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
         ;;
 
         private method printAutoItem, void
@@ -2593,9 +2599,6 @@ namespace SynPSG.PDF
                         printAutoItem((AutoItem)item)
                 end
             end
-
-            pageIsNew = false
-
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -2732,12 +2735,15 @@ namespace SynPSG.PDF
         ;;--------------------------------------------------------------------------------
         ;;
 
-        private method resetFont, void
+        private method resetFontAttributes, void
             optional in aBold, boolean
             optional in aItalic, boolean
         proc
             if ((^passed(aBold) && aBold) || (^passed(aItalic) && aItalic))
+            begin
                 pg.SetFontAndSize(fontNormal,fontSizeFloat)
+                this.CurrentFont = fontNormal.GetFontName()
+            end
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -6849,11 +6855,20 @@ namespace SynPSG.PDF
             optional in aItalic, boolean
         proc
             if (^passed(aBold) && aBold && ^passed(aItalic) && aItalic) then
+            begin
                 pg.SetFontAndSize(fontBoldItalic,fontSizeFloat)
+                this.CurrentFont = fontBoldItalic.GetFontName()
+            end
             else if (^passed(aBold) && aBold) then
+            begin
                 pg.SetFontAndSize(fontBold,fontSizeFloat)
+                this.CurrentFont = fontBoldItalic.GetFontName()
+            end
             else if (^passed(aItalic) && aItalic)
+            begin
                 pg.SetFontAndSize(fontItalic,fontSizeFloat)
+                this.CurrentFont = fontBoldItalic.GetFontName()
+            end
         endmethod
 
         ;;--------------------------------------------------------------------------------

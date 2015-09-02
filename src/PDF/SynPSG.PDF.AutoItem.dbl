@@ -53,7 +53,7 @@ namespace SynPSG.PDF
             if (^passed(aMode)) then
                 mMode = aMode
             else
-                mMode = AutoItemMode.BeginPage
+                mMode = AutoItemMode.EndPage
         endmethod
 
         private mMode, AutoItemMode
