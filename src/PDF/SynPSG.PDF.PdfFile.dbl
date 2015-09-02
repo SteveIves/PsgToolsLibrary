@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; File:        SynPSG.PDF.PdfFile.dbl
+;; File:        SynPSG.PDF.dbl
 ;;
-;; Title:       PdfFile
+;; Title:       Synergex PSG PDF API
 ;;
 ;; Type:        Class
 ;;
@@ -54,11 +54,9 @@
 ;;
 ;;*****************************************************************************
 
-import System.Collections
-import SynPSG
 import HPdf
-import system
-import synpsg
+import System
+import System.Collections
 
 namespace SynPSG.PDF
 
@@ -322,9 +320,9 @@ namespace SynPSG.PDF
             begin
                 ;;Construct the file name
                 if (^passed(aPartialFileName) && (aPartialFileName.Trim().Length > 0)) then
-                    this.FileName = DateTimeTools.GetTempFilePrefix() + " " + aPartialFileName.Trim() + ".pdf"
+                    this.FileName = getTempFilePrefix() + " " + aPartialFileName.Trim() + ".pdf"
                 else
-                    this.FileName = DateTimeTools.GetTempFilePrefix() + ".pdf"
+                    this.FileName = getTempFilePrefix() + ".pdf"
 
                 ;;Make sure the file doesn't already exist
                 if (fileExists(this.FileLocation + this.FileName)) then
@@ -1141,6 +1139,10 @@ namespace SynPSG.PDF
             if (this.PageNumber==0)
                 NewPage()
 
+            ;;If the row is off the page then throw a new page
+            if (!^passed(aRow) && (this.Row > this.Rows))
+                NewPage()
+
             row = ^passed(aRow) ? aRow : this.Row
             col = ^passed(aCol) ? aCol : this.Column
 
@@ -1220,25 +1222,36 @@ namespace SynPSG.PDF
         ;;; Sets the current position to the beginning of the next line. If the next line
         ;;; is outside of the page body then a new page is generated.
         ;;; </summary>
+        ;;; <param name="aNumberOfLines">Number of blank lines to throw.</param>
         ;;; <returns>Returns the new current row number.</returns>
         public method NewLine, int
+            optional in aNumberOfLines, int
             endparams
+            record
+                lines, int
+                ix, int
+            endrecord
         proc
             ;;If we don't have a first page then add one
             if (this.PageNumber==0)
                 NewPage()
 
-            if (this.Row < this.Rows) then
+            lines = ^passed(aNumberOfLines) ? aNumberOfLines : 1
+
+            for ix from 1 thru lines
             begin
-                this.Row = this.Row + 1
-                this.Column = 1
-            end
-            else
-            begin
-                ;;If we did a new line then the current position would be below the page
-                ;;body, so instead we'll start a new page in the same orientation as the
-                ;;current page
-                NewPage(this.Orientation)
+                if (this.Row < this.Rows) then
+                begin
+                    this.Row = this.Row + 1
+                    this.Column = 1
+                end
+                else
+                begin
+                    ;;If we did a new line then the current position would be below the page
+                    ;;body, so instead we'll start a new page in the same orientation as the
+                    ;;current page
+                    NewPage(this.Orientation)
+                end
             end
 
             mreturn this.Row
@@ -2495,13 +2508,13 @@ namespace SynPSG.PDF
             tmpbuf = aBuffer
 
             if (tmpbuf.Contains("MM/DD/YYYY"))
-                tmpbuf = tmpbuf.Replace("MM/DD/YYYY",DateTimeTools.GetFormattedDateMMDDYYYY())
+                tmpbuf = tmpbuf.Replace("MM/DD/YYYY",getFormattedDateMMDDYYYY())
             if (tmpbuf.Contains("DD/MM/YYYY"))
-                tmpbuf = tmpbuf.Replace("MM/DD/YYYY",DateTimeTools.GetFormattedDateDDMMYYYY())
+                tmpbuf = tmpbuf.Replace("MM/DD/YYYY",getFormattedDateDDMMYYYY())
             if (tmpbuf.Contains("HH:MM"))
-                tmpbuf = tmpbuf.Replace("HH:MM",DateTimeTools.GetFormattedTimeHHMM())
+                tmpbuf = tmpbuf.Replace("HH:MM",getFormattedTimeHHMM())
             if (tmpbuf.Contains("HH:MM:SS"))
-                tmpbuf = tmpbuf.Replace("HH:MM",DateTimeTools.GetFormattedTimeHHMMSS())
+                tmpbuf = tmpbuf.Replace("HH:MM",getFormattedTimeHHMMSS())
             if (tmpbuf.Contains("[PAGE#]"))
                 tmpbuf = tmpbuf.Replace("[PAGE#]",%string(this.PageNumber))
             if (tmpbuf.Contains("[LOCATION]"))
@@ -2543,6 +2556,71 @@ namespace SynPSG.PDF
             required in aFooterRow, int
         proc
             mreturn mHeight - topOffset - (mHeaderRows * mRowHeight) - (mRows * mRowHeight) - (aFooterRow * mRowHeight)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;; <summary>
+        ;;; Returns the date in MM/DD/YYYY format
+        ;;; </summary>
+        private method getFormattedDateMMDDYYYY, string
+            record
+                now, a20
+            endrecord
+        proc
+            now = %datetime
+            mreturn now(5:2)+"/"+now(7:2)+"/"+now(1:4)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Returns the date in DD/MM/YYYY format
+        ;;; </summary>
+        private method getFormattedDateDDMMYYYY, string
+            record
+                now, a20
+            endrecord
+        proc
+            now = %datetime
+            mreturn now(7:2)+"/"+now(5:2)+"/"+now(1:4)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Returns the time in HH:MM format
+        ;;; </summary>
+        private method getFormattedTimeHHMM, string
+            record
+                now, a20
+            endrecord
+        proc
+            now = %datetime
+            mreturn now(9:2)+":"+now(11:2)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Returns the time in HH:MM:SS format
+        ;;; </summary>
+        private method getFormattedTimeHHMMSS, string
+            record
+                now, a20
+            endrecord
+        proc
+            now = %datetime
+            mreturn now(9:2)+":"+now(11:2)+":"+now(13:2)
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Returns the date and time in time in XXXX-XX-XX XX.XX.XX format
+        ;;; </summary>
+        private method getTempFilePrefix, string
+            record
+                now, a20
+            endrecord
+        proc
+            now = %datetime
+            mreturn %string(^d(now(1:14)),"XXXX-XX-XX XX.XX.XX")
         endmethod
 
         ;;--------------------------------------------------------------------------------
