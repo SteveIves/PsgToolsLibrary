@@ -18,8 +18,7 @@ main TestDeliveryTicket
 proc
     UI.OpenTerminal("Delivery Ticket Test")
 
-    pdf = new PdfFile()
-    pdf.Initialize("TEMP:","Delivery Ticket")
+    pdf = new PdfFile(,,,,,,,,,,,,"Delivery Ticket")
 
     ;;Load and embed custom fonts
     exeFolder = Environment.GetEnvironmentVariable("EXE")

@@ -462,7 +462,7 @@ namespace SynPSG
             else
                 headerLines = 3
 
-            pdf = new PdfFile(,orientation,0.25,0.25,0.25,0.25,headerLines,2)
+            pdf = new PdfFile(,orientation,reportWidth,14,,0.25,0.25,0.25,0.25,headerLines,2,"SYS$LOGIN:","Scroll Window Data")
 
             if (headerLines == 2) then
             begin
@@ -475,54 +475,50 @@ namespace SynPSG
                 pdf.HeaderText[2] = mHeaderText
                 pdf.HeaderText[3] = "[LINE]"
             end
+
             pdf.FooterText[1] = "[LINE]"
             pdf.FooterText[2] = "Created on MM/DD/YYYY at HH:MM, page [PAGE#]"
 
-            if (pdf.Initialize("SYS$LOGIN:","Scroll Window Data",reportWidth,14)) then
+            ;;Remove the list from the screen
+            xcall l_remove(mLid)
+
+            ;;Put up a "Preparing report..." window
             begin
-                ;;Remove the list from the screen
-                xcall l_remove(mLid)
-
-                ;;Put up a "Preparing report..." window
-                begin
-                    data msgWinId, i4
-                    xcall w_proc(WP_CREATE,msgWinId,"",3,21,WP_PLACE,msgWinId,9,32)
-                    xcall w_disp(msgWinId,WD_POS,2,2,"Preparing report...")
-                    xcall w_updt
-                    xcall w_proc(WP_DELETE,msgWinId)
-                end
-
-                ;Go to the top of the list
-                xcall l_process(mLid,mReq=D_LTOP,mData)
-
-                repeat
-                begin
-                    data atBottom, i4
-
-                    pdf.DrawTextRC(%atrim(mData),,,,,,true)
-
-                    xcall l_process(mLid,mReq=D_LDOWN,mData)
-
-                    ;;Are we at the end of the list?
-                    xcall l_status(mLid,D_LATBOTTOM,atBottom)
-                    if (atBottom)
-                    begin
-                        pdf.DrawTextRC(%atrim(mData),,,,,,true)
-                        exitloop
-                    end
-                end
-
-                ;;Go back to the top of the list
-                xcall l_process(mLid,mReq=D_LTOP,mData)
-
-                ;;Put the list back on the screen
-                xcall l_place(mLid)
-
-                ;;Show the print preview window
-                pdf.Preview()
+                data msgWinId, i4
+                xcall w_proc(WP_CREATE,msgWinId,"",3,21,WP_PLACE,msgWinId,9,32)
+                xcall w_disp(msgWinId,WD_POS,2,2,"Preparing report...")
+                xcall w_updt
+                xcall w_proc(WP_DELETE,msgWinId)
             end
-            else
-                xcall u_msgbox(errorMessage,D_MOK|D_MICONEXCLAM,"PDF creation failed. " + pdf.ErrorMessage)
+
+            ;Go to the top of the list
+            xcall l_process(mLid,mReq=D_LTOP,mData)
+
+            repeat
+            begin
+                data atBottom, i4
+
+                pdf.DrawTextRC(%atrim(mData),,,,,,true)
+
+                xcall l_process(mLid,mReq=D_LDOWN,mData)
+
+                ;;Are we at the end of the list?
+                xcall l_status(mLid,D_LATBOTTOM,atBottom)
+                if (atBottom)
+                begin
+                    pdf.DrawTextRC(%atrim(mData),,,,,,true)
+                    exitloop
+                end
+            end
+
+            ;;Go back to the top of the list
+            xcall l_process(mLid,mReq=D_LTOP,mData)
+
+            ;;Put the list back on the screen
+            xcall l_place(mLid)
+
+            ;;Show the print preview window
+            pdf.Preview()
 
         endmethod
 

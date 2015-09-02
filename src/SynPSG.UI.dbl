@@ -11,6 +11,7 @@ import SynPSG.System.IO
 
 import system
 import synpsg
+import synpsg.pdf
 import synpsg.system
 import synpsg.windows
 
@@ -1474,29 +1475,29 @@ eof,            close ch
         ;-------------------------------------------------
         ;Terminal printing via VDSC.Report
 
-        private static PrintMode,       boolean
+        private static PrintMode,   boolean
         private static pdf,         @PdfFile
 
         public static method StartPrintMode,    boolean
 
-            optional in aPartialFileName,   string
-            optional in aOrientation,   PdfOrientation
-            optional in aMinimumColumns,    int
-            optional in aMaxFontSize,   int
-            optional in aCenterBodyInPage,  boolean
-            optional in aLeftMargin,    float
-            optional in aTopMargin,     float
-            optional in aRightMargin,   float
-            optional in aBottomMargin,  float
-            optional in aHeaderRows,    @ArrayList
-            optional in aFooterRows,    @ArrayList
+            optional in aPartialFileName,       string
+            optional in aOrientation,           PdfOrientation
+            optional in aMinimumColumns,        int
+            optional in aMaxFontSize,           int
+            optional in aCenterBodyInPage,      boolean
+            optional in aLeftMargin,            float
+            optional in aTopMargin,             float
+            optional in aRightMargin,           float
+            optional in aBottomMargin,          float
+            optional in aHeaderRows,            @ArrayList
+            optional in aFooterRows,            @ArrayList
 
             record
-                ok,         boolean
-                orientation,        PdfOrientation
+                ok,             boolean
+                orientation,    PdfOrientation
                 headerRows,     int
                 footerRows,     int
-                partialName,        string
+                partialName,    string
                 minWidth,       int
             endrecord
 
@@ -1544,26 +1545,6 @@ eof,            close ch
             else
                 footerRows = 0
 
-            ;;Create a new PdfFile object
-            pdf = new PdfFile(,orientation,aLeftMargin,aTopMargin,aRightMargin,aLeftMargin,headerRows,footerRows)
-            PrintMode = true
-
-            ;;Add any page headers
-            if (headerRows)
-            begin
-                data ix, int
-                for ix from 1 thru headerRows
-                    pdf.HeaderText[ix] = (string)aHeaderRows[ix-1]
-            end
-
-            ;;Add any page footers
-            if (footerRows)
-            begin
-                data ix, int
-                for ix from 1 thru footerRows
-                    pdf.FooterText[ix] = (string)aFooterRows[ix-1]
-            end
-
             if (^passed(aPartialFileName) && (aPartialFileName.Trim().Length>0)) then
                 partialName = aPartialFileName.Trim()
             else
@@ -1586,7 +1567,25 @@ eof,            close ch
             else
                 minWidth = 80
 
-            ok = pdf.Initialize("SYS$LOGIN:",partialName,minWidth,aMaxFontSize,aCenterBodyInPage)
+            ;;Create a new PdfFile object
+            pdf = new PdfFile(,orientation,minWidth,aMaxFontSize,aCenterBodyInPage,aLeftMargin,aTopMargin,aRightMargin,aBottomMargin,headerRows,footerRows,"SYS$LOGIN:",partialName)
+            PrintMode = true
+
+            ;;Add any page headers
+            if (headerRows)
+            begin
+                data ix, int
+                for ix from 1 thru headerRows
+                    pdf.HeaderText[ix] = (string)aHeaderRows[ix-1]
+            end
+
+            ;;Add any page footers
+            if (footerRows)
+            begin
+                data ix, int
+                for ix from 1 thru footerRows
+                    pdf.FooterText[ix] = (string)aFooterRows[ix-1]
+            end
 
             mreturn ok
 

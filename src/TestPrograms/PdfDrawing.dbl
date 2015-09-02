@@ -15,25 +15,21 @@ main PdfDrawing
 proc
     UI.OpenTerminal("Test Program for PdfFile Class")
 
-    pdf = new PdfFile(,,,,,,,,PdfColor.LightYellow)
-    if (pdf.Initialize()) then
-    begin
-        pdf.FillColor = PdfColor.LightBrown
-        pdf.StrokeColor = PdfColor.Blue
+    pdf = new PdfFile(,,,,,,,,,,,,,PdfColor.LightYellow)
 
-        for ix from 1 thru pdf.Rows
-            pdf.DrawTextRC(buffer(1:pdf.Columns),ix,1)
+    pdf.FillColor = PdfColor.LightBrown
+    pdf.StrokeColor = PdfColor.Blue
 
-        pdf.DrawBoxRC(10,10,12,70)
+    for ix from 1 thru pdf.Rows
+        pdf.DrawTextRC(buffer(1:pdf.Columns),ix,1)
 
-        pdf.DrawBoxRC(14,10,16,70,,PdfColor.Orange,true)
+    pdf.DrawBoxRC(10,10,12,70)
 
-        pdf.DrawLineRC(12,20,14,20)
+    pdf.DrawBoxRC(14,10,16,70,,PdfColor.Orange,true)
 
-        pdf.Preview()
-    end
-    else
-        UI.DisplayLine("Failed to initialize PDF file!")
+    pdf.DrawLineRC(12,20,14,20)
+
+    pdf.Preview()
 
     UI.CloseTerminal()
     stop
