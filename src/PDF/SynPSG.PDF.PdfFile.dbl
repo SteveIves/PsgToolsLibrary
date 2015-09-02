@@ -6883,6 +6883,761 @@ namespace SynPSG.PDF
     endclass
 
     ;;********************************************************************************
+    ;;SUPPORTING CLASSES
+
+    ;;; <summary>
+    ;;; Abstract base class for all auto item classes
+    ;;; </summary>
+    public abstract class AutoItem
+
+        public method AutoItem
+            optional in aMode, AutoItemMode
+        proc
+            if (^passed(aMode)) then
+                mMode = aMode
+            else
+                mMode = AutoItemMode.EndPage
+        endmethod
+
+        private mMode, AutoItemMode
+
+        public property Mode, AutoItemMode
+            method get
+            proc
+                mreturn mMode
+            endmethod
+            method set
+            proc
+                mMode = value
+            endmethod
+        endproperty
+
+    endclass
+
+    ;;; <summary>
+    ;;; Abstract base class for all auto line and auto box classes
+    ;;; </summary>
+    public abstract class AutoLine extends AutoItem
+
+        public method AutoLine
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            optional in aMode,        AutoItemMode
+            endparams
+            parent(aMode)
+        proc
+            Width = ^passed(aWidth) ? aWidth : 1
+            if (^passed(aStrokeColor)) then
+                StrokeColor = aStrokeColor
+            else
+                StrokeColor = PdfColor.Black
+        endmethod
+
+        private mWidth, float
+
+        public property Width, float
+            method get
+            proc
+                mreturn mWidth
+            endmethod
+            method set
+            proc
+                mWidth = value
+            endmethod
+        endproperty
+
+        private mStrokeColor, PdfColor
+
+        public property StrokeColor, PdfColor
+            method get
+            proc
+                mreturn mStrokeColor
+            endmethod
+            method set
+            proc
+                mStrokeColor = value
+            endmethod
+        endproperty
+
+    endclass
+
+    ;;; <summary>
+    ;;; Abstract base class for all auto box classes
+    ;;; </summary>
+    public abstract class AutoBox extends AutoLine
+
+        public method AutoBox
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            optional in aFill,        boolean
+            optional in aFillColor,   PdfColor
+            optional in aMode,        AutoItemMode
+            endparams
+            parent(aWidth,aStrokeColor,aMode)
+        proc
+            if (^passed(aFill))
+                mFill = aFill
+            if (^passed(aFillColor))
+                mFillColor = aFillColor
+        endmethod
+
+        private mFill, boolean, false
+
+        public property Fill, boolean
+            method get
+            proc
+                mreturn mFill
+            endmethod
+            method set
+            proc
+                mFill = value
+            endmethod
+        endproperty
+
+        private mFillColor, PdfColor, PdfColor.Black
+
+        public property FillColor, PdfColor
+            method get
+            proc
+                mreturn mFillColor
+            endmethod
+            method set
+            proc
+                mFillColor = value
+            endmethod
+        endproperty
+
+    endclass
+
+    ;;; <summary>
+    ;;; Abstract base class for all auto text classes
+    ;;; </summary>
+    public abstract class AutoText extends AutoItem
+
+        public method AutoText
+            required in aText,      string
+            optional in aColor,     PdfColor
+            optional in aMode,      AutoItemMode
+            endparams
+            parent(aMode)
+        proc
+            mText = aText
+            if (^passed(aColor)) then
+                mColor = aColor
+            else
+                mColor = PdfColor.Black
+        endmethod
+
+        private mText, string
+
+        public property Text, string
+            method get
+            proc
+                mreturn mText
+            endmethod
+            method set
+            proc
+                mText = value
+            endmethod
+        endproperty
+
+        private mColor, PdfColor
+
+        public property Color, PdfColor
+            method get
+            proc
+                mreturn mColor
+            endmethod
+            method set
+            proc
+                mColor = value
+            endmethod
+        endproperty
+
+    endclass
+
+    ;;; <summary>
+    ;;; Represents a box that is to be drawn on the page of a PDF document using absolute coordinates.
+    ;;; </summary>
+    public class AutoBoxAbsolute extends AutoBox
+
+        public method AutoBoxAbsolute
+            required in aFromX,       float
+            required in aFromY,       float
+            required in aToX,         float
+            required in aToY,         float
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            optional in aFill,        boolean
+            optional in aFillColor,   PdfColor
+            optional in aMode,        AutoItemMode
+            endparams
+            parent(aWidth,aStrokeColor,aFill,aFillColor,aMode)
+        proc
+            mFromX = aFromX
+            mFromY = aFromY
+            mToX   = aToX
+            mToY   = aToY
+        endmethod
+
+        private mFromX, float
+
+        public property FromX, float
+            method get
+            proc
+                mreturn mFromX
+            endmethod
+            method set
+            proc
+                mFromX = value
+            endmethod
+        endproperty
+
+        private mFromY, float
+
+        public property FromY, float
+            method get
+            proc
+                mreturn mFromY
+            endmethod
+            method set
+            proc
+                mFromY = value
+            endmethod
+        endproperty
+
+        private mToX, float
+
+        public property ToX, float
+            method get
+            proc
+                mreturn mToX
+            endmethod
+            method set
+            proc
+                mToX = value
+            endmethod
+        endproperty
+
+        private mToY, float
+
+        public property ToY, float
+            method get
+            proc
+                mreturn mToY
+            endmethod
+            method set
+            proc
+                mToY = value
+            endmethod
+        endproperty
+
+    endclass
+
+    ;;; <summary>
+    ;;; Represents a box that is to be drawn on the page of a PDF document using row/column coordinates.
+    ;;; </summary>
+    public class AutoBoxRowCol extends AutoBox
+
+        public method AutoBoxRowCol
+            optional in aFromRow,     int
+            optional in aFromCol,     int
+            optional in aToRow,       int
+            optional in aToCol,       int
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            optional in aFill,        boolean
+            optional in aFillColor,   PdfColor
+            optional in aMode,        AutoItemMode
+            endparams
+            parent(aWidth,aStrokeColor,aFill,aFillColor,aMode)
+        proc
+            if (^passed(aFromRow))
+                mFromRow = aFromRow
+            if (^passed(aFromCol))
+                mFromCol = aFromCol
+            if (^passed(aToRow))
+                mToRow = aToRow
+            if (^passed(aToCol))
+                mToCol = aToCol
+        endmethod
+
+        private mFromRow, int, 0
+
+        public property FromRow, int
+            method get
+            proc
+                mreturn mFromRow
+            endmethod
+            method set
+            proc
+                mFromRow = value
+            endmethod
+        endproperty
+
+        private mFromCol, int, 0
+
+        public property FromCol, int
+            method get
+            proc
+                mreturn mFromCol
+            endmethod
+            method set
+            proc
+                mFromCol = value
+            endmethod
+        endproperty
+
+        private mToRow, int, 0
+
+        public property ToRow, int
+            method get
+            proc
+                mreturn mToRow
+            endmethod
+            method set
+            proc
+                mToRow = value
+            endmethod
+        endproperty
+
+        private mToCol, int, 0
+
+        public property ToCol, int
+            method get
+            proc
+                mreturn mToCol
+            endmethod
+            method set
+            proc
+                mToCol = value
+            endmethod
+        endproperty
+
+    endclass
+
+    ;;; <summary>
+    ;;; Represents an image that is to be drawn on the page of a PDF document using absolute coordinates.
+    ;;; </summary>
+    public class AutoImage extends AutoItem
+
+        public method AutoImage
+            required in aFileSpec, string
+            required in aX, float
+            required in aY, float
+            optional in aWidth, float
+            optional in aHeight, float
+            optional in aMode, AutoItemMode
+            endparams
+            parent(aMode)
+        proc
+            mFileSpec = aFileSpec
+            mX = aX
+            mY = aY
+            if (^passed(aWidth)) then
+                mWidth = aWidth
+            else
+                mWidth = 0
+            if (^passed(aHeight)) then
+                mHeight = aHeight
+            else
+                mHeight = 0
+        endmethod
+
+        private mFileSpec, string
+
+        public property FileSpec, string
+            method get
+            proc
+                mreturn mFileSpec
+            endmethod
+            method set
+            proc
+                mFileSpec = value
+            endmethod
+        endproperty
+
+        private mX, float
+
+        public property X, float
+            method get
+            proc
+                mreturn mX
+            endmethod
+            method set
+            proc
+                mX = value
+            endmethod
+        endproperty
+
+        private mY, float
+
+        public property Y, float
+            method get
+            proc
+                mreturn mY
+            endmethod
+            method set
+            proc
+                mY = value
+            endmethod
+        endproperty
+
+        private mWidth, float
+
+        public property Width, float
+            method get
+            proc
+                mreturn mWidth
+            endmethod
+            method set
+            proc
+                mWidth = value
+            endmethod
+        endproperty
+
+        private mHeight, float
+
+        public property Height, float
+            method get
+            proc
+                mreturn mHeight
+            endmethod
+            method set
+            proc
+                mHeight = value
+            endmethod
+        endproperty
+
+    endclass
+
+    ;;; <summary>
+    ;;; Represents a line that is to be drawn on the page of a PDF document using absolute coordinates.
+    ;;; </summary>
+    public class AutoLineAbsolute extends AutoLine
+
+        public method AutoLineAbsolute
+            required in aFromX,       float
+            required in aFromY,       float
+            required in aToX,         float
+            required in aToY,         float
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            optional in aMode,        AutoItemMode
+            endparams
+            parent(aWidth,aStrokeColor,aMode)
+        proc
+            mFromX = aFromX
+            mFromY = aFromY
+            mToX   = aToX
+            mToY   = aToY
+        endmethod
+
+        private mFromX, float
+
+        public property FromX, float
+            method get
+            proc
+                mreturn mFromX
+            endmethod
+            method set
+            proc
+                mFromX = value
+            endmethod
+        endproperty
+
+        private mFromY, float
+
+        public property FromY, float
+            method get
+            proc
+                mreturn mFromY
+            endmethod
+            method set
+            proc
+                mFromY = value
+            endmethod
+        endproperty
+
+        private mToX, float
+
+        public property ToX, float
+            method get
+            proc
+                mreturn mToX
+            endmethod
+            method set
+            proc
+                mToX = value
+            endmethod
+        endproperty
+
+        private mToY, float
+
+        public property ToY, float
+            method get
+            proc
+                mreturn mToY
+            endmethod
+            method set
+            proc
+                mToY = value
+            endmethod
+        endproperty
+
+    endclass
+
+    ;;; <summary>
+    ;;; Represents a line that is to be drawn on the page of a PDF document using row/column coordinates.
+    ;;; </summary>
+    public class AutoLineRowCol extends AutoLine
+
+        public method AutoLineRowCol
+            required in aFromRow,     int
+            required in aFromCol,     int
+            required in aToRow,       int
+            required in aToCol,       int
+            optional in aWidth,       float
+            optional in aStrokeColor, PdfColor
+            optional in aMode,        AutoItemMode
+            endparams
+            parent(aWidth,aStrokeColor,aMode)
+        proc
+            FromRow = aFromRow
+            FromCol = aFromCol
+            ToRow   = aToRow
+            ToCol   = aToCol
+        endmethod
+
+        private mFromRow, int
+
+        public property FromRow, int
+            method get
+            proc
+                mreturn mFromRow
+            endmethod
+            method set
+            proc
+                mFromRow = value
+            endmethod
+        endproperty
+
+        private mFromCol, int
+
+        public property FromCol, int
+            method get
+            proc
+                mreturn mFromCol
+            endmethod
+            method set
+            proc
+                mFromCol = value
+            endmethod
+        endproperty
+
+        private mToRow, int
+
+        public property ToRow, int
+            method get
+            proc
+                mreturn mToRow
+            endmethod
+            method set
+            proc
+                mToRow = value
+            endmethod
+        endproperty
+
+        private mToCol, int
+
+        public property ToCol, int
+            method get
+            proc
+                mreturn mToCol
+            endmethod
+            method set
+            proc
+                mToCol = value
+            endmethod
+        endproperty
+
+    endclass
+
+    ;;; <summary>
+    ;;; Represents text that is to be drawn on the page of a PDF document using absolute coordinates.
+    ;;; </summary>
+    public class AutoTextAbsolute extends AutoText
+
+        public method AutoTextAbsolute
+            required in aText,      string
+            required in aX,         float
+            required in aY,         float
+            optional in aColor,     PdfColor
+            optional in aFontName,  string
+            optional in aFontSize,  int
+            optional in aMode,      AutoItemMode
+            endparams
+            parent(aText,aColor,aMode)
+        proc
+            mX  = aX
+            mY  = aY
+            if (^passed(aFontName) && (afontName!=^null) && (aFontName.Trim().Length>0))
+                mFontName = aFontName
+            if (^passed(aFontSize) && (aFontSize>0))
+                mFontSize = aFontSize
+        endmethod
+
+        private mX, float
+
+        public property X, float
+            method get
+            proc
+                mreturn mX
+            endmethod
+            method set
+            proc
+                mX = value
+            endmethod
+        endproperty
+
+        private mY, float
+
+        public property Y, float
+            method get
+            proc
+                mreturn mY
+            endmethod
+            method set
+            proc
+                mY = value
+            endmethod
+        endproperty
+
+        private mFontName, string
+
+        public property FontName, string
+            method get
+            proc
+                mreturn mFontName
+            endmethod
+            method set
+            proc
+                mFontName = value
+            endmethod
+        endproperty
+
+        private mFontSize, int, 0
+
+        public property FontSize, int
+            method get
+            proc
+                mreturn mFontSize
+            endmethod
+            method set
+            proc
+                mFontSize = value
+            endmethod
+        endproperty
+
+    endclass
+
+    ;;; <summary>
+    ;;; Represents text that is to be drawn on the page of a PDF document using row/column coordinates.
+    ;;; </summary>
+    public class AutoTextRowCol extends AutoText
+
+        public method AutoTextRowCol
+            required in aText,      string
+            optional in aRow,       int
+            optional in aCol,       int
+            optional in aBold,      boolean
+            optional in aItalic,    boolean
+            optional in aColor,     PdfColor
+            optional in aNewLine,   boolean
+            optional in aMode,      AutoItemMode
+            endparams
+            parent(aText,aColor,aMode)
+        proc
+            if (^passed(aRow))
+                mRow  = aRow
+            if (^passed(aCol))
+                mCol  = aCol
+            if (^passed(aBold))
+                mBold = aBold
+            if (^passed(aItalic))
+                mItalic = aItalic
+            if (^passed(aNewLine))
+                mNewLine = aNewLine
+        endmethod
+
+        private mRow, int, 0
+
+        public property Row, int
+            method get
+            proc
+                mreturn mRow
+            endmethod
+            method set
+            proc
+                mRow = value
+            endmethod
+        endproperty
+
+        private mCol, int, 0
+
+        public property Col, int
+            method get
+            proc
+                mreturn mCol
+            endmethod
+            method set
+            proc
+                mCol = value
+            endmethod
+        endproperty
+
+        private mBold, boolean, false
+
+        public property Bold, boolean
+            method get
+            proc
+                mreturn mBold
+            endmethod
+            method set
+            proc
+                mBold = value
+            endmethod
+        endproperty
+
+        private mItalic, boolean, false
+
+        public property Italic, boolean
+            method get
+            proc
+                mreturn mItalic
+            endmethod
+            method set
+            proc
+                mItalic = value
+            endmethod
+        endproperty
+
+        private mNewLine, boolean, false
+
+        public property NewLine, boolean
+            method get
+            proc
+                mreturn mNewLine
+            endmethod
+            method set
+            proc
+                mNewLine = value
+            endmethod
+        endproperty
+
+    endclass
+
+    ;;********************************************************************************
     ;;ENUMERATIONS
 
     public enum AutoItemMode
