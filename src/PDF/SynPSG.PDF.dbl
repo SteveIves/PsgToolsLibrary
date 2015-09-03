@@ -1174,6 +1174,7 @@ namespace SynPSG.PDF
             optional in aColor,     PdfColor
             optional in aFontName,  string
             optional in aFontSize,  int
+            optional in aUnderline, boolean
             endparams
         proc
             ;;If we don't have a first page then add one
@@ -1209,6 +1210,13 @@ namespace SynPSG.PDF
             pg.ShowText(aText)
             pg.EndText()
 
+            if (^passed(aUnderline) && aUnderline)
+            begin
+                data tmpToX, float, aX + pg.TextWidth(aText)
+                data tmpY, float, aY-1
+                DrawLine(aX,tmpY,tmpToX,tmpY,0.5)
+            end
+
             if ((^passed(aFontName) && (aFontName!=^null)) || (^passed(aFontSize) && (aFontSize>0)))
                 ResetFont()
 
@@ -1229,7 +1237,7 @@ namespace SynPSG.PDF
             required in aText, @AutoTextAbsolute
             endparams
         proc
-            DrawText(aText.Text,aText.X,aText.Y,aText.Color,aText.FontName,aText.FontSize)
+            DrawText(aText.Text,aText.X,aText.Y,aText.Color,aText.FontName,aText.FontSize,aText.Underline)
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -1241,7 +1249,7 @@ namespace SynPSG.PDF
             required in aText, @AutoTextRowCol
             endparams
         proc
-            DrawTextRC(aText.Text,aText.Row,aText.Col,aText.Bold,aText.Italic,aText.Color,aText.NewLine)
+            DrawTextRC(aText.Text,aText.Row,aText.Col,aText.Bold,aText.Italic,aText.Color,aText.NewLine,aText.Underline)
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -1266,6 +1274,7 @@ namespace SynPSG.PDF
             optional in aItalic,    boolean
             optional in aColor,     PdfColor
             optional in aNewLine,   boolean
+            optional in aUnderline, boolean
             endparams
             record
                 row,                int
@@ -1321,6 +1330,14 @@ namespace SynPSG.PDF
             begin
                 resetStrokeColor()
                 resetFillColor()
+            end
+
+            if (^passed(aUnderline) && aUnderline)
+            begin
+                data tmpFromX, float, XfromCol(col)
+                data tmpToX, float, tmpFromX + pg.TextWidth(aText)
+                data tmpY, float, Body_YFromRow(row) - 1
+                DrawLine(tmpFromX,tmpY,tmpToX,tmpY,0.5)
             end
 
             if (^passed(aNewLine) && aNewLine) then
@@ -7360,6 +7377,7 @@ namespace SynPSG.PDF
         public method AutoText
             required in aText,      string
             optional in aColor,     PdfColor
+            optional in aUnderline, boolean
             optional in aMode,      AutoItemMode
             endparams
             parent(aMode)
@@ -7369,6 +7387,10 @@ namespace SynPSG.PDF
                 mColor = aColor
             else
                 mColor = PdfColor.Black
+            if (^passed(aUnderline)) then
+                mUnderline = aUnderline
+            else
+                mUnderline = false
         endmethod
 
         private mText, string
@@ -7394,6 +7416,19 @@ namespace SynPSG.PDF
             method set
             proc
                 mColor = value
+            endmethod
+        endproperty
+
+        private mUnderline, boolean
+
+        public property Underline, boolean
+            method get
+            proc
+                mreturn mUnderline
+            endmethod
+            method set
+            proc
+                mUnderline = value
             endmethod
         endproperty
 
@@ -7819,8 +7854,9 @@ namespace SynPSG.PDF
             optional in aFontName,  string
             optional in aFontSize,  int
             optional in aMode,      AutoItemMode
+            optional in aUnderline, boolean
             endparams
-            parent(aText,aColor,aMode)
+            parent(aText,aColor,aUnderline,aMode)
         proc
             mX  = aX
             mY  = aY
@@ -7898,8 +7934,9 @@ namespace SynPSG.PDF
             optional in aColor,     PdfColor
             optional in aNewLine,   boolean
             optional in aMode,      AutoItemMode
+            optional in aUnderline, boolean
             endparams
-            parent(aText,aColor,aMode)
+            parent(aText,aColor,aUnderline,aMode)
         proc
             if (^passed(aRow))
                 mRow  = aRow
