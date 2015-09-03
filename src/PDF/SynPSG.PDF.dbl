@@ -82,6 +82,11 @@ namespace SynPSG.PDF
         private rightOffset,                    float   ;Pixels reserved for requested right margin
         private bottomOffset,                   float   ;Pixels reserved for requested bottom margin
 
+        private requestedLeftMargin,            float
+        private requestedTopMargin,             float
+        private requestedRightMargin,           float
+        private requestedBottomMargin,          float
+
         private totalHeightDefaultOrientation,  float
         private totalHeightOtherOrientation,    float
 
@@ -93,6 +98,8 @@ namespace SynPSG.PDF
 
         private totalRowsOtherOrientation,      int     ;Total number of rows for the entire page (other orientation)
         private totalColsOtherOrientation,      int     ;Total number of cols for the entire page (other orientation)
+
+        private maxFontSize,                    int
 
         ;;********************************************************************************
         ;;CONSTRUCTORS
@@ -180,27 +187,51 @@ namespace SynPSG.PDF
 
             ;;Left margin
             if (^passed(aLeftMargin) && (aLeftMargin >= 0)) then
+            begin
+                requestedLeftMargin = aLeftMargin
                 this.LeftMargin = aLeftMargin
+            end
             else
+            begin
+                requestedLeftMargin = 0
                 this.LeftMargin = 0.16
+            end
 
             ;;Top margin
             if (^passed(aTopMargin) && (aTopMargin >= 0)) then
+            begin
+                requestedTopMargin = aTopMargin
                 this.TopMargin = aTopMargin
+            end
             else
+            begin
+                requestedTopMargin = 0
                 this.TopMargin = 0.16
+            end
 
             ;;Right margin
             if (^passed(aRightMargin) && (aRightMargin >= 0)) then
+            begin
+                requestedRightMargin = aRightMargin
                 this.RightMargin = aRightMargin
+            end
             else
+            begin
+                requestedRightMargin = 0
                 this.RightMargin = 0.16
+            end
 
             ;;Bottom margin
             if (^passed(aBottomMargin) && (aBottomMargin>=0)) then
+            begin
+                requestedBottomMargin = aBottomMargin
                 this.BottomMargin = aBottomMargin
+            end
             else
+            begin
+                requestedBottomMargin = 0
                 this.BottomMargin = 0.16
+            end
 
             ;;Start with a "normal" font size
             this.FontSize = 12
@@ -405,12 +436,14 @@ namespace SynPSG.PDF
             if (ok) then
             begin
                 ;;Were we given a maximum font size?
+                maxFontSize = 0
                 if (^passed(aMaxFontSize) && aMaxFontSize)
                 begin
-                    if (this.FontSize > aMaxFontSize)
+                    maxFontSize = aMaxFontSize
+                    if (this.FontSize > maxFontSize)
                     begin
                         ;;Selected font is bigger than maximum requested. Reduce to the requested size.
-                        this.FontSize = aMaxFontSize
+                        this.FontSize = maxFontSize
                         pg.SetFontAndSize(fontNormal,fontSizeFloat)
                         this.ColumnWidth = pg.TextWidth("W")
                         totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
@@ -521,6 +554,105 @@ namespace SynPSG.PDF
                 this.AutoItems.Add(new AutoLineAbsolute(x,0,x,this.Height,0.5,PdfColor.DarkGray))
 
             this.ResetFont()
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Adds an information page to the PDF document
+        ;;; </summary>
+        public method AddInfoPage, void
+        proc
+            if (PageNumber==0)
+                NewPage(PdfOrientation.Portrait)
+            DrawTextRC("File spec             : " + this.FileLocation + this.FileName,,,,,,true)
+
+            NewLine()
+            DrawTextRC("Main Parameters",,,,,,true)
+            NewLine()
+            DrawTextRC(" - Paper size         : ")
+            using this.PageSize select
+            (PdfPageSize.LETTER),
+                DrawTextRC("LETTER",,,,,,true)
+            (PdfPageSize.LEGAL),
+                DrawTextRC("LEGAL",,,,,,true)
+            (PdfPageSize.A3),
+                DrawTextRC("A3",,,,,,true)
+            (PdfPageSize.A4),
+                DrawTextRC("A4",,,,,,true)
+            (PdfPageSize.A5),
+                DrawTextRC("A5",,,,,,true)
+            (PdfPageSize.B4),
+                DrawTextRC("B4",,,,,,true)
+            (PdfPageSize.B5),
+                DrawTextRC("B5",,,,,,true)
+            (PdfPageSize.EXECUTIVE),
+                DrawTextRC("EXECUTIVE",,,,,,true)
+            (PdfPageSize.US4x6),
+                DrawTextRC("US 4 x 6",,,,,,true)
+            (PdfPageSize.US4x8),
+                DrawTextRC("US 4 x 8",,,,,,true)
+            (PdfPageSize.US5x7),
+                DrawTextRC("US 5 x 7",,,,,,true)
+            (PdfPageSize.COMM10),
+                DrawTextRC("COMM10",,,,,,true)
+            endusing
+            DrawTextRC(" - Orientation        : ")
+            using (this.DefaultOrientation) select
+            (PdfOrientation.Portrait),
+                DrawTextRC("Portrait",,,,,,true)
+            (PdfOrientation.Landscape),
+                DrawTextRC("Landscape",,,,,,true)
+            endusing
+            DrawTextRC(" - Width              : " + %string(totalWidthDefaultOrientation,"XXXX.XX pixels"),,,,,,true)
+            DrawTextRC(" - Height             : " + %string(totalHeightDefaultOrientation,"XXXX.XX pixels"),,,,,,true)
+            DrawTextRC(" - Requested columns  : " + %string(this.RequestedColumns),,,,,,true)
+            DrawTextRC(" - Max font size      : ")
+            if (maxFontSize>0) then
+                DrawTextRC(%string(maxFontSize),,,,,,true)
+            else
+                DrawTextRC("Not specified",,,,,,true)
+            DrawTextRC(" - Center in page     : ")
+            if (mCenterBodyInPage) then
+                DrawTextRC("yes",,,,,,true)
+            else
+                DrawTextRC("no",,,,,,true)
+            DrawTextRC(" - Left margin        : ")
+            if (requestedLeftMargin>0) then
+                DrawTextRC(%string(requestedLeftMargin,'XX.XXX"'),,,,,,true)
+            else
+                DrawTextRC("Not specified",,,,,,true)
+            DrawTextRC(" - Top margin         : ")
+            if (requestedTopMargin>0) then
+                DrawTextRC(%string(requestedTopMargin,'XX.XXX"'),,,,,,true)
+            else
+                DrawTextRC("Not specified",,,,,,true)
+            DrawTextRC(" - Right margin       : ")
+            if (requestedRightMargin>0) then
+                DrawTextRC(%string(requestedRightMargin,'XX.XXX"'),,,,,,true)
+            else
+                DrawTextRC("Not specified",,,,,,true)
+            DrawTextRC(" - Bottom margin      : ")
+            if (requestedBottomMargin>0) then
+                DrawTextRC(%string(requestedBottomMargin,'XX.XXX"'),,,,,,true)
+            else
+                DrawTextRC("Not specified",,,,,,true)
+            DrawTextRC(" - Header rows        : " + %string(this.HeaderRows),,,,,,true)
+            DrawTextRC(" - Footer rows        : " + %string(this.FooterRows),,,,,,true)
+
+            NewLine()
+            DrawTextRC("Page Configuration - Row/Column Coordinates",,,,,,true)
+            NewLine()
+            DrawTextRC(" - Selected font size : " + %string(this.FontSize),,,,,,true)
+            DrawTextRC(" - Actual columns     : " + %string(totalColsDefaultOrientation),,,,,,true)
+            DrawTextRC(" - Total rows         : " + %string(totalRowsDefaultOrientation),,,,,,true)
+            DrawTextRC(" - Body rows          : " + %string(totalRowsDefaultOrientation-this.HeaderRows-this.FooterRows),,,,,,true)
+            DrawTextRC(" - Left margin        : " + %string(this.LeftMargin,'XX.XX"'),,,,,,true)
+            DrawTextRC(" - Top margin         : " + %string(this.TopMargin,'XX.XX"'),,,,,,true)
+            DrawTextRC(" - Right margin       : " + %string(this.RightMargin,'XX.XX"'),,,,,,true)
+            DrawTextRC(" - Bottom margin      : " + %string(this.BottomMargin,'XX.XX"'),,,,,,true)
+
+            NewPage()
 
         endmethod
 
@@ -1143,8 +1275,27 @@ namespace SynPSG.PDF
             if (!^passed(aRow) && (this.Row > this.Rows))
                 NewPage()
 
-            row = ^passed(aRow) ? aRow : this.Row
-            col = ^passed(aCol) ? aCol : this.Column
+            ;;Determine the output row
+            if (^passed(aRow)) then
+            begin
+                if (aRow>0) then
+                    row = aRow
+                else
+                    row = 1
+            end
+            else
+                row = this.Row
+
+            ;;Determine the output column
+            if (^passed(aCol)) then
+            begin
+                if (aCol>0) then
+                    col = aCol
+                else
+                    col = 1
+            end
+            else
+                col = this.Column
 
             setFontAttributes(aBold,aItalic)
 
