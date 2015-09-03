@@ -136,6 +136,7 @@ namespace SynPSG.PDF
             optional in aFileLocation,      string
             optional in aPartialFileName,   string
             optional in aBackgroundColor,   PdfColor
+            optional in aExtraRowSpacing,   float
             endparams
 
             record
@@ -246,8 +247,13 @@ namespace SynPSG.PDF
             ;;Make sure that text is drawn as solid letters, not an outline with a seperate fill
             pg.SetTextRenderingMode(HPdfTextRenderingMode.HPDF_FILL)
 
+            ;;Were we asked to add extra spacing between rows?
+            this.ExtraRowSpacing = 0
+            if (^passed(aExtraRowSpacing) && (aExtraRowSpacing > 0))
+                this.ExtraRowSpacing = aExtraRowSpacing
+
             ;;Calculate the page dimensions in rows and columns based on the current font
-            this.RowHeight = fontSizeFloat
+            this.RowHeight = fontSizeFloat + this.ExtraRowSpacing
             this.ColumnWidth = pg.TextWidth("W")
 
             totalRowsDefaultOrientation = %truncate((this.Height-topOffset-bottomOffset)/this.RowHeight)
@@ -433,70 +439,67 @@ namespace SynPSG.PDF
             end
 
             ;;If we were able to find a font size that provides the width that we need then we can continue
-            if (ok) then
-            begin
-                ;;Were we given a maximum font size?
-                maxFontSize = 0
-                if (^passed(aMaxFontSize) && aMaxFontSize)
-                begin
-                    maxFontSize = aMaxFontSize
-                    if (this.FontSize > maxFontSize)
-                    begin
-                        ;;Selected font is bigger than maximum requested. Reduce to the requested size.
-                        this.FontSize = maxFontSize
-                        pg.SetFontAndSize(fontNormal,fontSizeFloat)
-                        this.ColumnWidth = pg.TextWidth("W")
-                        totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
-                        totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
-                        this.Columns = totalColsDefaultOrientation
-                    end
-                end
-
-                ;;How many rows fit on the page at the selected font size?
-                this.RowHeight = fontSizeFloat
-
-                totalRowsDefaultOrientation = %truncate((this.Height-topOffset-bottomOffset)/this.RowHeight)
-                totalRowsOtherOrientation = %truncate((this.Width-topOffset-bottomOffset)/this.RowHeight)
-
-                this.Rows = totalRowsDefaultOrientation - this.HeaderRows - this.FooterRows
-
-                ;;If the page is wider than requested, should we manipulate the margins so that the
-                ;;requested width is centered horizontally within the page?
-
-                if ((this.Columns != this.RequestedColumns) && this.CenterBodyInPage)
-                begin
-                    data additionalColumns, int, this.Columns - this.RequestedColumns
-                    data additionalPixels, int, additionalColumns * this.ColumnWidth
-
-                    ;;Divide the additional space between the left and right margins
-                    leftOffset += (additionalPixels / 2.0)
-                    rightOffset += (additionalPixels / 2.0)
-
-                    this.LeftMargin = leftOffset / 72.0
-                    this.RightMargin = rightOffset / 72.0
-
-                    totalColsDefaultOrientation = this.RequestedColumns
-                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
-                    this.Columns = totalColsDefaultOrientation
-                end
-
-                ;;Release the current doucment and start over with a new one. This is done so that we start
-                ;;without a first page so that AutoItems can be added.
-                doc.FreeDoc()
-                doc.NewDoc()
-
-                ;;Reload the standard fonts so that their handles are valid with the new document
-                fontNormal = doc.GetFont("Courier", ^null)
-                fontBold = doc.GetFont("Courier-Bold", ^null)
-                fontItalic = doc.GetFont("Courier-Oblique", ^null)
-                fontBoldItalic = doc.GetFont("Courier-BoldOblique", ^null)
-
-            end
-            else
+            if (!ok)
             begin
                 Dispose()
                 throw new ApplicationException("Failed to select a font size to produce the requested results!")
             end
+
+            ;;Were we given a maximum font size?
+            maxFontSize = 0
+            if (^passed(aMaxFontSize) && aMaxFontSize)
+            begin
+                maxFontSize = aMaxFontSize
+                if (this.FontSize > maxFontSize)
+                begin
+                    ;;Selected font is bigger than maximum requested. Reduce to the requested size.
+                    this.FontSize = maxFontSize
+                    pg.SetFontAndSize(fontNormal,fontSizeFloat)
+                    this.ColumnWidth = pg.TextWidth("W")
+                    totalColsDefaultOrientation = (int)%truncate((this.Width-leftOffset-rightOffset)/this.ColumnWidth)
+                    totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                    this.Columns = totalColsDefaultOrientation
+                end
+            end
+
+            ;;How many rows fit on the page at the selected font size?
+            this.RowHeight = fontSizeFloat + this.ExtraRowSpacing
+
+            totalRowsDefaultOrientation = %truncate((this.Height-topOffset-bottomOffset)/this.RowHeight)
+            totalRowsOtherOrientation = %truncate((this.Width-topOffset-bottomOffset)/this.RowHeight)
+
+            this.Rows = totalRowsDefaultOrientation - this.HeaderRows - this.FooterRows
+
+            ;;If the page is wider than requested, should we manipulate the margins so that the
+            ;;requested width is centered horizontally within the page?
+
+            if ((this.Columns != this.RequestedColumns) && this.CenterBodyInPage)
+            begin
+                data additionalColumns, int, this.Columns - this.RequestedColumns
+                data additionalPixels, int, additionalColumns * this.ColumnWidth
+
+                ;;Divide the additional space between the left and right margins
+                leftOffset += (additionalPixels / 2.0)
+                rightOffset += (additionalPixels / 2.0)
+
+                this.LeftMargin = leftOffset / 72.0
+                this.RightMargin = rightOffset / 72.0
+
+                totalColsDefaultOrientation = this.RequestedColumns
+                totalColsOtherOrientation = (int)%truncate((this.Height-leftOffset-rightOffset)/this.ColumnWidth)
+                this.Columns = totalColsDefaultOrientation
+            end
+
+            ;;Release the current doucment and start over with a new one. This is done so that we start
+            ;;without a first page so that AutoItems can be added.
+            doc.FreeDoc()
+            doc.NewDoc()
+
+            ;;Reload the standard fonts so that their handles are valid with the new document
+            fontNormal = doc.GetFont("Courier", ^null)
+            fontBold = doc.GetFont("Courier-Bold", ^null)
+            fontItalic = doc.GetFont("Courier-Oblique", ^null)
+            fontBoldItalic = doc.GetFont("Courier-BoldOblique", ^null)
 
         endmethod
 
@@ -561,7 +564,8 @@ namespace SynPSG.PDF
         ;;; <summary>
         ;;; Adds an information page to the PDF document
         ;;; </summary>
-        public method AddInfoPage, void
+        public method AddInfoPage,      void
+            endparams
         proc
             if (PageNumber==0)
                 NewPage(PdfOrientation.Portrait)
@@ -639,6 +643,7 @@ namespace SynPSG.PDF
                 DrawTextRC("Not specified",,,,,,true)
             DrawTextRC(" - Header rows        : " + %string(this.HeaderRows),,,,,,true)
             DrawTextRC(" - Footer rows        : " + %string(this.FooterRows),,,,,,true)
+            DrawTextRC(" - Space between rows : " + %string(this.ExtraRowSpacing,"XX.XX pixels"),,,,,,true)
 
             NewLine()
             DrawTextRC("Page Configuration - Row/Column Coordinates",,,,,,true)
@@ -822,9 +827,9 @@ namespace SynPSG.PDF
 
             ;;Calculate the start and end points for a center cell to center cell line
             start_x = XfromCol(lFromColumn) + (this.ColumnWidth / 2)
-            start_y = Body_YfromRow(lFromRow) + ((this.RowHeight-penWidth)/2)
+            start_y = Body_YfromRow(lFromRow) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
             end_x   = XfromCol(lToColumn) + (this.ColumnWidth/ 2)
-            end_y   = Body_YfromRow(lToRow) + ((this.RowHeight-penWidth)/2)
+            end_y   = Body_YfromRow(lToRow) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
 
             ;;Define the box (this enters graphics mode)
             pg.Rectangle(start_x,start_y,end_x-start_x,end_y-start_y)
@@ -1064,9 +1069,9 @@ namespace SynPSG.PDF
 
             ;;Calculate the start and end points for a center cell to center cell line
             start_x = XfromCol(aFromCol) + (this.ColumnWidth / 2)
-            start_y = Body_YfromRow(aFromRow) + ((this.RowHeight-penWidth)/2)
+            start_y = Body_YfromRow(aFromRow) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
             end_x   = XfromCol(aToCol) + (this.ColumnWidth/ 2)
-            end_y   = Body_YfromRow(aToRow) + ((this.RowHeight-penWidth)/2)
+            end_y   = Body_YfromRow(aToRow) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
 
             ;;Draw the line
             pg.MoveTo(start_x,start_y)
@@ -1123,7 +1128,7 @@ namespace SynPSG.PDF
 
             ;;Calculate the start and end points for a center cell to center cell line
             start_x = XfromCol(this.Column) + (this.ColumnWidth / 2)
-            start_y = Body_YfromRow(this.Row) + ((this.RowHeight-penWidth)/2)
+            start_y = Body_YfromRow(this.Row) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
             end_x   = XfromCol(this.Columns) + (this.ColumnWidth/ 2)
             end_y   = start_y
 
@@ -1532,7 +1537,8 @@ namespace SynPSG.PDF
         ;;; <summary>
         ;;; Print the PDF file to a printer.
         ;;; </summary>
-        ;;; <param name="aPrinterName">Optional printer name</param>
+        ;;; <param name="aPrinterName">Optional printer name. If not passed then the users default printer is used.</param>
+        ;;; <param name="aErrorMessage">Optional returned error message.</param>
         ;;; <returns></returns>
         public method Print, boolean
             optional in  aPrinterName,  string
@@ -1554,9 +1560,72 @@ namespace SynPSG.PDF
                     if (fileExists(D_SUMATRA_EXE)) then
                     begin
                         if (^passed(aPrinterName) && (aPrinterName.Trim().Length>0)) then
-                            command = D_SUMATRA_EXE + ' -print-to "'+aPrinterName.Trim()+'" -silent ' + '"' + pdffile + '"'
+                            command = D_SUMATRA_EXE + ' -print-to "'+aPrinterName.Trim()+'" -silent -exit-on-print ' + '"' + pdffile + '"'
                         else
-                            command = D_SUMATRA_EXE + ' -print-to-default -silent ' + '"' + pdffile + '"'
+                            command = D_SUMATRA_EXE + ' -print-to-default -silent -exit-on-print ' + '"' + pdffile + '"'
+                        try
+                        begin
+                            xcall spawn(command,D_NOCONSOLE|D_NOWINDOW)
+                            errormessage = ""
+                            ok = true
+                        end
+                        catch (ex)
+                        begin
+                            errorMessage = "Failed to launch SumatraPDF. Error was " + ex.Message
+                            ok = false
+                        end
+                        endtry
+                    end
+                    else
+                    begin
+                        errorMessage = "SumartaPDF was not found!"
+                        ok = false
+                    end
+                end
+                else
+                begin
+                    errorMessage = "PDF file " + pdffile + " not found!"
+                    ok = false
+                end
+            end
+            else
+            begin
+                ;;Error message already set by Save()
+                ok = false
+            end
+
+            if (^passed(aErrorMessage))
+                aErrorMessage = errorMessage
+
+            mreturn ok
+
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
+        ;;; Show a SumartsPDF Print Dialog to print the PDF document.
+        ;;; </summary>
+        ;;; <param name="aErrorMessage">Optional returned error message.</param>
+        ;;; <returns></returns>
+        public method PrintDialog, boolean
+            optional out aErrorMessage, string
+            endparams
+            .define D_SUMATRA_EXE "C:\Program Files (x86)\SumatraPDF\SumatraPDF.exe"
+            record
+                ok, boolean
+                pdffile, string
+                command, string
+                errorMessage, string
+            endrecord
+        proc
+            if (this.Save(aErrorMessage)) then
+            begin
+                pdffile = this.FileLocation + this.FileName
+                if (fileExists(pdffile)) then
+                begin
+                    if (fileExists(D_SUMATRA_EXE)) then
+                    begin
+                        command = D_SUMATRA_EXE + ' -print-dialog -silent -exit-on-print ' + '"' + pdffile + '"'
                         try
                         begin
                             xcall spawn(command,D_NOCONSOLE|D_NOWINDOW)
@@ -1878,6 +1947,19 @@ namespace SynPSG.PDF
         endproperty
 
         ;;--------------------------------------------------------------------------------
+        ;;
+
+        ;;; <summary>
+        ;;; Gets the absolute coordinate system X coordinate that corresponds to the row/column coordinate system current column number.
+        ;;; </summary>
+        public property ColumnX, float
+            method get
+            proc
+                mreturn XfromCol(mColumn)
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
         ;;; <summary>
         ;;; Gets the creation date of the document.
         ;;; </summary>
@@ -1955,6 +2037,25 @@ namespace SynPSG.PDF
             private method set
             proc
                 mDefaultOrientation = value
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private mExtraRowSpacing, float
+
+        ;;; <summary>
+        ;;; Gets the amount of additional space that was requested between rows in device independent pixels.
+        ;;; </summary>
+        public property ExtraRowSpacing, float
+            method get
+            proc
+                mreturn mExtraRowSpacing
+            endmethod
+            private method set
+            proc
+                mExtraRowSpacing = value
             endmethod
         endproperty
 
@@ -2364,7 +2465,7 @@ namespace SynPSG.PDF
         private mRowHeight, float
 
         ;;; <summary>
-        ;;; Height of a row in device independent pixels (1/72 inch).
+        ;;; Height of a row in device independent pixels (1/72 inch). This INCLUDES any additional row spacing that was requested.
         ;;; </summary>
         public property RowHeight, float
             method get
@@ -2393,6 +2494,19 @@ namespace SynPSG.PDF
             private method set
             proc
                 mRows = value
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        ;;; <summary>
+        ;;; Gets the absolute coordinate system Y coordinate that corresponds to the row/column coordinate system current row number.
+        ;;; </summary>
+        public property RowY, float
+            method get
+            proc
+                mreturn Body_YFromRow(mRow)
             endmethod
         endproperty
 
@@ -2566,7 +2680,7 @@ namespace SynPSG.PDF
         private method Body_YfromRow, float
             required in aRow, int
         proc
-            mreturn this.Height - topOffset - (this.HeaderRows * this.RowHeight) - (aRow * this.RowHeight)
+            mreturn this.Height - topOffset - (this.HeaderRows * this.RowHeight) - (aRow * this.RowHeight) + this.ExtraRowSpacing
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -2706,7 +2820,7 @@ namespace SynPSG.PDF
         private method Footer_YfromRow, float
             required in aFooterRow, int
         proc
-            mreturn mHeight - topOffset - (mHeaderRows * mRowHeight) - (mRows * mRowHeight) - (aFooterRow * mRowHeight)
+            mreturn mHeight - topOffset - (mHeaderRows * mRowHeight) - (mRows * mRowHeight) - (aFooterRow * mRowHeight) + this.ExtraRowSpacing
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -2780,7 +2894,7 @@ namespace SynPSG.PDF
         private method Header_YfromRow, float
             required in aHeaderRow, int
         proc
-            mreturn this.Height - topOffset - (aHeaderRow * this.RowHeight)
+            mreturn this.Height - topOffset - (aHeaderRow * this.RowHeight) + this.ExtraRowSpacing
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -2882,7 +2996,7 @@ namespace SynPSG.PDF
                         ;;Calculate the start and end points for a full width line
                         data penWidth, float, 1.0
                         data start_x,  float, XfromCol(1)
-                        data start_y,  float, Footer_YfromRow(ix) + ((this.RowHeight-penWidth)/2)
+                        data start_y,  float, Footer_YfromRow(ix) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
                         data end_x,    float, XfromCol(this.Columns) + this.ColumnWidth
                         data end_y,    float, start_y
 
@@ -2932,7 +3046,7 @@ namespace SynPSG.PDF
                         ;;Calculate the start and end points for a full width line
                         data penWidth, float, 1.0
                         data start_x,  float, XfromCol(1)
-                        data start_y,  float, Header_YfromRow(ix) + ((this.RowHeight-penWidth)/2)
+                        data start_y,  float, Header_YfromRow(ix) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
                         data end_x,    float, XfromCol(this.Columns) + this.ColumnWidth
                         data end_y,    float, start_y
 
