@@ -826,10 +826,10 @@ namespace SynPSG.PDF
                 setCustomFillColor(aFillColor)
 
             ;;Calculate the start and end points for a center cell to center cell line
-            start_x = XfromCol(lFromColumn) + (this.ColumnWidth / 2)
-            start_y = Body_YfromRow(lFromRow) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
-            end_x   = XfromCol(lToColumn) + (this.ColumnWidth/ 2)
-            end_y   = Body_YfromRow(lToRow) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
+            start_x = XfromColumn(lFromColumn) + (this.ColumnWidth / 2)
+            start_y = YfromBodyRow(lFromRow) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
+            end_x   = XfromColumn(lToColumn) + (this.ColumnWidth/ 2)
+            end_y   = YfromBodyRow(lToRow) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
 
             ;;Define the box (this enters graphics mode)
             pg.Rectangle(start_x,start_y,end_x-start_x,end_y-start_y)
@@ -1068,10 +1068,10 @@ namespace SynPSG.PDF
                 setCustomStrokeColor(aStrokeColor)
 
             ;;Calculate the start and end points for a center cell to center cell line
-            start_x = XfromCol(aFromCol) + (this.ColumnWidth / 2)
-            start_y = Body_YfromRow(aFromRow) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
-            end_x   = XfromCol(aToCol) + (this.ColumnWidth/ 2)
-            end_y   = Body_YfromRow(aToRow) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
+            start_x = XfromColumn(aFromCol) + (this.ColumnWidth / 2)
+            start_y = YfromBodyRow(aFromRow) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
+            end_x   = XfromColumn(aToCol) + (this.ColumnWidth/ 2)
+            end_y   = YfromBodyRow(aToRow) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
 
             ;;Draw the line
             pg.MoveTo(start_x,start_y)
@@ -1127,9 +1127,9 @@ namespace SynPSG.PDF
                 setCustomStrokeColor(aStrokeColor)
 
             ;;Calculate the start and end points for a center cell to center cell line
-            start_x = XfromCol(this.Column) + (this.ColumnWidth / 2)
-            start_y = Body_YfromRow(this.Row) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
-            end_x   = XfromCol(this.Columns) + (this.ColumnWidth/ 2)
+            start_x = XfromColumn(this.Column) + (this.ColumnWidth / 2)
+            start_y = YfromBodyRow(this.Row) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
+            end_x   = XfromColumn(this.Columns) + (this.ColumnWidth/ 2)
             end_y   = start_y
 
             ;;If we're being asked for a full-width line then add back in the partial cell pixels
@@ -1320,7 +1320,7 @@ namespace SynPSG.PDF
             end
 
             pg.BeginText()
-            pg.MoveTextPos(XfromCol(col),Body_YFromRow(row))
+            pg.MoveTextPos(XfromColumn(col),YfromBodyRow(row))
             pg.ShowText(aText)
             pg.EndText()
 
@@ -1334,9 +1334,9 @@ namespace SynPSG.PDF
 
             if (^passed(aUnderline) && aUnderline)
             begin
-                data tmpFromX, float, XfromCol(col)
+                data tmpFromX, float, XfromColumn(col)
                 data tmpToX, float, tmpFromX + pg.TextWidth(aText)
-                data tmpY, float, Body_YFromRow(row) - 1
+                data tmpY, float, YfromBodyRow(row) - 1
                 DrawLine(tmpFromX,tmpY,tmpToX,tmpY,0.5)
             end
 
@@ -1811,6 +1811,66 @@ namespace SynPSG.PDF
 
         endmethod
 
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        ;;; <summary>
+        ;;; Converts a column number to an X coordinate.
+        ;;; </summary>
+        ;;; <param name="aCol"></param>
+        ;;; <returns></returns>
+        public method XfromColumn, float
+            required in aColumn, int
+            endparams
+        proc
+            mreturn rightOffset + (aColumn-1) * this.ColumnWidth
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        ;;; <summary>
+        ;;; Converts a body row number to a Y coordinate.
+        ;;; </summary>
+        ;;; <param name="aRow"></param>
+        ;;; <returns></returns>
+        private method YfromBodyRow, float
+            required in aBodyRow, int
+            endparams
+        proc
+            mreturn this.Height - topOffset - (this.HeaderRows * this.RowHeight) - (aBodyRow * this.RowHeight) + this.ExtraRowSpacing
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        ;;; <summary>
+        ;;; Converts a footer row number to a Y coordinate.
+        ;;; </summary>
+        ;;; <param name="aFooterRow"></param>
+        ;;; <returns></returns>
+        public method YfromFooterRow, float
+            required in aFooterRow, int
+            endparams
+        proc
+            mreturn mHeight - topOffset - (mHeaderRows * mRowHeight) - (mRows * mRowHeight) - (aFooterRow * mRowHeight) + this.ExtraRowSpacing
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        ;;; <summary>
+        ;;; Converts a header row number to a Y coordinate.
+        ;;; </summary>
+        ;;; <param name="aHeaderRow"></param>
+        ;;; <returns></returns>
+        public method YfromHeaderRow, float
+            required in aHeaderRow, int
+            endparams
+        proc
+            mreturn this.Height - topOffset - (aHeaderRow * this.RowHeight) + this.ExtraRowSpacing
+        endmethod
+
         ;;********************************************************************************
         ;;PUBLIC PROPERTIES
 
@@ -1972,7 +2032,7 @@ namespace SynPSG.PDF
         public property ColumnX, float
             method get
             proc
-                mreturn XfromCol(mColumn)
+                mreturn XfromColumn(mColumn)
             endmethod
         endproperty
 
@@ -2523,7 +2583,7 @@ namespace SynPSG.PDF
         public property RowY, float
             method get
             proc
-                mreturn Body_YFromRow(mRow)
+                mreturn YfromBodyRow(mRow)
             endmethod
         endproperty
 
@@ -2692,15 +2752,6 @@ namespace SynPSG.PDF
         ;;PRIVATE METHODS
 
         ;;--------------------------------------------------------------------------------
-        ;;
-
-        private method Body_YfromRow, float
-            required in aRow, int
-        proc
-            mreturn this.Height - topOffset - (this.HeaderRows * this.RowHeight) - (aRow * this.RowHeight) + this.ExtraRowSpacing
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
         ;;; <summary>
         ;;;Determines whether the given path refers to an existing directory on disk.
         ;;; </summary>
@@ -2832,15 +2883,6 @@ namespace SynPSG.PDF
         endmethod
 
         ;;--------------------------------------------------------------------------------
-        ;;
-
-        private method Footer_YfromRow, float
-            required in aFooterRow, int
-        proc
-            mreturn mHeight - topOffset - (mHeaderRows * mRowHeight) - (mRows * mRowHeight) - (aFooterRow * mRowHeight) + this.ExtraRowSpacing
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
         ;; <summary>
         ;;; Returns the date in MM/DD/YYYY format
         ;;; </summary>
@@ -2903,15 +2945,6 @@ namespace SynPSG.PDF
         proc
             now = %datetime
             mreturn %string(^d(now(1:14)),"XXXX-XX-XX XX.XX.XX")
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;
-
-        private method Header_YfromRow, float
-            required in aHeaderRow, int
-        proc
-            mreturn this.Height - topOffset - (aHeaderRow * this.RowHeight) + this.ExtraRowSpacing
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -3012,9 +3045,9 @@ namespace SynPSG.PDF
                     begin
                         ;;Calculate the start and end points for a full width line
                         data penWidth, float, 1.0
-                        data start_x,  float, XfromCol(1)
-                        data start_y,  float, Footer_YfromRow(ix) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
-                        data end_x,    float, XfromCol(this.Columns) + this.ColumnWidth
+                        data start_x,  float, XfromColumn(1)
+                        data start_y,  float, YfromFooterRow(ix) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
+                        data end_x,    float, XfromColumn(this.Columns) + this.ColumnWidth
                         data end_y,    float, start_y
 
                         ;;Draw the line
@@ -3026,7 +3059,7 @@ namespace SynPSG.PDF
                     else
                     begin
                         pg.BeginText()
-                        pg.MoveTextPos(XfromCol(1),Footer_YFromRow(ix))
+                        pg.MoveTextPos(XfromColumn(1),YfromFooterRow(ix))
                         pg.ShowText(expandTokens(footer))
                         pg.EndText()
                     end
@@ -3062,9 +3095,9 @@ namespace SynPSG.PDF
                     begin
                         ;;Calculate the start and end points for a full width line
                         data penWidth, float, 1.0
-                        data start_x,  float, XfromCol(1)
-                        data start_y,  float, Header_YfromRow(ix) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
-                        data end_x,    float, XfromCol(this.Columns) + this.ColumnWidth
+                        data start_x,  float, XfromColumn(1)
+                        data start_y,  float, YfromHeaderRow(ix) + (((this.RowHeight-this.ExtraRowSpacing)-penWidth)/2)
+                        data end_x,    float, XfromColumn(this.Columns) + this.ColumnWidth
                         data end_y,    float, start_y
 
                         ;;Draw the line
@@ -3076,7 +3109,7 @@ namespace SynPSG.PDF
                     else
                     begin
                         pg.BeginText()
-                        pg.MoveTextPos(XfromCol(1),Header_YFromRow(ix))
+                        pg.MoveTextPos(XfromColumn(1),YfromHeaderRow(ix))
                         pg.ShowText(expandTokens(header))
                         pg.EndText()
                     end
@@ -7229,15 +7262,6 @@ namespace SynPSG.PDF
                 pg.SetFontAndSize(fontItalic,fontSizeFloat)
                 this.CurrentFont = fontBoldItalic.GetFontName()
             end
-        endmethod
-
-        ;;--------------------------------------------------------------------------------
-        ;;
-
-        private method XfromCol, float
-            required in aCol, int
-        proc
-            mreturn rightOffset + (aCol-1) * this.ColumnWidth
         endmethod
 
     endclass
