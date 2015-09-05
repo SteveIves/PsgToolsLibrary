@@ -1358,6 +1358,34 @@ namespace SynPSG.PDF
         endmethod
 
         ;;--------------------------------------------------------------------------------
+        ;;
+
+        ;;; <summary>
+        ;;; Indicates whether a named font is available for use. Available fonts include the implicit fonts that are defined by the PDF specification as well as other fonts that you have loaded by calling LoadTrueTypeFont.
+        ;;; </summary>
+        ;;; <param name="aFontName"></param>
+        ;;; <returns></returns>
+        public method FontAvailable, boolean
+            required in aFontName, string
+            endparams
+            record
+                font, string
+                available, boolean
+            endrecord
+        proc
+            available = false
+            foreach font in mAvailableFonts
+            begin
+                if (font == aFontName)
+                begin
+                    available = true
+                    exitloop
+                end
+            end
+            mreturn available
+        endmethod
+
+        ;;--------------------------------------------------------------------------------
         ;;; <summary>
         ;;; Loads a TrueType font and embeds it in the PDF document ready for use.
         ;;; </summary>
@@ -1754,18 +1782,8 @@ namespace SynPSG.PDF
                 found, boolean
             endrecord
         proc
-            ;;Make sure the font is available
-            found = false
-            foreach fontName in mAvailableFonts
-            begin
-                if (fontName==aFontName)
-                begin
-                    found = true
-                    exitloop
-                end
-            end
             ;;If the font is available then switch to it
-            if (found)
+            if (FontAvailable(aFontName))
             begin
                 newFont = doc.GetFont(aFontName, ^null)
                 pg.SetFontAndSize(newFont,fontSize = aFontSize)
@@ -1823,7 +1841,7 @@ namespace SynPSG.PDF
             required in aColumn, int
             endparams
         proc
-            mreturn rightOffset + (aColumn-1) * this.ColumnWidth
+            mreturn leftOffset + ((aColumn-1) * this.ColumnWidth)
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -1921,9 +1939,32 @@ namespace SynPSG.PDF
             proc
                 mreturn mAvailableFonts
             endmethod
-            method set
+            private method set
             proc
                 mAvailableFonts = value
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private mBackgroundColor, PdfColor
+        private backgroundRed,    float
+        private backgroundGreen,  float
+        private backgroundBlue,   float
+
+        ;;; <summary>
+        ;;; Gets or sets the page background color. A custom value for page background color can be established via an optional parameter passed to the constructor method, and will be used for the first page. Subsequently changing the page background color will affect only new pages that are created after the background color is changed. There is no way to change the background color of a page after the page has been created. The default page background color is white.
+        ;;; </summary>
+        public property BackgroundColor, PdfColor
+            method get
+            proc
+                mreturn mBackgroundColor
+            endmethod
+            method set
+            proc
+                mBackgroundColor = value
+                rgbFromPdfColor(mBackgroundColor,backgroundRed,backgroundGreen,backgroundBlue)
             endmethod
         endproperty
 
@@ -2420,23 +2461,17 @@ namespace SynPSG.PDF
         ;;--------------------------------------------------------------------------------
         ;;
 
-        private mBackgroundColor, PdfColor
-        private backgroundRed,    float
-        private backgroundGreen,  float
-        private backgroundBlue,   float
-
         ;;; <summary>
-        ;;; Gets or sets the page background color. A custom value for page background color can be established via an optional parameter passed to the constructor method, and will be used for the first page. Subsequently changing the page background color will affect only new pages that are created after the background color is changed. There is no way to change the background color of a page after the page has been created. The default page background color is white.
+        ;;; Gets or sets the suggested page layout mode to be used by PDF reader applications when viewing the PDF document being created. Note that setting this property does not guarantee a particular page layout mode being used because some PDF reader applications allow the user to override the setting specified by the PDF document.
         ;;; </summary>
-        public property BackgroundColor, PdfColor
+        public property PageLayout, PdfPageLayout
             method get
             proc
-                mreturn mBackgroundColor
+                mreturn (PdfPageLayout)doc.GetPageLayout()
             endmethod
             method set
             proc
-                mBackgroundColor = value
-                rgbFromPdfColor(mBackgroundColor,backgroundRed,backgroundGreen,backgroundBlue)
+                doc.SetPageLayout((HPdfPageLayout)value)
             endmethod
         endproperty
 
@@ -8049,25 +8084,33 @@ namespace SynPSG.PDF
         EndPage
     endenum
 
+    public enum PdfPageLayout
+        Single,         HPdfPageLayout.HPDF_PAGE_LAYOUT_SINGLE
+        OneColumn,      HPdfPageLayout.HPDF_PAGE_LAYOUT_ONE_COLUMN
+        TwoColumnLeft,  HPdfPageLayout.HPDF_PAGE_LAYOUT_TWO_C_LEFT
+        TwoColumnRight, HPdfPageLayout.HPDF_PAGE_LAYOUT_TWO_C_RIGHT
+        Eof,            HPdfPageLayout.HPDF_PAGE_LAYOUT_EOF
+    endenum
+
     public enum PdfPageSize
-        LETTER, 0
-        LEGAL
-        A3
-        A4
-        A5
-        B4
-        B5
-        EXECUTIVE
-        US4x6
-        US4x8
-        US5x7
-        COMM10
-        EOF
+        LETTER,         HPdfPageSizes.HPDF_PAGE_SIZE_LETTER
+        LEGAL,          HPdfPageSizes.HPDF_PAGE_SIZE_LEGAL
+        A3,             HPdfPageSizes.HPDF_PAGE_SIZE_A3
+        A4,             HPdfPageSizes.HPDF_PAGE_SIZE_A4
+        A5,             HPdfPageSizes.HPDF_PAGE_SIZE_A5
+        B4,             HPdfPageSizes.HPDF_PAGE_SIZE_B4
+        B5,             HPdfPageSizes.HPDF_PAGE_SIZE_B5
+        EXECUTIVE,      HPdfPageSizes.HPDF_PAGE_SIZE_EXECUTIVE
+        US4x6,          HPdfPageSizes.HPDF_PAGE_SIZE_US4x6
+        US4x8,          HPdfPageSizes.HPDF_PAGE_SIZE_US4x8
+        US5x7,          HPdfPageSizes.HPDF_PAGE_SIZE_US5x7
+        COMM10,         HPdfPageSizes.HPDF_PAGE_SIZE_COMM10
+        EOF,            HPdfPageSizes.HPDF_PAGE_SIZE_EOF
     endenum
 
     public enum PdfOrientation
-        Portrait, 0
-        Landscape
+        Portrait,       HPdfPageDirection.HPDF_PAGE_PORTRAIT
+        Landscape,      HPdfPageDirection.HPDF_PAGE_LANDSCAPE
     endenum
 
     public enum PdfColor
