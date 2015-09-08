@@ -76,6 +76,7 @@ namespace SynPSG.PDF
         private fontItalic,                     @HPdfFont
         private fontBoldItalic,                 @HPdfFont
         private pg,                             @HpdfPage
+        private ol,                             @HPdfOutline
 
         private leftOffset,                     float   ;Pixels reserved for requested left margin
         private topOffset,                      float   ;Pixels reserved for requested top margin
@@ -165,7 +166,7 @@ namespace SynPSG.PDF
             doc = new HPdfDoc()
 
             ;;Set the document compression mode
-;           doc.SetCompressionMode(HPDF_COMP_ALL)
+            doc.SetCompressionMode(HPdfDoc.HPDF_COMP_ALL)
 
             ;;Load the fonts we'll be using
             fontNormal = doc.GetFont("Courier", ^null)
@@ -1466,9 +1467,12 @@ namespace SynPSG.PDF
         ;;; <returns>Returns the new page number.</returns>
         public method NewPage, int
             optional in aOrientation, PdfOrientation
+            optional in aOutlineText, string
             endparams
             record
                 orientation, PdfOrientation
+                pageOutLine, @HPdfOutline
+                pageDestination, @HPdfDestination
             endrecord
         proc
 
@@ -1540,6 +1544,30 @@ namespace SynPSG.PDF
 
             this.Row = 1
             this.Column = 1
+
+            ;;If this is the first page, and we're creating an outline, create the root outline object
+            if ((this.PageNumber==1) && (this.CreateOutline == true))
+            begin
+                ol = doc.CreateOutline(^null,"Home",^null)
+                ol.SetOpened(true)
+            end
+
+            ;;Add the outline item for the page
+            if (this.CreateOutline && ((!^passed(aOutlineText)) || (aOutlineText!=^null)))
+            begin
+                ;;Define the text to use for the page outline
+                data outlineText, string
+                if (^passed(aOutlineText) && (aOutlineText!=^null) && (aOutlineText.Length>0)) then
+                    outlineText = aOutlineText
+                else
+                    outlineText = "Page " + %string(this.PageNumber)
+                ;;Create a new destination object as the target for an outline object
+                pageDestination = pg.CreateDestination()
+                pageDestination.SetXYZ(0,pg.GetHeight(),1)
+                ;;Add a new outline object for the page
+                pageOutLine = doc.CreateOutline(ol,outlineText,^null)
+                pageOutLine.SetDestination(pageDestination)
+            end
 
             mreturn this.PageNumber
 
@@ -2079,6 +2107,24 @@ namespace SynPSG.PDF
 
         ;;--------------------------------------------------------------------------------
         ;;; <summary>
+        ;;; Gets or sets whether a document outline is created and whether default outline items are automatically added for each page.
+        ;;; </summary>
+
+        private mCreateOutline, boolean, true
+
+        public property CreateOutline, boolean
+            method get
+            proc
+                mreturn mCreateOutline
+            endmethod
+            method set
+            proc
+                mCreateOutline = value
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;; <summary>
         ;;; Gets the creation date of the document.
         ;;; </summary>
         public property CreationDate, string
@@ -2462,7 +2508,7 @@ namespace SynPSG.PDF
         ;;
 
         ;;; <summary>
-        ;;; Gets or sets the suggested page layout mode to be used by PDF reader applications when viewing the PDF document being created. Note that setting this property does not guarantee a particular page layout mode being used because some PDF reader applications allow the user to override the setting specified by the PDF document.
+        ;;; Gets or sets the suggested page layout to be used by PDF reader applications when viewing the PDF document being created. Note that setting this property does not guarantee a particular page layout mode being used because some PDF reader applications allow the user to override the setting specified by the PDF document.
         ;;; </summary>
         public property PageLayout, PdfPageLayout
             method get
@@ -2472,6 +2518,23 @@ namespace SynPSG.PDF
             method set
             proc
                 doc.SetPageLayout((HPdfPageLayout)value)
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        ;;; <summary>
+        ;;; Gets or sets the suggested page mode to be used by PDF reader applications when viewing the PDF document being created. Note that setting this property does not guarantee a particular page mode being used because some PDF reader applications allow the user to override the setting specified by the PDF document.
+        ;;; </summary>
+        public property PageMode, PdfPageMode
+            method get
+            proc
+                mreturn (PdfPageMode)doc.GetPageMode()
+            endmethod
+            method set
+            proc
+                doc.SetPageMode((HPdfPageMode)value)
             endmethod
         endproperty
 
@@ -8090,6 +8153,14 @@ namespace SynPSG.PDF
         TwoColumnLeft,  HPdfPageLayout.HPDF_PAGE_LAYOUT_TWO_C_LEFT
         TwoColumnRight, HPdfPageLayout.HPDF_PAGE_LAYOUT_TWO_C_RIGHT
         Eof,            HPdfPageLayout.HPDF_PAGE_LAYOUT_EOF
+    endenum
+
+    public enum PdfPageMode
+        None,           HPdfPageMode.HPDF_PAGE_MODE_USE_NONE
+        Outline,        HPdfPageMode.HPDF_PAGE_MODE_USE_OUTLINE
+        Thumbs,         HPdfPageMode.HPDF_PAGE_MODE_USE_THUMBS
+        FullScreen,     HPdfPageMode.HPDF_PAGE_MODE_FULL_SCREEN
+        Eof,            HPdfPageMode.HPDF_PAGE_MODE_EOF
     endenum
 
     public enum PdfPageSize
