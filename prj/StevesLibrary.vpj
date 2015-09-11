@@ -129,7 +129,7 @@
         <Folder
             Name="Source Files"
             Filters="*.dbl;*.tpl;*.dbc">
-            <F N="../src/PDF/pdfdbl.dbl"/>
+            <F N="../../SynPSG_PDF/src/pdfdbl.dbl"/>
             <F N="../src/SynPSG.CanadianProvince.dbl"/>
             <F N="../src/SynPSG.CopyHandle.dbl"/>
             <F N="../src/SynPSG.DataServer.dbl"/>
@@ -144,7 +144,7 @@
             <F N="../src/SynPSG.IsoCountry.dbl"/>
             <F N="../src/SynPSG.MonthNumberToShortName.dbl"/>
             <F N="../src/SynPSG.MonthShortNameToNumber.dbl"/>
-            <F N="../src/PDF/SynPSG.PDF.dbl"/>
+            <F N="../../SynPSG_PDF/src/SynPSG.PDF.dbl"/>
             <F N="../src/SynPSG.ScrollWindow.dbl"/>
             <F N="../src/SynPSG.SevenZipAPI.dbl"/>
             <F N="../src/SynPSG.StringUtil.dbl"/>

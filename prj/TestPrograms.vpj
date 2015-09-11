@@ -173,9 +173,6 @@
             <F N="../src/TestPrograms/FtpClientTest.dbl"/>
             <F N="../src/TestPrograms/FtpReceiveMultipleFiles.dbl"/>
             <F N="../src/TestPrograms/FtpSendMultipleFiles.dbl"/>
-            <F N="../src/TestPrograms/PdfDeliveryTicket.dbl"/>
-            <F N="../src/TestPrograms/PdfDrawing.dbl"/>
-            <F N="../src/TestPrograms/PdfFileTest.dbl"/>
             <F N="../src/TestPrograms/ReportClassColorChart.dbl"/>
             <F N="../src/TestPrograms/ReportClassTest.dbl"/>
             <F N="../src/TestPrograms/RightClickToClipboard.dbl"/>
