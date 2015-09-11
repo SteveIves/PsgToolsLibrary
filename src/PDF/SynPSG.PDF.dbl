@@ -168,7 +168,24 @@ namespace SynPSG.PDF
             ;;Set the document compression mode
             doc.SetCompressionMode(HPdfDoc.HPDF_COMP_ALL)
 
-            ;;Load the fonts we'll be using
+            ;;Populate the list of available fonts
+            mAvailableFonts = new ArrayList()
+            mAvailableFonts.Add((string)"Courier")
+            mAvailableFonts.Add((string)"Courier-Bold")
+            mAvailableFonts.Add((string)"Courier-Oblique")
+            mAvailableFonts.Add((string)"Courier-BoldOblique")
+            mAvailableFonts.Add((string)"Helvetica")
+            mAvailableFonts.Add((string)"Helvetica-Bold")
+            mAvailableFonts.Add((string)"Helvetica-Oblique")
+            mAvailableFonts.Add((string)"Helvetica-BoldOblique")
+            mAvailableFonts.Add((string)"Times-Roman")
+            mAvailableFonts.Add((string)"Times-Bold")
+            mAvailableFonts.Add((string)"Times-Italic")
+            mAvailableFonts.Add((string)"Times-BoldItalic")
+            mAvailableFonts.Add((string)"Symbol")
+            mAvailableFonts.Add((string)"ZapfDingbats")
+
+            ;;Load the fonts we'll be use by default
             fontNormal = doc.GetFont("Courier", ^null)
             fontBold = doc.GetFont("Courier-Bold", ^null)
             fontItalic = doc.GetFont("Courier-Oblique", ^null)
@@ -242,8 +259,7 @@ namespace SynPSG.PDF
             pg.StartPageWithFont(fontNormal,fontSizeFloat)
 
             ;;Record the current font being used
-            this.CurrentFont = fontNormal.GetFontName()
-            this.CurrentFontSize = this.FontSize
+            SelectFont(fontNormal.GetFontName(),this.FontSize)
 
             ;;Make sure that text is drawn as solid letters, not an outline with a seperate fill
             pg.SetTextRenderingMode(HPdfTextRenderingMode.HPDF_FILL)
@@ -305,23 +321,6 @@ namespace SynPSG.PDF
                 ;;And use it for the first page
                 setBackroundColor()
             end
-
-            ;;Populate the list of available fonts
-            mAvailableFonts = new ArrayList()
-            mAvailableFonts.Add((string)"Courier")
-            mAvailableFonts.Add((string)"Courier-Bold")
-            mAvailableFonts.Add((string)"Courier-Oblique")
-            mAvailableFonts.Add((string)"Courier-BoldOblique")
-            mAvailableFonts.Add((string)"Helvetica")
-            mAvailableFonts.Add((string)"Helvetica-Bold")
-            mAvailableFonts.Add((string)"Helvetica-Oblique")
-            mAvailableFonts.Add((string)"Helvetica-BoldOblique")
-            mAvailableFonts.Add((string)"Times-Roman")
-            mAvailableFonts.Add((string)"Times-Bold")
-            mAvailableFonts.Add((string)"Times-Italic")
-            mAvailableFonts.Add((string)"Times-BoldItalic")
-            mAvailableFonts.Add((string)"Symbol")
-            mAvailableFonts.Add((string)"ZapfDingbats")
 
             ;Set the default creator name
             this.Creator = "Synergex PSG PdfFile Class"
@@ -1325,20 +1324,36 @@ namespace SynPSG.PDF
             pg.ShowText(aText)
             pg.EndText()
 
+            ;;Underline?
+            if (^passed(aUnderline) && aUnderline)
+            begin
+                ;;If we're using a fixed-pitch font we can use underscore characters to do the underline
+                if (mFixedPitchFont) then
+                begin
+                    ;;Fixed pitch, user underscores
+                    data underscore, a256
+                    xcall fill("_",underscore)
+                    pg.BeginText()
+                    pg.MoveTextPos(XfromColumn(col),YfromBodyRow(row))
+                    pg.ShowText(underscore(1:aText.Length))
+                    pg.EndText()
+                end
+                else
+                begin
+                    ;;Variable-pitch, draw a line
+                    data tmpFromX, float, XfromColumn(col)
+                    data tmpToX, float, tmpFromX + pg.TextWidth(aText)
+                    data tmpY, float, YfromBodyRow(row) - 1
+                    DrawLine(tmpFromX,tmpY,tmpToX,tmpY,0.5)
+                end
+            end
+
             resetFontAttributes(aBold,aItalic)
 
             if (^passed(aColor) && (aColor != this.FillColor))
             begin
                 resetStrokeColor()
                 resetFillColor()
-            end
-
-            if (^passed(aUnderline) && aUnderline)
-            begin
-                data tmpFromX, float, XfromColumn(col)
-                data tmpToX, float, tmpFromX + pg.TextWidth(aText)
-                data tmpY, float, YfromBodyRow(row) - 1
-                DrawLine(tmpFromX,tmpY,tmpToX,tmpY,0.5)
             end
 
             if (^passed(aNewLine) && aNewLine) then
@@ -1747,10 +1762,7 @@ namespace SynPSG.PDF
         public method ResetFont, void
             endparams
         proc
-            this.CurrentFont = fontNormal.GetFontName()
-            pg.SetFontAndSize(fontNormal,fontSizeFloat)
-            this.CurrentFont = fontNormal.GetFontName()
-            this.CurrentFontSize = this.FontSize
+            SelectFont(fontNormal.GetFontName(),this.FontSize)
         endmethod
 
         ;;--------------------------------------------------------------------------------
@@ -1817,6 +1829,7 @@ namespace SynPSG.PDF
                 pg.SetFontAndSize(newFont,fontSize = aFontSize)
                 this.CurrentFont = aFontName
                 this.CurrentFontSize = aFontSize
+                this.FixedPitchFont = (pg.TextWidth("W") == pg.TextWidth("|"))
             end
         endmethod
 
@@ -2282,6 +2295,25 @@ namespace SynPSG.PDF
                 mFillColor = value
                 rgbFromPdfColor(mFillColor,textRed,textGreen,textBlue)
                 pg.SetRGBFill(textRed,textGreen,textBlue)
+            endmethod
+        endproperty
+
+        ;;--------------------------------------------------------------------------------
+        ;;
+
+        private mFixedPitchFont, boolean
+
+        ;;; <summary>
+        ;;; Gets whether the currently selected font is a fixed-pitch font.
+        ;;; </summary>
+        public property FixedPitchFont, boolean
+            method get
+            proc
+                mreturn mFixedPitchFont
+            endmethod
+            private method set
+            proc
+                mFixedPitchFont = value
             endmethod
         endproperty
 
@@ -3231,10 +3263,7 @@ namespace SynPSG.PDF
             optional in aItalic, boolean
         proc
             if ((^passed(aBold) && aBold) || (^passed(aItalic) && aItalic))
-            begin
-                pg.SetFontAndSize(fontNormal,fontSizeFloat)
-                this.CurrentFont = fontNormal.GetFontName()
-            end
+                resetFont()
         endmethod
 
         ;;--------------------------------------------------------------------------------
