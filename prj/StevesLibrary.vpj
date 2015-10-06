@@ -144,7 +144,6 @@
             <F N="../src/SynPSG.IsoCountry.dbl"/>
             <F N="../src/SynPSG.MonthNumberToShortName.dbl"/>
             <F N="../src/SynPSG.MonthShortNameToNumber.dbl"/>
-            <F N="../../SynPSG_PDF/src/SynPSG.PDF.dbl"/>
             <F N="../src/SynPSG.ScrollWindow.dbl"/>
             <F N="../src/SynPSG.SevenZipAPI.dbl"/>
             <F N="../src/SynPSG.StringUtil.dbl"/>
@@ -230,6 +229,7 @@
             <F N="../src/SynPSG.Windows.WinSysPath.dbl"/>
             <F N="../src/SynPSG.Windows.WinTempDir.dbl"/>
             <F N="../src/SynPSG.Windows.WinTempFile.dbl"/>
+            <F N="../../SynPSG_PDF/src/SynPSG_PDF.dbl"/>
         </Folder>
         <Folder
             Name="Header Files"
