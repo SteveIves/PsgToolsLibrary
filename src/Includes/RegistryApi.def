@@ -60,7 +60,6 @@ endexternal
 
 ;Internally visible
 
-.ifdef REGISTRY_INTERNAL
 .ifndef REG_SZ
     .define REG_SZ              1   ;Unicode null terminated string
     .define REG_BINARY          3   ;Free form binary
@@ -76,7 +75,6 @@ endexternal
     .define REG_ERR_VALTYP      8   ;Incorrect key type
     .define REG_ERR_FLUSH       9   ;Failed to flush to disk
     .define REG_ERR_DLLOPN      10  ;Failed to open DLL
-.endc
 .endc
 
 ;Globally Visible
