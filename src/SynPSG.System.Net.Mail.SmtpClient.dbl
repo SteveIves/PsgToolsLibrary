@@ -149,13 +149,13 @@ namespace SynPSG.System.Net.Mail
                 mCredentials = value
             endmethod
 		endproperty
-		
+
 		;;; <summary>
 		;;; Sends a QUIT message to the SMTP server, gracefully ends the TCP connection, and releases all resources used by the current instance of the SmtpClient class.
 		;;; </summary>
 		public method Dispose	,void
 			endparams
-			stack record 
+			stack record
 				buff	,string
 			endrecord
 		proc
@@ -170,7 +170,7 @@ namespace SynPSG.System.Net.Mail
 			if (mTcpClient != ^null)
 				mTcpClient.Close()
 		endmethod
-		
+
         ;;;<summary>
         ;;;Sends an e-mail message to an SMTP server for delivery using the supplied MailMessage object.
         ;;;</summary>
@@ -213,16 +213,16 @@ namespace SynPSG.System.Net.Mail
             if (message.To.Count == 0)
                 throw new applicationexception("No 'to' addresses specified.")
 
-            if (message.Sender!=^null && message.Sender.Address.Length>0 && message.Sender.Address!=message.From.Address) then
-            begin
-                m_senderHost = message.Sender.Host
-                m_senderAddress = message.Sender.Address
-            end
-            else
-            begin
+;            if (message.Sender!=^null && message.Sender.Address.Length>0 && message.Sender.Address!=message.From.Address) then
+;            begin
+;                m_senderHost = message.Sender.Host
+;                m_senderAddress = message.Sender.Address
+;            end
+;            else
+;            begin
                 m_senderHost = message.From.Host
                 m_senderAddress = message.From.Address
-            end
+;            end
 
             mTcpClient = new TcpClient(mHost, mPort)
             mNStream = mTcpClient.GetStream()
@@ -367,9 +367,9 @@ namespace SynPSG.System.Net.Mail
             for ctr from 1 thru message.To.Count
             begin
                 buff = "RCPT TO:<"+message.To[ctr-1].Address+">"+CRLF
-                mNStream.Write(buff,0,buff.Length)	
+                mNStream.Write(buff,0,buff.Length)
                 getSmtpLine()
-		
+
 		;----------------------------------------------------------------------------------
 		;;This code was added by Steve Ives because this behavior was seen in some
 		;;SMTP servers requiring authentication (e.g. the Arvixe servers).
@@ -394,19 +394,19 @@ namespace SynPSG.System.Net.Mail
 			buff = Convert.ToBase64String(AsciiEncoding.GetBytes(Credentials.Password),SynPSG.Base64FormattingOptions.None)+CRLF
 			mNStream.Write(buff,0,buff.Length)
 			getSmtpLine()
-			
+
 			;Should be 235 "authenticated."
 			checkResponseCode(235)
-			
+
 			;;Now we need to send the RCPT TO again because the last one
 			;;wasn't processed because of the authentication request.
 			buff = "RCPT TO:<"+message.To[ctr-1].Address+">"+CRLF
-			mNStream.Write(buff,0,buff.Length)	
+			mNStream.Write(buff,0,buff.Length)
 			getSmtpLine()
 		end
 
 		checkResponseCode(0)
-		
+
             end
 
             ;;Send cc list
@@ -533,7 +533,7 @@ namespace SynPSG.System.Net.Mail
             for ctr from 1 thru message.Attachments.Count
             begin
 		data atch, @Attachment, message.Attachments[ctr-1]
-		    
+
                 mNStream.Write(CRLF,0,2)
                 buff = '--_NextPart_'+%hex(%jbno)+CRLF
                 mNStream.Write(buff,0,buff.Length)

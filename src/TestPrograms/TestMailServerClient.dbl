@@ -1,0 +1,29 @@
+
+import SynPSG
+import System.Collections
+
+main TestMailServerClient
+
+record
+    mailClient, @MailServerClient
+endrecord
+
+proc
+    open(1,i,"tt:")
+
+    mailClient = new MailServerClient("steve.ives@synergex.com","steve.ives@synergex.com")
+    mailClient.SmtpServer = "exch2013.synergex.loc"
+    mailClient.FromName = "Steve Ives"
+    mailClient.Subject = "Here are some files for you!"
+    mailClient.BodyTextOrFile = "<html><head></head><body><H1>Your Files Have Arrived!</H1><p>They are attached to this message. <b>Enjoy!</B>.</p></body></html>"
+    mailClient.AddAttachment("C:\Program Files (x86)\Synergex\SynergyDE\Manuals\lic103.pdf")
+    mailClient.AddAttachment("C:\Program Files (x86)\Synergex\SynergyDE\Manuals\pg103.pdf")
+
+    if (mailClient.Send()) then
+		writes(1,"Sent!")
+    else
+		writes(1,"Failed! Error was: " + mailClient.ErrorMessage)
+
+    close 1
+
+endmain

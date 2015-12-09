@@ -129,7 +129,7 @@
         <Folder
             Name="Source Files"
             Filters="*.dbl;*.tpl;*.dbc">
-            <F N="../../SynPSG_PDF/src/pdfdbl.dbl"/>
+            <F N="../../SynPSG_PDF/SOURCE/PDF/pdfdbl.dbl"/>
             <F N="../src/SynPSG.CanadianProvince.dbl"/>
             <F N="../src/SynPSG.CopyHandle.dbl"/>
             <F N="../src/SynPSG.DataServer.dbl"/>
@@ -142,6 +142,7 @@
             <F N="../src/SynPSG.HttpQueryString.dbl"/>
             <F N="../src/SynPSG.IsNumeric.dbl"/>
             <F N="../src/SynPSG.IsoCountry.dbl"/>
+            <F N="../src/SynPSG.MailServerClient.dbl"/>
             <F N="../src/SynPSG.MonthNumberToShortName.dbl"/>
             <F N="../src/SynPSG.MonthShortNameToNumber.dbl"/>
             <F N="../src/SynPSG.ScrollWindow.dbl"/>
@@ -229,7 +230,7 @@
             <F N="../src/SynPSG.Windows.WinSysPath.dbl"/>
             <F N="../src/SynPSG.Windows.WinTempDir.dbl"/>
             <F N="../src/SynPSG.Windows.WinTempFile.dbl"/>
-            <F N="../../SynPSG_PDF/src/SynPSG_PDF.dbl"/>
+            <F N="../../SynPSG_PDF/SOURCE/PDF/SynPSG_PDF.dbl"/>
         </Folder>
         <Folder
             Name="Header Files"

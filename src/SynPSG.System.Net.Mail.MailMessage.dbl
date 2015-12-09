@@ -52,7 +52,7 @@ namespace SynPSG.System.Net.Mail
 
     class MailMessage
         mFrom           ,@MailAddress
-        mSender         ,@MailAddress
+;       mSender         ,@MailAddress
         mTo             ,@MailAddressCollection
         mCC             ,@MailAddressCollection
         mBcc            ,@MailAddressCollection
@@ -232,18 +232,18 @@ namespace SynPSG.System.Net.Mail
             endmethod
         endproperty
 
-        ;;;<summary>
-        ;;;</summary>
-        public property Sender, @MailAddress
-            method get
-            proc
-                mreturn mSender
-            endmethod
-            method set
-            proc
-                mSender = value
-            endmethod
-        endproperty
+;        ;;;<summary>
+;        ;;;</summary>
+;        public property Sender, @MailAddress
+;            method get
+;            proc
+;                mreturn mSender
+;            endmethod
+;            method set
+;            proc
+;                mSender = value
+;            endmethod
+;        endproperty
 
     endclass
 

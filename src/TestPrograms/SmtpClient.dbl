@@ -5,18 +5,18 @@ import SynPSG.System.Net.Mail
 import SynPSG.System.Security
 
 main
-	record 
-		ok,		boolean
-		msg,		@MailMessage
-		client,		@SmtpClient
+	record
+		ok,				boolean
+		msg,			@MailMessage
+		client,			@SmtpClient
 		errorMessage,	string
 	endrecord
 proc
 	ok = true
 	errorMessage = ""
-	
+
 	open(1,i,"tt:")
-	
+
 	;;Get the name or IP address of the SMTP server
 	msg = new MailMessage()
 	msg.From = new MailAddress("steve.ives@synergex.com")
@@ -25,7 +25,7 @@ proc
 	msg.Body = "<html><head></head><body><pre>This is the message body.<br>This is also the message body!</pre></body></html>"
 	msg.IsBodyHtml = true
 
-	client = new SmtpClient("exch2013")
+	client = new SmtpClient("exch2013.synergex.loc")
 
 	try
 	begin
@@ -48,7 +48,7 @@ proc
 		nop
 	end
 	endtry
-	
+
 	close 1
-	
+
 endmain
