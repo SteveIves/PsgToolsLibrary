@@ -90,7 +90,7 @@ namespace SynPSG.System.Net.Sockets
     endenum
 
     class Socket
-        private mSocketDesc    ,i4
+        private mSocketDesc    ,D_ADDR
         public SocketType      ,SocketType
         public AddressFamily   ,AddressFamily
         public ProtocolType    ,ProtocolType
