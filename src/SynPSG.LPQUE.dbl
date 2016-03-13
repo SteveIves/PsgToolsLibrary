@@ -1,0 +1,114 @@
+
+import SynPSG
+import SynPSG.PDF
+
+namespace SynPSG
+
+	subroutine LPQUE
+		required in filename, a
+		optional in device, a
+		
+		.include "WND:tools.def"
+		
+		.define D_DETACHED_MAX_RETRY 5
+		
+		stack record 
+			attempts, i4
+		endrecord
+		
+	proc
+		
+		;$ERR_DELFIL		1043	Error deleting file
+		;							An error occurred while the file specified
+		;							in the LPQUE statement was being deleted.
+		;
+		;$ERR_FNF			18		File not found
+		;
+		;$ERR_INVVAL		1080	Invalid value for %s
+		;							You specified this invalid value in the
+		;							LPQUE statement.
+		;
+		;$ERR_LPQERR		256		LPQUE failed
+		;							An error occurred on the LPQUE statement.
+		;							Use %SYSERR to obtain system-specific error
+		;							codes.
+		;
+		;$ERR_NOTAVL		19		Device not available
+		;							The device you’ve attempted to access is
+		;							not available.
+		;
+		;$ERR_QUEUENOTAV	122		Invalid queue specified on LPQUE
+		;							The queue specified in an LPQUE statement
+		;							was either not available or invalid.
+		;							$ERR_QUEUENOTAV is a catchall for most
+		;							print/batch symbiont errors. You should use
+		;							the %SYSERR intrinsic function to retrieve
+		;							the system error code to decode these
+		;							errors further.
+				
+		if (!UI.TerminalIsOpen)
+			attempts = 0
+		
+		repeat
+		begin
+			
+			attempts += 1
+			
+			try 
+			begin
+				if (^passed(device)&&device) then 
+				begin
+					lpque(filename,LPNUM:device)
+				end
+				else
+				begin
+					lpque(filename)
+				end
+				exitloop
+			end
+			catch (ex, @SynException)
+			begin
+				using ex.Errno select
+				(19),	;;Device not available
+				begin
+					if (UI.TerminalIsOpen) then 
+					begin
+						using (UI.YesNoMessage("Error","Device not available, retry?",D_MIDYES)) select
+						(D_MIDYES),
+						begin
+							nextloop
+						end
+						(D_MIDNO),
+						begin
+							throw
+						end
+						endusing
+					end
+					else
+					begin
+						;;Device not available and no terminal open
+						if (attempts < D_DETACHED_MAX_RETRY) then 
+						begin
+							sleep 2
+							nextloop
+						end
+						else
+						begin
+							throw
+						end
+					end					
+				end
+				(),		;;Anything else
+				begin
+					throw
+				end
+				endusing
+			end
+			endtry			
+		end
+		
+		xreturn
+		
+	endsubroutine
+	
+endnamespace

@@ -1,0 +1,41 @@
+
+main CopyFromScreenTest
+
+    .include "WND:tools.def"
+    .include "WND:windows.def"
+
+    record
+	    wid			,i4
+	    rightClickEvent	,i4
+	    achar		,a1
+    endrecord
+
+proc
+
+    ;Must start UI Toolkit instead of W_INIT
+    ;;Must therefor link against WND:tklib.elb
+    xcall u_start(,0,0,,24,80)
+
+    ;;Find the place in your Synergy Windows app where you create your main window
+    xcall w_proc(WP_CREATE,wid,"",24,80,WP_PLACE,wid,1,1)
+
+    ;;Create a UI Toolkit "Window Events Set" that associates a right-click on the window with a method
+    rightClickEvent = %u_wndevents(D_CREATE,,D_EVENT_RIGHT_CLICK,"RightClickToClipboard")
+
+    ;;Assign the window events set to the window. Now the method will be called whenever the event happens
+    xcall u_wndevents(D_ASSIGN,rightClickEvent,wid)
+
+    ;;Diosplay something to click on, and wait for some input
+    xcall w_disp(wid,
+    &	WD_POS,2,1,"Right-click on a word to copy it to the clipboard",
+    &	WD_POS,3,1,"Ctrl-click anywhere to print the screen",
+    &	WD_POS,4,1,"Alt-click in pairs to copy a region to the clipboard",
+    &	WD_POS,6,1,"Order number: 123456789",
+    &	WD_POS,8,1,"Item number : ABCD1234",
+    &	WD_POS,23,1,"Press a key to exit: ",WD_ACCEPT,achar)
+
+    xcall u_finish
+    stop
+
+endmain
+

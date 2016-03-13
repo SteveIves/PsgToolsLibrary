@@ -1,0 +1,14 @@
+
+import SynPSG
+import SynPSG.PDF
+
+main TestScrollWindow
+
+proc
+	UI.OpenTerminal()
+	UI.ScrollFile(FileType.Sequential,"C:\Experimental\data.txt","Some Data",15,3)
+
+	UI.CloseTerminal()
+endmain
+
+
