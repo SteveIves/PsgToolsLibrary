@@ -642,7 +642,7 @@ namespace SynPSG
             endtry
 
 
-            UI.StartScrollWindow(title,listRows,listScreenRow)
+            UI.StartScrollWindow(title,listRows,listScreenRow,,,,,,,,,true,true)
 
             repeat
             begin

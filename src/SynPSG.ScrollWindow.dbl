@@ -5,6 +5,7 @@ import System.Net
 import System.Net.Mail
 import System.Security
 import SynPSG
+import SynPSG.Windows
 .else
 import System
 import SynPSG.System
@@ -14,6 +15,7 @@ import SynPSG.System.Security
 import SynPSG
 import SynPSG.PDF
 import synpsg.system
+import SynPSG.Windows
 .endc
 
 namespace SynPSG
@@ -56,6 +58,7 @@ namespace SynPSG
             optional in disablePgUp,    boolean
             optional in disablePgDn,    boolean
             optional in disableBotm,    boolean
+			optional in disableExcel,   boolean
             endparams
 
             .include "WND:tools.def"
@@ -119,6 +122,10 @@ namespace SynPSG
             if (footers)
                 xcall l_sect(mLid,mFooterText,D_FOOTER)
 
+			;;Add an "Excel" button
+			if (!^passed(disableExcel) || !disableExcel)
+				xcall l_button(mLid,DSB_ADD,"COPY",DSB_TEXT,"Copy",,,"O")
+
             ;;Add a "Print" button
             if (!^passed(disablePrint) || !disablePrint)
                 xcall l_button(mLid,DSB_ADD,"PRINT",DSB_TEXT,"Print",,,"P")
@@ -141,11 +148,11 @@ namespace SynPSG
 
             ;;Add a "Page Up" button
             if (!^passed(disablePgUp) || !disablePgUp)
-                xcall l_button(mLid,DSB_ADD,"S_PGUP",DSB_TEXT,"Page Up",,,"U")
+                xcall l_button(mLid,DSB_ADD,"S_PGUP",DSB_TEXT,"PgUp",,,"U")
 
             ;;Add a "Page Dn" button
             if (!^passed(disablePgDn) || !disablePgDn)
-                xcall l_button(mLid,DSB_ADD,"S_PGDN",DSB_TEXT,"Page Dn",,,"D")
+                xcall l_button(mLid,DSB_ADD,"S_PGDN",DSB_TEXT,"PgDn",,,"D")
 
             ;;Add a "Bottom" button
             if (!^passed(disableBotm) || !disableBotm)
@@ -244,14 +251,16 @@ namespace SynPSG
                         printList()
                     ("EMAIL"),
                         emailList()
+					("COPY"),
+						copyToClipboard()
                     ("CLOSE"),
                         exitloop
                     endusing
                 end
                 else
                 begin
-                    ;;An item was selected, let's close
-                    exitloop
+                    ;;An item was selected. Ignore it.
+                    nop
                 end
             end
 
@@ -434,7 +443,7 @@ namespace SynPSG
         private method printList, void
             endparams
             record
-                pdf,        @PdfFile
+                pdf,            @PdfFile
                 errorMessage,   string
                 reportWidth,    int
                 headerLines,    int
@@ -462,7 +471,16 @@ namespace SynPSG
             else
                 headerLines = 3
 
-            pdf = new PdfFile(,orientation,reportWidth,14,,0.25,0.25,0.25,0.25,headerLines,2,"SYS$LOGIN:","Scroll Window Data")
+			try
+			begin
+				pdf = new PdfFile(,orientation,reportWidth,14,,0.25,0.25,0.25,0.25,headerLines,2,"SYS$LOGIN:","Scroll Window Data")
+			end
+			catch (ex, @Exception)
+			begin
+				xcall u_msgbox(ex.Message,D_MOK|D_MICONEXCLAM|D_MCENTER,"Unexpected Error")
+				mreturn
+			end
+			endtry
 
             if (headerLines == 2) then
             begin
@@ -619,6 +637,61 @@ namespace SynPSG
 
 
         endmethod
+
+		private method copyToClipboard, void
+			endparams
+			record
+				tmpdata,    string
+				cb,         @Clipboard
+			endrecord
+		proc
+			tmpdata = ""
+
+			;;Remove the list from the screen
+			xcall l_remove(mLid)
+
+			;;Put up a "Exporting data to Excel..." window
+			begin
+				data msgWinId, i4
+				xcall w_proc(WP_CREATE,msgWinId,"",3,21,WP_PLACE,msgWinId,9,32)
+				xcall w_disp(msgWinId,WD_POS,2,2,"Exporting Data to Excel...")
+				xcall w_updt
+				xcall w_proc(WP_DELETE,msgWinId)
+			end
+
+			;Go to the top of the list
+			xcall l_process(mLid,mReq=D_LTOP,mData)
+
+			repeat
+			begin
+				data atBottom, i4
+
+				tmpdata = tmpdata + %atrim(mData) + %char(13) + %char(10)
+
+				xcall l_process(mLid,mReq=D_LDOWN,mData)
+
+				;;Are we at the end of the list?
+				xcall l_status(mLid,D_LATBOTTOM,atBottom)
+				if (atBottom)
+				begin
+					tmpdata = tmpdata + %atrim(mData)
+					exitloop
+				end
+			end
+
+			;;Go back to the top of the list
+			xcall l_process(mLid,mReq=D_LTOP,mData)
+
+			;;Put the list back on the screen
+			xcall l_place(mLid)
+
+			cb = new Clipboard()
+			cb.Copy(tmpdata)
+
+			xcall u_msgbox("The data was coped to the clipboard.",D_MCENTER|D_MICONINFO,"Information")
+
+
+		endmethod
 
     endclass
 

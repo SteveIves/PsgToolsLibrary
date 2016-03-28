@@ -45,26 +45,45 @@ import SynPSG.Windows
 
 main ClipBoardTest
 
-	record 
-		tt			,i4
-		cb			,@ClipBoard
-		cbdata		,String
+	.include "WND:tools.def"
+	.include "WND:windows.def"
+
+	record
+		wid				,i4
+		cb				,@ClipBoard
+		cbdata			,String
+		rightClickEvent	,i4
+		achar			,a10
 	endrecord
 
 proc
-	open(tt=0,i,"tt:")
-	;;We're not using Synergy Windows but we need to to a W_INIT so the clipboard
-	;;class can get to the container window handle!
-	xcall w_init(0,tt,1)
-	writes(tt,'Copying data "Hello Clipboard" TO the clipboard...')
+	;Must start UI Toolkit instead of W_INIT
+	;;Must therefor link against WND:tklib.elb
+	xcall u_start(,0,0,,24,80)
 
-	cb = new Clipboard()
-	cb.Copy("Hello Clipboard")
-	cbdata = cb.Paste()
-	clear cb	
+	;;Find the place in your Synergy Windows app where you create your main window
+	xcall w_proc(WP_CREATE,wid,"",24,80,WP_PLACE,wid,1,1)
 
-	writes(tt,'Pasting data FROM the clipboard... received "' + cbdata + '".')
-	close tt
-	
+	;;Create a UI Toolkit "Window Events Set" that associates a right-click on the window with a method
+	rightClickEvent = %u_wndevents(D_CREATE,,D_EVENT_RIGHT_CLICK,"RightClickToClipboard")
+
+	;;Assign the window events set to the window. Now the method will be called whenever the event happens
+	xcall u_wndevents(D_ASSIGN,rightClickEvent,wid)
+
+	;;Diosplay something to click on, and wait for some input
+	xcall w_disp(wid,
+	&	WD_POS,2,1,"Right-click on a word to copy it to the clipboard",
+	&	WD_POS,3,1,"Shift + Right-click anywhere to print the screen",
+	&	WD_POS,4,1,"Control + Right-click in pairs to copy a region to the clipboard",
+	&	WD_POS,6,1,"Order number: 123456789",
+	&	WD_POS,7,1,"Item number : ABCD1234",
+	&	WD_POS,9,1,"Synergex International, Inc.",
+	&	WD_POS,10,1,"2330 Gold Meadow Way",
+	&	WD_POS,11,1,"Gold River, CA, 95670",
+	&	WD_POS,23,1,"Press a key to exit: ",WD_READS,achar)
+
+	xcall u_finish
+	stop
+
 endmain
 

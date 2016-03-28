@@ -188,6 +188,7 @@
             <F N="../src/TestPrograms/SmtpClient_Authenticated.dbl"/>
             <F N="../src/TestPrograms/SparseSelect.dbl"/>
             <F N="../src/TestPrograms/TestMailServerClient.dbl"/>
+            <F N="../src/TestPrograms/TestScrollWindow.dbl"/>
             <F N="../src/TestPrograms/WinDirTest.dbl"/>
             <F N="../src/TestPrograms/WindowsService.dbl"/>
             <F N="../src/TestPrograms/WinPathTest.dbl"/>
@@ -671,5 +672,6 @@
         <ExecMacro CmdLine="syn_set EXE=%(ROOT)exe"/>
         <ExecMacro CmdLine="syn_set SYNEXPDIR=%(ROOT)hdr"/>
         <ExecMacro CmdLine="syn_set SYNIMPDIR=%(ROOT)hdr"/>
+        <ExecMacro CmdLine="syn_set SYS$LOGIN=%(TEMP)"/>
     </Macro>
 </Project>

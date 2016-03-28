@@ -142,6 +142,7 @@
             <F N="../src/SynPSG.HttpQueryString.dbl"/>
             <F N="../src/SynPSG.IsNumeric.dbl"/>
             <F N="../src/SynPSG.IsoCountry.dbl"/>
+            <F N="../src/SynPSG.LPQUE.dbl"/>
             <F N="../src/SynPSG.MailServerClient.dbl"/>
             <F N="../src/SynPSG.MonthNumberToShortName.dbl"/>
             <F N="../src/SynPSG.MonthShortNameToNumber.dbl"/>
