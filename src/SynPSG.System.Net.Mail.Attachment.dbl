@@ -36,10 +36,13 @@
 
 .ifndef DBLNET
 
+import SynPSG.System.IO
+import SynPSG.System.Net.Mime
+
 namespace SynPSG.System.Net.Mail
-	
+    
     public class Attachment extends AttachmentBase
-		
+        
         private mContentDisposition ,@ContentDisposition
 
         ;;********************************************************************
@@ -63,7 +66,7 @@ namespace SynPSG.System.Net.Mail
         ;;;A SynPSG.Net.Mime.ContentType that describes the data in the string</param>
         public method Attachment
             in contentStream    ,@Stream
-            in contentType      ,@contentType
+            in contentType      ,@ContentType
             endparams
             parent(contentStream,contentType)
         proc

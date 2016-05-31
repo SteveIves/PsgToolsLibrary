@@ -77,10 +77,10 @@
                 Value="0"/>
             <SynSetting
                 Name="proto_command_line"
-                Value="dblproto %p%n%e"/>
+                Value="dblproto -out=StevesLibrary -platform=x86 %p%n%e"/>
             <SynSetting
                 Name="compile_command_line"
-                Value='dbl -T -d -qcheck -qalign -o OBJ:%rn.dbo "%p%n%e"'/>
+                Value='dbl -T -d -qcheck -qalign -WD=762 -o OBJ:%rn.dbo "%p%n%e"'/>
             <SynSetting
                 Name="linklibr_command_line"
                 Value="dblink -d -l EXE:%rn.elb OBJ:%rn.dbo WND:tklib.elb"/>
@@ -129,7 +129,7 @@
         <Folder
             Name="Source Files"
             Filters="*.dbl;*.tpl;*.dbc">
-            <F N="../../SynPSG_PDF/SOURCE/PDF/pdfdbl.dbl"/>
+            <F N="/GitHub/Synergex/SynPSG_PDF/SOURCE/PDF/pdfdbl.dbl"/>
             <F N="../src/SynPSG.CanadianProvince.dbl"/>
             <F N="../src/SynPSG.CopyHandle.dbl"/>
             <F N="../src/SynPSG.DataServer.dbl"/>
@@ -231,7 +231,7 @@
             <F N="../src/SynPSG.Windows.WinSysPath.dbl"/>
             <F N="../src/SynPSG.Windows.WinTempDir.dbl"/>
             <F N="../src/SynPSG.Windows.WinTempFile.dbl"/>
-            <F N="../../SynPSG_PDF/SOURCE/PDF/SynPSG_PDF.dbl"/>
+            <F N="/GitHub/Synergex/SynPSG_PDF/SOURCE/PDF/SynPSG_PDF.dbl"/>
         </Folder>
         <Folder
             Name="Header Files"
@@ -319,10 +319,10 @@
                 Value="1"/>
             <SynSetting
                 Name="proto_command_line"
-                Value="dblproto %p%n%e"/>
+                Value="dblproto -out=StevesLibrary -platform=x64 %p%n%e"/>
             <SynSetting
                 Name="compile_command_line"
-                Value='dbl -T -d -qcheck -qalign -o OBJ:%rn.dbo "%p%n%e"'/>
+                Value='dbl -T -d -qcheck -qalign -WD=762 -o OBJ:%rn.dbo "%p%n%e"'/>
             <SynSetting
                 Name="linklibr_command_line"
                 Value="dblink -d -l EXE:%rn.elb OBJ:%rn.dbo WND:tklib.elb"/>
@@ -439,10 +439,10 @@
                 Value="0"/>
             <SynSetting
                 Name="proto_command_line"
-                Value="dblproto %p%n%e"/>
+                Value="dblproto -out=StevesLibrary -platform=x86 %p%n%e"/>
             <SynSetting
                 Name="compile_command_line"
-                Value='dbl -T -qstrict -qalign -o OBJ:%rn.dbo "%p%n%e"'/>
+                Value='dbl -T -qstrict -qalign -WD=762 -o OBJ:%rn.dbo "%p%n%e"'/>
             <SynSetting
                 Name="linklibr_command_line"
                 Value="dblink -l EXE:%rn.elb OBJ:%rn.dbo WND:tklib.elb"/>
@@ -559,10 +559,10 @@
                 Value="1"/>
             <SynSetting
                 Name="proto_command_line"
-                Value="dblproto %p%n%e"/>
+                Value="dblproto -out=StevesLibrary -platform=x64 %p%n%e"/>
             <SynSetting
                 Name="compile_command_line"
-                Value='dbl -T -qstrict -qalign -o OBJ:%rn.dbo "%p%n%e"'/>
+                Value='dbl -T -qstrict -qalign -WD=762 -o OBJ:%rn.dbo "%p%n%e"'/>
             <SynSetting
                 Name="linklibr_command_line"
                 Value="dblink -l EXE:%rn.elb OBJ:%rn.dbo WND:tklib.elb"/>
@@ -612,7 +612,7 @@
         <ExecMacro CmdLine="syn_set STDLIBINC=%(ROOT)src\Includes"/>
         <ExecMacro CmdLine="syn_set OBJ=%(ROOT)obj"/>
         <ExecMacro CmdLine="syn_set EXE=%(ROOT)exe"/>
-        <ExecMacro CmdLine="syn_set SYNEXPDIR=%(ROOT)hdr"/>
-        <ExecMacro CmdLine="syn_set SYNIMPDIR=%(ROOT)hdr"/>
+        <ExecMacro CmdLine="syn_set SYNEXPDIR=%(ROOT)"/>
+        <ExecMacro CmdLine="syn_set SYNIMPDIR=%(ROOT)"/>
     </Macro>
 </Project>

@@ -111,7 +111,7 @@
                 Value="0"/>
             <SynSetting
                 Name="proto_command_line"
-                Value="dblproto %p%n%e"/>
+                Value="dblproto -platform=x86 %p%n%e"/>
             <SynSetting
                 Name="compile_command_line"
                 Value='dbl -T -d -qcheck -qalign -o OBJ: "%p%n%e"'/>
@@ -309,7 +309,7 @@
                 Value="1"/>
             <SynSetting
                 Name="proto_command_line"
-                Value="dblproto %p%n%e"/>
+                Value="dblproto -platform=x64 %p%n%e"/>
             <SynSetting
                 Name="compile_command_line"
                 Value='dbl -T -d -qcheck -qalign -o OBJ: "%p%n%e"'/>
@@ -463,7 +463,7 @@
                 Value="0"/>
             <SynSetting
                 Name="proto_command_line"
-                Value="dblproto %p%n%e"/>
+                Value="dblproto -platform=x86 %p%n%e"/>
             <SynSetting
                 Name="compile_command_line"
                 Value='dbl -T -qstrict -qalign -o OBJ: "%p%n%e"'/>
@@ -617,7 +617,7 @@
                 Value="1"/>
             <SynSetting
                 Name="proto_command_line"
-                Value="dblproto %p%n%e"/>
+                Value="dblproto -platform=x64 %p%n%e"/>
             <SynSetting
                 Name="compile_command_line"
                 Value='dbl -T -qstrict -qalign -o OBJ: "%p%n%e"'/>
@@ -670,8 +670,7 @@
         <ExecMacro CmdLine="syn_set STDLIBINC=%(ROOT)src\Includes"/>
         <ExecMacro CmdLine="syn_set OBJ=%(ROOT)obj"/>
         <ExecMacro CmdLine="syn_set EXE=%(ROOT)exe"/>
-        <ExecMacro CmdLine="syn_set SYNEXPDIR=%(ROOT)hdr"/>
-        <ExecMacro CmdLine="syn_set SYNIMPDIR=%(ROOT)hdr"/>
+        <ExecMacro CmdLine="syn_set SYNIMPDIR=%(ROOT)"/>
         <ExecMacro CmdLine="syn_set SYS$LOGIN=%(TEMP)"/>
     </Macro>
 </Project>
