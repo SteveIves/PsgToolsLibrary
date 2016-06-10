@@ -129,7 +129,24 @@
         <Folder
             Name="Source Files"
             Filters="*.dbl;*.tpl;*.dbc">
-            <F N="/GitHub/Synergex/SynPSG_PDF/SOURCE/PDF/pdfdbl.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoBox.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoBoxAbsolute.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoBoxRowCol.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoImage.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoItem.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoLine.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoLineAbsolute.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoLineRowCol.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoText.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoTextAbsolute.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoTextRowCol.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/ChartDataSet.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/ChartItem.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/ChartSeries.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/Enumerations.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/pdfdbl.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/PdfFile.dbl"/>
+            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/Structures.dbl"/>
             <F N="../src/SynPSG.CanadianProvince.dbl"/>
             <F N="../src/SynPSG.CopyHandle.dbl"/>
             <F N="../src/SynPSG.DataServer.dbl"/>
@@ -231,7 +248,6 @@
             <F N="../src/SynPSG.Windows.WinSysPath.dbl"/>
             <F N="../src/SynPSG.Windows.WinTempDir.dbl"/>
             <F N="../src/SynPSG.Windows.WinTempFile.dbl"/>
-            <F N="/GitHub/Synergex/SynPSG_PDF/SOURCE/PDF/SynPSG_PDF.dbl"/>
         </Folder>
         <Folder
             Name="Header Files"
