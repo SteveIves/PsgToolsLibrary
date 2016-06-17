@@ -44,6 +44,7 @@ namespace SynPSG.System.Net.Sockets
 .include "DBLDIR:synsock.def"
 
     class NetworkStream
+
         private mSocket        ,@Socket
         private mReadTimeout   ,int
         private mReadTimeoutSec,int
@@ -67,8 +68,11 @@ namespace SynPSG.System.Net.Sockets
         public method Close, void
             endparams
         proc
-            mSocket.Close()
-            init mSocket
+			if (mSocket!=^null)
+			begin
+				mSocket.Close()
+				init mSocket
+			end
         endmethod
 
         ;;;<summary>
@@ -78,8 +82,11 @@ namespace SynPSG.System.Net.Sockets
             endparams
         proc
             sleep wait
-            mSocket.Close()
-            init mSocket
+			if (mSocket!=^null)
+			begin
+				mSocket.Close()
+				init mSocket
+			end
         endmethod
 
         ;;;<summary>
@@ -145,6 +152,8 @@ namespace SynPSG.System.Net.Sockets
             p_byte  ,a1
         endrecord
         proc
+			if (mSocket==^null)
+				mreturn -1
             if mReadTimeout>=0
                 if (%ss_select(mSocket.Handle,mReadTimeoutSec,mReadTimeoutMic) != SS_SUCCESS)
                     mreturn -1
@@ -184,13 +193,15 @@ namespace SynPSG.System.Net.Sockets
             bufLength       ,int
         endrecord
         proc
-            bufLength = ^size(buffer)
-            if (offset<0 || offset>bufLength || bytesToWrite<0 || (offset+bytesToWrite)>bufLength)
-                throw new System.ArgumentOutOfRangeException()
-            status = %ss_sendbuf(mSocket.Handle,buffer(offset+1:bytesToWrite))
-            if (status != SS_SUCCESS)
-                throw new System.ApplicationException("There was a failure writing to the network. SS_SENDBUFF error "+%string(status))
-            mreturn
+			if (mSocket!=^null)
+			begin
+				bufLength = ^size(buffer)
+				if (offset<0 || offset>bufLength || bytesToWrite<0 || (offset+bytesToWrite)>bufLength)
+					throw new System.ArgumentOutOfRangeException()
+				status = %ss_sendbuf(mSocket.Handle,buffer(offset+1:bytesToWrite))
+				if (status != SS_SUCCESS)
+					throw new System.ApplicationException("There was a failure writing to the network. SS_SENDBUFF error "+%string(status))
+			end
         endmethod
 
         ;;;<summary>

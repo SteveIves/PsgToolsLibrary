@@ -60,6 +60,7 @@ import SynPSG.System.Net.Mail
 import SynPSG.System.Net.Mime
 import SynPSG.System.Net.Sockets
 import SynPSG.System.Text.encoding
+import System.Collections
 
 .include "DBLDIR:synsock.def"
 
@@ -178,40 +179,44 @@ namespace SynPSG.System.Net.Mail
             in message      ,@MailMessage
             endparams
 
-        structure block
-            ,a32768
-        endstructure
+			structure block
+				,a32768
+			endstructure
 
-        record
-            ESMTPinUse      ,boolean        ;; ESMTP in use
-            ctr             ,i4             ;; general purpose loop counter
-            group dt
-                year        ,a4
-                month       ,d2
-                day         ,a2
-                hour        ,a2
-                minute      ,a2
-                seconds     ,a2
-                milli       ,a6
-            endgroup
-            m_data          ,a28500         ;; Equates to 500 SMTP lines (57 bytes before conversion to Base64, 76 bytes + CRLF after conversion)
-            m_data_len      ,i4             ;; number of characters in m_data
-            minsOffset      ,i4             ;; timezone offset (in minutes)
-            UMToffset       ,a5             ;; string representation of timezone offset
-        endrecord
-        record
-            buff            ,string
-            m_senderHost    ,string
-            m_senderAddress ,string
-            m_tempAddress   ,@MailAddress
-        endrecord
+			record
+				ctr             ,i4             ;; general purpose loop counter
+				group dt
+					year        ,a4
+					month       ,d2
+					day         ,a2
+					hour        ,a2
+					minute      ,a2
+					seconds     ,a2
+					milli       ,a6
+				endgroup
+				m_data          ,a28500         ;; Equates to 500 SMTP lines (57 bytes before conversion to Base64, 76 bytes + CRLF after conversion)
+				m_data_len      ,i4             ;; number of characters in m_data
+				minsOffset      ,i4             ;; timezone offset (in minutes)
+				UMToffset       ,a5             ;; string representation of timezone offset
+			endrecord
 
+			record
+				buff            ,string
+				m_senderHost    ,string
+				m_senderAddress ,string
+				m_tempAddress   ,@MailAddress
+			endrecord
+			
         proc
 
+			;;Enable debug logging if requested
+			startDebugLog()
+			
             if (message.From.Address == "")
-                throw new applicationexception("No 'from' address provided.")
+                throw new applicationexception("No from address provided.")
+
             if (message.To.Count == 0)
-                throw new applicationexception("No 'to' addresses specified.")
+                throw new applicationexception("No to addresses specified.")
 
 ;            if (message.Sender!=^null && message.Sender.Address.Length>0 && message.Sender.Address!=message.From.Address) then
 ;            begin
@@ -224,60 +229,57 @@ namespace SynPSG.System.Net.Mail
                 m_senderAddress = message.From.Address
 ;            end
 
+			debugLog("Creating TcpClient to host "+mHost.Trim()+" port "+%string(mPort))
             mTcpClient = new TcpClient(mHost, mPort)
             mNStream = mTcpClient.GetStream()
 
-            ;;Get initial response from the server. Set the timeout to 30 seconds
+            ;;Set the timeout to 30 seconds
             mNStream.ReadTimeout = 30000
 
-            begin
-                data tempBuf    ,a1024
-                ;;getSmtpLine()
-            if (mNStream.Read(tempBuf,0,^size(tempBuf)))
-            begin
-                mRespCode = %integer(tempBuf(1:3))
-                    mRespContinuation = false
-                    mRespStr = tempBuf(5,^size(tempBuf))
-            end
-            CheckResponseCode(220)
-            end
+            ;;Get initial response from the server
+			begin
+				data tempBuf    ,a1024
+				data len, i4
+				if (len=mNStream.Read(tempBuf,0,^size(tempBuf)))
+				begin
+					mRespCode = %integer(tempBuf(1:3))
+					mRespContinuation = false
+					mRespStr = tempBuf(5,len)
+					debugLog("Recv: "+%string(mRespCode,"XXX")+" "+mRespStr)
+				end
+				CheckResponseCode(220)
+			end
 
-            ;;Service is available, now tell the server the sender's domain
-            ;; NOTE: If "ESMTP" was in the 220 response, then the server should support EHLO
+            ;;Service is available
+			;;Tell the server the sender's domain
             mRespStr = mRespStr.ToUpper()
 
-            if (mRespStr.Contains('ESMTP')) then
-                ESMTPinUse = true
+            ;;If "ESMTP" was in the previous 220 response then the server should support EHLO
+			;;Send the HELO or EHLO message
+            if(mRespStr.Contains("ESMTP")) then
+                buff = "EHLO "+m_senderHost
             else
-                ESMTPinUse = false
-
-            if(ESMTPinUse == true) then
-                buff = "EHLO "+m_senderHost+CRLF
-            else
-                buff = "HELO "+m_senderHost+CRLF
-
-            mNStream.Write(buff,0,buff.Length)
+                buff = "HELO "+m_senderHost
+			sendMessage(buff,true)
             getSmtpLine()
             CheckResponseCode(220)
 
-            ;; get additional responses after logon
+            ;;Get any additional responses after logon
             while(mRespContinuation==true)
             begin
                 getSmtpLine()
                 CheckResponseCode(250)
             end
 
-            if(mRespStr.StartsWith('TLS '))
+            if(mRespStr.StartsWith("TLS "))
             begin
-                buff = 'STARTTLS TLS1.0'+CRLF
-                mNStream.Write(buff,0,buff.Length)
-
+                buff = "STARTTLS TLS1.0"
+				sendMessage(buff,true)
                 getSmtpLine()
                 CheckResponseCode(220)
 
-                buff = "EHLO "+m_senderHost+CRLF
-                mNStream.Write(buff,0,buff.Length)
-
+                buff = "EHLO "+m_senderHost
+				sendMessage(buff,true)
                 getSmtpLine()
                 CheckResponseCode(220)
 
@@ -289,68 +291,82 @@ namespace SynPSG.System.Net.Mail
                 end
             end
 
-            if(mRespStr.StartsWith('AUTH '))
+            if(mRespStr.StartsWith("AUTH "))
             begin
                 ;; performed authentication
                 data authenticated ,boolean ,false
 
-                if (mRespStr.Contains(' LOGON '))
+                if (mRespStr.Contains(" LOGON "))
                 begin
-                    buff = 'auth login'+CRLF
-                    mNStream.Write(buff,0,buff.Length)
+                    buff = "auth login"
+					sendMessage(buff,true)
 
                     ;; get username prompt
                     getSmtpLine()
                     checkResponseCode(334)
 
                     ;; base64 encrypted username
-                    buff = Convert.ToBase64String(AsciiEncoding.GetBytes(Credentials.Username),SynPSG.Base64FormattingOptions.None)+CRLF
-                    mNStream.Write(buff,0,buff.Length)
+                    buff = Convert.ToBase64String(AsciiEncoding.GetBytes(Credentials.Username),SynPSG.Base64FormattingOptions.None)
+					sendMessage(buff,true)
 
                     ;; get password prompt
                     getSmtpLine()
                     checkResponseCode(334)
 
                     ;; base64 encrypted password
-                    buff = Convert.ToBase64String(AsciiEncoding.GetBytes(Credentials.Password),SynPSG.Base64FormattingOptions.None)+CRLF
-                    mNStream.Write(buff,0,buff.Length)
+                    buff = Convert.ToBase64String(AsciiEncoding.GetBytes(Credentials.Password),SynPSG.Base64FormattingOptions.None)
+					sendMessage(buff,true)
 
                     authenticated = true
                 end
 
                 if (authenticated == false && mRespStr.Contains(' PLAIN '))
                 begin
-                    buff = 'AUTH PLAIN'+CRLF
-                    mNStream.Write(buff,0,buff.Length)
+                    buff = "AUTH PLAIN"
+					sendMessage(buff,true)
 
                     ;; get empty response
                     getSmtpLine()
                     checkResponseCode(334)
 
                     ;base64 encrypted simple username
-                    buff = Convert.ToBase64String(AsciiEncoding.GetBytes(Credentials.Username),SynPSG.Base64FormattingOptions.None)+CRLF
-                    mNStream.Write(buff,0,buff.Length)
+                    buff = Convert.ToBase64String(AsciiEncoding.GetBytes(Credentials.Username),SynPSG.Base64FormattingOptions.None)
+					sendMessage(buff,true)
 
                     authenticated = true
                 end
 
                 if (authenticated == false && mRespStr.Contains(' CRAM-MD5 '))
                 begin
-                    ;; todo
+					debugLog("Recv: "+%string(mRespCode,"XXX")+" "+mRespStr)
+					buff = "Server requested usupported authentication mecanism: CRAM-MD5"
+					debugLog("Fail: "+buff)
+					throw new ApplicationException(buff)
                 end
 
                 if (authenticated == false && mRespStr.Contains(' DIGEST-MD5 '))
                 begin
-
+					debugLog("Recv: "+%string(mRespCode,"XXX")+" "+mRespStr)
+					buff = "Server requested usupported authentication mecanism: DIGEST-MD5"
+					debugLog("Fail: "+buff)
+					throw new ApplicationException(buff)
                 end
 
                 if (authenticated == false && mRespStr.Contains(' GSSAPI '))
                 begin
-
+					debugLog("Recv: "+%string(mRespCode,"XXX")+" "+mRespStr)
+					buff = "Server requested usupported authentication mecanism: GSSAPI"
+					debugLog("Fail: "+buff)
+					throw new ApplicationException(buff)
                 end
 
                 if(authenticated == false)
-                    throw new ApplicationException("Unknown Authentication Request:"+mRespStr)
+				begin
+					debugLog("Recv: "+%string(mRespCode,"XXX")+" "+mRespStr)
+					buff = "Unknown Authentication Request: " + mRespStr
+					debugLog("Fail: "+buff)
+                    throw new ApplicationException(buff)
+				end
 
                 ;; get authorization response
                 getSmtpLine()
@@ -358,98 +374,95 @@ namespace SynPSG.System.Net.Mail
             end
 
             ;;Tell the server about the sender
-            buff = "MAIL FROM:<"+m_senderAddress+">"+CRLF
-            mNStream.Write(buff,0,buff.Length)
+            buff = "MAIL FROM:<"+m_senderAddress+">"
+			sendMessage(buff,true)
+
             getSmtpLine()
             checkResponseCode(0)
 
             ;;Send recipient list
             for ctr from 1 thru message.To.Count
             begin
-                buff = "RCPT TO:<"+message.To[ctr-1].Address+">"+CRLF
-                mNStream.Write(buff,0,buff.Length)
+                buff = "RCPT TO:<"+message.To[ctr-1].Address+">"
+				sendMessage(buff,true)
                 getSmtpLine()
 
-		;----------------------------------------------------------------------------------
-		;;This code was added by Steve Ives because this behavior was seen in some
-		;;SMTP servers requiring authentication (e.g. the Arvixe servers).
-		if (mRespStr=="SMTP authentication is required.") ;530
-		begin
-			buff = 'auth login'+CRLF
-			mNStream.Write(buff,0,buff.Length)
+				;----------------------------------------------------------------------------------
+				;;This code was added by Steve Ives because this behavior was seen in some
+				;;SMTP servers requiring authentication (e.g. the Arvixe servers).
+				if (mRespStr=="SMTP authentication is required.") ;530
+				begin
+					buff = "auth login"
+					sendMessage(buff,true)
 
-			;;get username prompt
-			getSmtpLine()
-			checkResponseCode(334)
+					;;get username prompt
+					getSmtpLine()
+					checkResponseCode(334)
 
-			;;base64 encrypted username
-			buff = Convert.ToBase64String(AsciiEncoding.GetBytes(Credentials.Username),SynPSG.Base64FormattingOptions.None)+CRLF
-			mNStream.Write(buff,0,buff.Length)
+					;;base64 encrypted username
+					buff = Convert.ToBase64String(AsciiEncoding.GetBytes(Credentials.Username),SynPSG.Base64FormattingOptions.None)
+					sendMessage(buff,true)
 
-			;;get password prompt
-			getSmtpLine()
-			checkResponseCode(334)
+					;;get password prompt
+					getSmtpLine()
+					checkResponseCode(334)
 
-			;;base64 encrypted password
-			buff = Convert.ToBase64String(AsciiEncoding.GetBytes(Credentials.Password),SynPSG.Base64FormattingOptions.None)+CRLF
-			mNStream.Write(buff,0,buff.Length)
-			getSmtpLine()
+					;;base64 encrypted password
+					buff = Convert.ToBase64String(AsciiEncoding.GetBytes(Credentials.Password),SynPSG.Base64FormattingOptions.None)
+					sendMessage(buff,true)
 
-			;Should be 235 "authenticated."
-			checkResponseCode(235)
+					getSmtpLine()
+					checkResponseCode(235)	;Should be 235 "authenticated."
 
-			;;Now we need to send the RCPT TO again because the last one
-			;;wasn't processed because of the authentication request.
-			buff = "RCPT TO:<"+message.To[ctr-1].Address+">"+CRLF
-			mNStream.Write(buff,0,buff.Length)
-			getSmtpLine()
-		end
+					;;Now we need to send the RCPT TO again because the last one
+					;;wasn't processed because of the authentication request.
+					buff = "RCPT TO:<"+message.To[ctr-1].Address+">"
+					sendMessage(buff,true)
+					getSmtpLine()
+				end
 
-		checkResponseCode(0)
+				checkResponseCode(0)
 
             end
 
             ;;Send cc list
             for ctr from 1 thru message.CC.Count
             begin
-                buff = "RCPT TO:<"+message.CC[ctr-1].Address+">"+CRLF
-                mNStream.Write(buff,0,buff.Length)
+                buff = "RCPT TO:<"+message.CC[ctr-1].Address+">"
+				sendMessage(buff,true)
+
                 getSmtpLine()
                 checkResponseCode(0)
             end
 
             ;;Now send DATA command
-            mNStream.Write("DATA"+CRLF,0,6)
+			sendMessage("DATA",true)
             getSmtpLine()
             checkResponseCode(354)
 
             ;;Send message header
-            buff = "X-Mailer: Synergy DBL"+CRLF
-            mNStream.Write(buff,0,buff.Length)
-
-            buff = SynPSG.StringUtil.Format("Date: {0:ddd dd MMM yyyy HH:mm:ss zzz}", %datetime)+CRLF
-            mNStream.Write(buff,0,buff.Length)
+			sendMessage("X-Mailer: Synergy DBL",true)
+			sendMessage(SynPSG.StringUtil.Format("Date: {0:ddd dd MMM yyyy HH:mm:ss zzz}", %datetime),true)
 
             ;;Sender
             if (message.From.DisplayName) then
-                buff = 'From: "'+message.From.DisplayName+'" <'+message.From.Address+'>'+CRLF
+				sendMessage('From: "'+message.From.DisplayName+'" <'+message.From.Address+'>',true)
             else
-                buff = "From: "+message.From.Address+CRLF
-            mNStream.Write(buff,0,buff.Length)
+				sendMessage("From: "+message.From.Address,true)
+			
 
             ;;Recipient
             buff = "To:"
             for ctr from 1 thru message.To.Count
             begin
                 if (ctr>1)
-                    buff = String.Concat(buff, ',')
+                    buff = String.Concat(buff,',')
                 if (message.To[ctr-1].DisplayName) then
-                    buff = String.Concat(buff, ' "'+message.To[ctr-1].DisplayName+'" <'+message.To[ctr-1].Address+'>')
+                    buff = String.Concat(buff,' "'+message.To[ctr-1].DisplayName+'" <'+message.To[ctr-1].Address+'>')
                 else
-                    buff = String.Concat(buff, ' '+message.To[ctr-1].Address)
+                    buff = String.Concat(buff,' '+message.To[ctr-1].Address)
             end
-            buff = String.Concat(buff, CRLF)
-            mNStream.Write(buff,0,buff.Length)
+			sendMessage(buff,true)
 
             ;;CC:
             if (message.CC.Count>0)
@@ -458,14 +471,13 @@ namespace SynPSG.System.Net.Mail
                 for ctr from 1 thru message.CC.Count
                 begin
                     if (ctr>1)
-                        buff = String.Concat(buff, ',')
+                        buff = String.Concat(buff,',')
                     if (message.CC[ctr-1].DisplayName) then
-                        buff = String.Concat(buff, ' "'+message.CC[ctr-1].DisplayName+'" <'+message.CC[ctr-1].Address+'>')
+                        buff = String.Concat(buff,' "'+message.CC[ctr-1].DisplayName+'" <'+message.CC[ctr-1].Address+'>')
                     else
-                        buff = String.Concat(buff, " "+message.CC[ctr-1].Address)
-                end
-                buff = String.Concat(buff, CRLF)
-                mNStream.Write(buff,0,buff.Length)
+                        buff = String.Concat(buff," "+message.CC[ctr-1].Address)
+				end
+				sendMessage(buff,true)
             end
 
             ;;BCC:
@@ -475,84 +487,76 @@ namespace SynPSG.System.Net.Mail
                 for ctr from 1 thru message.Bcc.Count
                 begin
                     if (ctr>1)
-                        buff = String.Concat(buff, ',')
+                        buff = String.Concat(buff,',')
                     if (message.Bcc[ctr-1].DisplayName) then
-                        buff = String.Concat(buff, ' "'+message.Bcc[ctr-1].DisplayName+'" <'+message.Bcc[ctr-1].Address+'>')
+                        buff = String.Concat(buff,' "'+message.Bcc[ctr-1].DisplayName+'" <'+message.Bcc[ctr-1].Address+'>')
                     else
-                        buff = String.Concat(buff, " "+message.Bcc[ctr-1].Address)
-                end
-                buff = String.Concat(buff, CRLF)
-                mNStream.Write(buff,0,buff.Length)
+                        buff = String.Concat(buff," "+message.Bcc[ctr-1].Address)
+				end
+				sendMessage(buff,true)
             end
 
             ;;Reply to
             if (message.ReplyTo!=^null)
             begin
                 if (message.ReplyTo.DisplayName.Length>0) then
-                    buff = 'Reply-To: "'+message.ReplyTo.DisplayName+'" <'+message.ReplyTo.Address+'>'+CRLF
+                    buff = 'Reply-To: "'+message.ReplyTo.DisplayName+'" <'+message.ReplyTo.Address+'>'
                 else
-                    buff = "Reply-To: "+message.ReplyTo.Address+CRLF
-                mNStream.Write(buff,0,buff.Length)
+                    buff = "Reply-To: "+message.ReplyTo.Address
+				sendMessage(buff,true)
             end
 
             ;;Subject
-            buff = "Subject: "+message.Subject+CRLF
-            mNStream.Write(buff,0,buff.Length)
+			sendMessage("Subject: "+message.Subject,true)
 
             ;;Content MIME headers
-            buff = "Mime-Version: 1.0"+CRLF
-            mNStream.Write(buff,0,buff.Length)
+			sendMessage("Mime-Version: 1.0",true)
+
             if (message.Attachments.Count>0) then
-                buff = 'Content-Type: multipart/mixed; boundary="_NextPart_'+%hex(%jbno)+'"'+CRLF
+                buff = 'Content-Type: multipart/mixed; boundary="_NextPart_'+%hex(%jbno)+'"'
             else
                 if (message.IsBodyHtml) then
-                    buff = 'Content-Type: text/html; charset="iso-8859-1"'+CRLF
+                    buff = 'Content-Type: text/html; charset="iso-8859-1"'
                 else
-                    buff = 'Content-Type: text/plain; charset="iso-8859-1"'+CRLF
-            mNStream.Write(buff,0,buff.Length)
+                    buff = 'Content-Type: text/plain; charset="iso-8859-1"'
+			sendMessage(buff,true)
 
             ;;Attachments
             if (message.Attachments.Count>0)
             begin
-                mNStream.Write(CRLF,0,2)
-                buff = '--_NextPart_'+%hex(%jbno)+CRLF
-                mNStream.Write(buff,0,buff.Length)
+				sendMessage("",true)
+				sendMessage("--_NextPart_"+%hex(%jbno),true)
                 if (message.IsBodyHtml) then
-                    buff = 'Content-Type: text/html; charset="iso-8859-1"'+CRLF
+                    sendMessage('Content-Type: text/html; charset="iso-8859-1"',true)
                 else
-                    buff = 'Content-Type: text/plain; charset="iso-8859-1"'+CRLF
-                mNStream.Write(buff,0,buff.Length)
+                    sendMessage('Content-Type: text/plain; charset="iso-8859-1"',true)
             end
-            buff = "Content-Transfer-Encoding: quoted-printable"+CRLF
-            mNStream.Write(buff,0,buff.Length)
-            mNStream.Write(CRLF,0,2)
+            sendMessage("Content-Transfer-Encoding: quoted-printable",true)
+			sendMessage("",true)
 
-            buff = message.Body+CRLF
-            mNStream.Write(buff,0,buff.Length)
-
+			;;Message body
+            sendMessage(message.Body,true)
+			
             for ctr from 1 thru message.Attachments.Count
             begin
-		data atch, @Attachment, message.Attachments[ctr-1]
+				data atch, @Attachment, message.Attachments[ctr-1]
 
-                mNStream.Write(CRLF,0,2)
-                buff = '--_NextPart_'+%hex(%jbno)+CRLF
-                mNStream.Write(buff,0,buff.Length)
-                buff = 'Content-Type: '+atch.ContentType.ToString()+CRLF
-                mNStream.Write(buff,0,buff.Length)
-                buff = 'Content-Disposition: '+atch.ContentDisposition.DispositionType + '; filename="'+atch.Name+'"'+CRLF
-                mNStream.Write(buff,0,buff.Length)
-                buff = 'Content-Transfer-Encoding:'
+				sendMessage("",true)
+                sendMessage("--_NextPart_"+%hex(%jbno),true)
+                sendMessage("Content-Type: "+atch.ContentType.ToString(),true)
+                sendMessage("Content-Disposition: "+atch.ContentDisposition.DispositionType+'; filename="'+atch.Name+'"',true)
+
                 using atch.TransferEncoding select
                 (TransferEncoding.Base64),
-                    buff = String.Concat(buff,' base64')
+                    sendMessage('Content-Transfer-Encoding: base64',true)
                 (TransferEncoding.QuotedPrintable),
-                    buff = String.Concat(buff,' quoted-printable')
+                    sendMessage('Content-Transfer-Encoding: quoted-printable',true)
                 (),
-                    buff = String.Concat(buff, ' 7bit')
+                    sendMessage('Content-Transfer-Encoding: 7bit',true)
                 endusing
-                buff = buff + CRLF
-                mNStream.Write(buff,0,buff.Length)
-                mNStream.Write(CRLF,0,2)
+
+				sendMessage("",true)
+				
                 repeat
                 begin
                     m_data_len = ((FileStream)atch.ContentStream).Read(m_data,0,^size(m_data))
@@ -561,34 +565,87 @@ namespace SynPSG.System.Net.Mail
                         exitloop
                     using atch.TransferEncoding select
                     (TransferEncoding.Base64),
-                    begin
-                        data m_convString    ,string
-                        m_convString = Convert.ToBase64String(AsciiEncoding.GetBytes(m_data(1:m_data_len)),
-                        &   SynPSG.Base64FormattingOptions.InsertLineBreaks)
-                        mNStream.Write(m_convString,0,m_convString.Length)
-                    end
+                        sendMessage(Convert.ToBase64String(AsciiEncoding.GetBytes(m_data(1:m_data_len)),SynPSG.Base64FormattingOptions.InsertLineBreaks),false)
                     (),
-                        mNStream.Write(m_data,0,m_data_len)
+						sendMessage(m_data(1:m_data_len),false)
                     endusing
                     if (!m_data_len)
                         exitloop
                 end
             end
 
-            if (message.Attachments.Count>0) then
-            begin
-                mNStream.Write(CRLF,0,2)
-                buff = '--_NextPart_'+%hex(%jbno)+"--"+CRLF+"."+CRLF
-            end
-            else
-                buff = "."+CRLF
-            mNStream.Write(buff,0,buff.Length)
+            if (message.Attachments.Count>0)
+				sendMessage('--_NextPart_'+%hex(%jbno)+"--",true)
+
+			sendMessage(".",true)
 
             getSmtpLine()
             checkResponseCode(250)
 
+			endDebugLog()
+			
             mreturn
+
         endmethod
+		
+		private method sendMessage, void
+			required in messageToSend, string
+			required in addCrLf, boolean
+			endparams
+			record 
+				msg, string
+			endrecord
+		proc
+			debugLog("Send: "+messageToSend)
+			msg = messageToSend
+			if (addCrLf)
+				msg = msg + CRLF
+			mNStream.Write(msg,0,msg.Length)
+		endmethod
+		
+		private mEnableLogging, boolean, false
+		private mLoggingOn, boolean, false
+		
+		public property EnableLogging, boolean
+			method get
+			proc
+				mreturn mEnableLogging
+			endmethod
+			method set
+			proc
+				mEnableLogging = value
+			endmethod
+		endproperty
+		
+		private debugLogChannel, i4
+
+		private method startDebugLog, void
+			endparams
+		proc
+			if (mEnableLogging&&(!mLoggingOn))
+			begin
+				open(debugLogChannel=0,o,"SmtpClient.log")
+				mLoggingOn = true
+			end
+		endmethod
+		
+		private method endDebugLog, void
+			endparams
+		proc
+			if (mLoggingOn)
+			begin
+				close debugLogChannel
+				mLoggingOn = false
+			end
+		endmethod
+
+		private method debugLog, void
+			required in logMessage, string
+			endparams
+		proc
+			if (mLoggingOn)
+				writes(debugLogChannel,logMessage)
+		endmethod
 
         ;;;<summary>
         ;;;Sends an e-mail message to an SMTP server for delivery using the supplied string arguments.
@@ -606,15 +663,15 @@ namespace SynPSG.System.Net.Mail
         private method getSmtpLine, void
             endparams
 
-        stack record vars
-            lineBuf     ,a1024
-            byteCount   ,i4
-        endrecord
+			stack record vars
+				lineBuf     ,a1024
+				byteCount   ,i4
+			endrecord
 
         proc
             init lineBuf,byteCount
 
-            ;; Read one byte at a time from the stream, so that we can identify
+            ;; Read one byte at a time from the stream, so that we can identify 
             ;; when a LineFeed has been passed
             while ((mByte=mNStream.ReadByte())!=(-1) && %char(mByte)!=LF)
                 lineBuf(byteCount+=1:1)=%char(mByte)
@@ -639,83 +696,112 @@ namespace SynPSG.System.Net.Mail
                 if(byteCount>0) then
                     mRespStr = lineBuf(1,byteCount)
                 else
-                    mRespStr = ''
+                    mRespStr = ""
             end
             endtry
 
-            mreturn
+			debugLog("Recv: "+%string(mRespCode,"XXX")+" "+mRespStr)
+
         endmethod
 
         private method checkResponseCode,   void
-            req in expectedResponseCode                ,integer    ;; expected response
+            req in expectedResponseCode,	integer    ;; expected response
             endparams
         proc
             mErrMsg = ""
 
-            if (expectedResponseCode && mRespCode==expectedResponseCode)
-                mreturn ;; ok - got expected response
+			;;Did we get the response we expected?
+            if (expectedResponseCode && (mRespCode==expectedResponseCode))
+                mreturn
 
+			;;No. So what response did we get?
             using mRespCode select
+
             (100 thru 199),
                 mreturn ;; ok preliminary reply
+
             (200 thru 299),
                 mreturn ;; ok completion reply
+
             (300 thru 399),
                 mreturn ;; ok intermeditate reply
+
             (421),
                 if (mRespStr.Length>0) then
                     mErrMsg = mRespStr
                 else
-                    mErrMsg = "Domain Service not available"
+                    mErrMsg = "Domain Service not available."
+
             (450),
-                mErrMsg = "Requested mail action not taken: mailbox unavailable"
+                mErrMsg = "Requested mail action not taken: mailbox unavailable."
+
             (451),
-                mErrMsg = "Requested action aborted: local error in processing"
+                mErrMsg = "Requested action aborted: local error in processing."
+
             (452),
-                mErrMsg = "Requested action not taken: insufficient system storage"
+                mErrMsg = "Requested action not taken: insufficient system storage."
+
             (500),
                 mErrMsg = "Syntax error, command unrecognized."
+
             (501),
                 mErrMsg = "Syntax error in paramaters or arguments."
+
             (502),
-                mErrMsg = "Command not implemented"
+                mErrMsg = "Command not implemented."
+
             (503),
-                mErrMsg = "Bad sequence of commands"
+                mErrMsg = "Bad sequence of commands."
+
             (504),
                 mErrMsg = "Command paramater not implemented."
+
             (521),
                 if (mRespStr.Length>0) then
                     mErrMsg = mRespStr
                 else
                     mErrMsg = "Domain does not accept mail."
+
             (530),
-                mErrMsg = "Access denied"
+                mErrMsg = "Access denied."
+
+			(535),
+				mErrMsg = "Authentication credentials invalid."
+
             (550),
-                mErrMsg = "Requested action not taken: mailbox unavailable"
+                mErrMsg = "Requested action not taken: mailbox unavailable."
+
             (551),
                 if (mRespStr.Length>0) then
                     mErrMsg = mRespStr
                 else
                     mErrMsg = "User not local."
+
             (552),
-                mErrMsg = "Requested mail action aborted: exceeded storage allocation"
+                mErrMsg = "Requested mail action aborted: exceeded storage allocation."
+
             (553),
-                mErrMsg = "Requested action not taken: mailbox name not allowed"
+                mErrMsg = "Requested action not taken: mailbox name not allowed."
+
             (554),
-                mErrMsg = "Transaction failed"
+                mErrMsg = "Transaction failed."
+
             (560),
-                mErrMsg = "Must issue STARTTLS command first"
+                mErrMsg = "Must issue STARTTLS command first."
+
             (),
-                mErrMsg = "Unrecognized SMTP response "+%string(mRespCode)
+                mErrMsg = "Unrecognized SMTP response "+%string(mRespCode)+". SmtpClient.checkResponseCode should be enhanced!"
+
             endusing
 
             if (mErrMsg.Length)
             begin
-                mNStream.Close()
+                ;mNStream.Close()
+				;SI: I don't think we should close the stream, because the Dispose method attempts to send a quit message!
+				;If we DO close the stream here then we should also do mNStream = ^null to prevent that
+
                 throw new ApplicationException(mErrMsg)
             end
-
-            mreturn
 
         endmethod
 

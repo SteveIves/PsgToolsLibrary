@@ -425,112 +425,119 @@ namespace SynPSG
 
         endmethod
 
-        private static method CustomDateFormat  ,string
-            req in  aParamType                  ,a
-            req in  aDate                       ,a
+        private static method CustomDateFormat	,string
+            req in  aResultMask		,a
+            req in  aDate           ,a
             endparams
+			
             record
                 outString           ,string
-                group myDateTime,a20
-                    group myDate    ,d
+                group dateTimeValue	,a20
+                    group dateValue ,d
                         year        ,d4
                         mon         ,d2
                         day         ,d2
                     endgroup
-                    group myTime    ,d
+                    group timeValue ,d
                         hh          ,d2
                         mm          ,d2
                         ss          ,d2
                     endgroup
                     uuuuuu          ,d6
                 endgroup
-                sPos                ,i4         ;; start position of current token
-                cPos                ,i4         ;; current position
-                maxPos              ,i4         ;; max position
+                tokenStartPos       ,i4         ;; start position of current token
+                currentPos          ,i4         ;; current position
+                maskLength          ,i4         ;; max position
                 date_sep            ,a1
                 time_sep            ,a1
-            endrecord
+			endrecord
+			
         proc
             outString = ''
-            date_sep = DateSeperator()
-            time_sep = TimeSeperator()
+            date_sep = DateSeperator()		; /
+            time_sep = TimeSeperator()		; :
 
-            myDateTime = aDate
-            maxPos = %trim(aParamType)
+            dateTimeValue = aDate
+            maskLength = %trim(aResultMask)
 
-            sPos = 1
-            cPos = 0
+            tokenStartPos = 1
+            currentPos = 0
+
             repeat
             begin
-                cPos += 1
-                if(cPos > maxPos)
+                currentPos += 1
+
+				;;Are we done?
+                if(currentPos > maskLength)
                 begin
                     call processParam
                     exitloop
-                end
-                using aParamType(cPos:1) select
+				end
+				
+                using aResultMask(currentPos:1) select
                 (' '),
                 begin
                     call processParam
                     outString = outString + ' '
-                    sPos = cPos+1
+                    tokenStartPos = currentPos+1
                 end
                 (date_sep),
                 begin
                     call processParam
                     outString = outString + DateSeperator()
-                    sPos = cPos+1
+                    tokenStartPos = currentPos+1
                 end
                 (time_sep),
                 begin
                     call processParam
                     outString = outString + TimeSeperator()
-                    sPos = cPos+1
+                    tokenStartPos = currentPos+1
                 end
                 ('\'),
                 begin
-                    cPos += 1
-                    outString = outString + aParamType(cPos:1)
-                    sPos = cPos+1
+                    currentPos += 1
+                    outString = outString + aResultMask(currentPos:1)
+                    tokenStartPos = currentPos+1
                 end
                 ('"'),
                 begin
-                    cPos += 1
-                    sPos = cPos
-                    while(cPos < maxPos && aParamType(cPos:1) != '"')
-                        cPos += 1
-                    outString = outString + aParamType(sPos,cPos-1)
-                    sPos = cPos + 1
+                    currentPos += 1
+                    tokenStartPos = currentPos
+                    while(currentPos < maskLength && aResultMask(currentPos:1) != '"')
+                        currentPos += 1
+                    outString = outString + aResultMask(tokenStartPos,currentPos-1)
+                    tokenStartPos = currentPos + 1
                 end
                 ("'"),
                 begin
-                    cPos += 1
-                    sPos = cPos
-                    while(cPos < maxPos && aParamType(cPos:1) != "'")
-                        cPos += 1
-                    outString = outString + aParamType(sPos,cPos-1)
-                    sPos = cPos + 1
+                    currentPos += 1
+                    tokenStartPos = currentPos
+                    while(currentPos < maskLength && aResultMask(currentPos:1) != "'")
+                        currentPos += 1
+                    outString = outString + aResultMask(tokenStartPos,currentPos-1)
+                    tokenStartPos = currentPos + 1
                 end
                 ('%'),
                     nop ;todo single format parameters
                 endusing
-            end
+			end
+			
             mreturn outString
 
         processParam,
 
-            if(sPos > cPos-1)
+            if(tokenStartPos > currentPos-1)
                 return
 
-            using aParamType(sPos,cPos-1)+' ' select
+            using aResultMask(tokenStartPos,currentPos-1)+' ' select
             ('d '),
                 outString = outString + %string(day)
             ('dd '),
                 outString = outString + %string(day,'XX')
             ('ddd'),
-                outString = outString + AbbreviatedDayNames(myDate)
+                outString = outString + AbbreviatedDayNames(dateValue)
             ('dddd'),
-                outString = outString + DayNames(myDate)
+                outString = outString + DayNames(dateValue)
             ('f '),
                 outString = outString + ^a(uuuuuu(1:1))
             ('ff '),
@@ -578,7 +585,7 @@ namespace SynPSG
             ('HH'),
                 outString = outString + %string(hh,'XX')
             ('K '),
-                outString = outString + MilitaryTimeZone(%timezone()) ;; todo implement DateTime.Kind logic
+                outString = outString + MilitaryTimeZone(workingTimeZone()) ;; todo implement DateTime.Kind logic
             ('m '),
                 outString = outString + %string(mm)
             ('mm'),
@@ -636,7 +643,7 @@ namespace SynPSG
             ('z '),
             begin
                 data hours ,d2
-                hours = (%timezone() / 60)
+                hours = (workingTimeZone() / 60)
                 if(hours < 0) then
                     outString = outString + %string(hours)
                 else
@@ -645,7 +652,7 @@ namespace SynPSG
             ('zz '),
             begin
                 data hours ,d2
-                hours = (%timezone() / 60)
+                hours = (workingTimeZone() / 60)
                 if(hours < 0) then
                 begin
                     hours = -hours
@@ -655,24 +662,26 @@ namespace SynPSG
                     outString = outString + '+' + %string(hours,'XX')
             end
             ('zzz'),
-            begin ;;todo should really be adding additional leading zeros
+            begin
                 data minsOffset  ,i4
                 data UMToffset   ,i4
                 data hours       ,i4
-                minsOffset = %timezone()
+				
+                minsOffset = workingTimeZone()
+
                 if(minsOffset < 0) then
                 begin
                     minsOffset = -minsOffset
                     hours = %trunc(minsOffset / 60)
                     UMToffset = (hours * 100) + (minsOffset - (hours * 60))
                     UMToffset = -UMToffset
-                    outString = outString + %string(UMToffset,'-XX:XX')
+					outString = outString + %string(UMToffset,'-XXXX')
                 end
                 else
                 begin
                     hours = %trunc(minsOffset / 60)
                     UMToffset = (hours * 100) + (minsOffset - (hours * 60))
-                    outString = outString + %string(UMToffset,'+XX:XX')
+					outString = outString + %string(UMToffset,'+XXXX')
                 end
             end
             endusing
@@ -708,7 +717,7 @@ namespace SynPSG
             req in  aDaylightSaving         ,n
             endparams
             record
-                timeZoneString      ,a3
+                timeZoneString      ,a5
                 timeZoneOffset      ,a6
             endrecord
         proc
@@ -716,7 +725,7 @@ namespace SynPSG
             using aLongTz select
             ('Afghanistan Standard Time  '),
             begin
-                timeZoneOffset = '+04:30'
+                timeZoneOffset = '+0430'
                 if(aDaylightSaving) then
                     timeZoneString = 'AFT'
                 else
@@ -724,7 +733,7 @@ namespace SynPSG
             end
             ('Alaskan Standard Time  '),
             begin
-                timeZoneOffset = '-09:00'
+                timeZoneOffset = '-0900'
                 if(aDaylightSaving) then
                     timeZoneString = 'YST'
                 else
@@ -732,7 +741,7 @@ namespace SynPSG
             end
             ('Arab Standard Time  '),
             begin
-                timeZoneOffset = '+03:00'
+                timeZoneOffset = '+0300'
                 if(aDaylightSaving) then
                     timeZoneString = 'AST'
                 else
@@ -740,7 +749,7 @@ namespace SynPSG
             end
             ('Arabian Standard Time  '),
             begin
-                timeZoneOffset = '+04:00'
+                timeZoneOffset = '+0400'
                 if(aDaylightSaving) then
                     timeZoneString = 'AST'
                 else
@@ -748,7 +757,7 @@ namespace SynPSG
             end
             ('Arabic Standard Time  '),
             begin
-                timeZoneOffset = '+03:00'
+                timeZoneOffset = '+0300'
                 if(aDaylightSaving) then
                     timeZoneString = 'AST'
                 else
@@ -756,7 +765,7 @@ namespace SynPSG
             end
             ('Argentina Standard Time  '),
             begin
-                timeZoneOffset = '-03:00'
+                timeZoneOffset = '-0300'
                 if(aDaylightSaving) then
                     timeZoneString = 'ART'
                 else
@@ -764,7 +773,7 @@ namespace SynPSG
             end
             ('Atlantic Standard Time  '),
             begin
-                timeZoneOffset = '-04:00'
+                timeZoneOffset = '-0400'
                 if(aDaylightSaving) then
                     timeZoneString = 'AST'
                 else
@@ -772,7 +781,7 @@ namespace SynPSG
             end
             ('AUS Central Standard Time  '),
             begin
-                timeZoneOffset = '+09:30'
+                timeZoneOffset = '+0930'
                 if(aDaylightSaving) then
                     timeZoneString = 'ACST'
                 else
@@ -780,7 +789,7 @@ namespace SynPSG
             end
             ('AUS Eastern Standard Time  '),
             begin
-                timeZoneOffset = '+10:00'
+                timeZoneOffset = '+1000'
                 if(aDaylightSaving) then
                     timeZoneString = 'AEST'
                 else
@@ -788,7 +797,7 @@ namespace SynPSG
             end
             ('Azerbaijan Standard Time  '),
             begin
-                timeZoneOffset = '+04:00'
+                timeZoneOffset = '+0400'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -796,7 +805,7 @@ namespace SynPSG
             end
             ('Azores Standard Time  '),
             begin
-                timeZoneOffset = '-01:00'
+                timeZoneOffset = '-0100'
                 if(aDaylightSaving) then
                     timeZoneString = 'AT'
                 else
@@ -804,7 +813,7 @@ namespace SynPSG
             end
             ('Bangladesh Standard Time  '),
             begin
-                timeZoneOffset = '+06:00'
+                timeZoneOffset = '+0600'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -812,7 +821,7 @@ namespace SynPSG
             end
             ('Canada Central Standard Time  '),
             begin
-                timeZoneOffset = '-06:00'
+                timeZoneOffset = '-0600'
                 if(aDaylightSaving) then
                     timeZoneString = 'CST'
                 else
@@ -820,7 +829,7 @@ namespace SynPSG
             end
             ('Cape Verde Standard Time  '),
             begin
-                timeZoneOffset = '-01:00'
+                timeZoneOffset = '-0100'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -828,7 +837,7 @@ namespace SynPSG
             end
             ('Caucasus Standard Time  '),
             begin
-                timeZoneOffset = '+04:00'
+                timeZoneOffset = '+0400'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -836,7 +845,7 @@ namespace SynPSG
             end
             ('Cen. Australia Standard Time  '),
             begin
-                timeZoneOffset = '+09:30'
+                timeZoneOffset = '+0930'
                 if(aDaylightSaving) then
                     timeZoneString = 'ACST'
                 else
@@ -844,7 +853,7 @@ namespace SynPSG
             end
             ('Central America Standard Time  '),
             begin
-                timeZoneOffset = '-06:00'
+                timeZoneOffset = '-0600'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -852,7 +861,7 @@ namespace SynPSG
             end
             ('Central Asia Standard Time  '),
             begin
-                timeZoneOffset = '+06:00'
+                timeZoneOffset = '+0600'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -860,7 +869,7 @@ namespace SynPSG
             end
             ('Central Brazilian Standard Time  '),
             begin
-                timeZoneOffset = '-04:00'
+                timeZoneOffset = '-0400'
                 if(aDaylightSaving) then
                     timeZoneString = 'BZT'
                 else
@@ -868,7 +877,7 @@ namespace SynPSG
             end
             ('Central Europe Standard Time  '),
             begin
-                timeZoneOffset = '+01:00'
+                timeZoneOffset = '+0100'
                 if(aDaylightSaving) then
                     timeZoneString = 'CET'
                 else
@@ -876,7 +885,7 @@ namespace SynPSG
             end
             ('Central European Standard Time  '),
             begin
-                timeZoneOffset = '+01:00'
+                timeZoneOffset = '+0100'
                 if(aDaylightSaving) then
                     timeZoneString = 'CET'
                 else
@@ -884,7 +893,7 @@ namespace SynPSG
             end
             ('Central Pacific Standard Time  '),
             begin
-                timeZoneOffset = '+11:00'
+                timeZoneOffset = '+1100'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -892,7 +901,7 @@ namespace SynPSG
             end
             ('Central Standard Time  '),
             begin
-                timeZoneOffset = '-06:00'
+                timeZoneOffset = '-0600'
                 if(aDaylightSaving) then
                     timeZoneString = 'CDT'
                 else
@@ -900,7 +909,7 @@ namespace SynPSG
             end
             ('Central Standard Time (Mexico)  '),
             begin
-                timeZoneOffset = '-06:00'
+                timeZoneOffset = '-0600'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -908,7 +917,7 @@ namespace SynPSG
             end
             ('China Standard Time  '),
             begin
-                timeZoneOffset = '+08:00'
+                timeZoneOffset = '+0800'
                 if(aDaylightSaving) then
                     timeZoneString = 'CST'
                 else
@@ -916,7 +925,7 @@ namespace SynPSG
             end
             ('Dateline Standard Time  '),
             begin
-                timeZoneOffset = '-12:00'
+                timeZoneOffset = '-1200'
                 if(aDaylightSaving) then
                     timeZoneString = 'IDLW'
                 else
@@ -924,7 +933,7 @@ namespace SynPSG
             end
             ('E. Africa Standard Time  '),
             begin
-                timeZoneOffset = '+03:00'
+                timeZoneOffset = '+0300'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -932,7 +941,7 @@ namespace SynPSG
             end
             ('E. Australia Standard Time  '),
             begin
-                timeZoneOffset = '+10:00'
+                timeZoneOffset = '+1000'
                 if(aDaylightSaving) then
                     timeZoneString = 'AEST'
                 else
@@ -940,7 +949,7 @@ namespace SynPSG
             end
             ('E. Europe Standard Time  '),
             begin
-                timeZoneOffset = '+02:00'
+                timeZoneOffset = '+0200'
                 if(aDaylightSaving) then
                     timeZoneString = 'EET'
                 else
@@ -948,7 +957,7 @@ namespace SynPSG
             end
             ('E. South America Standard Time  '),
             begin
-                timeZoneOffset = '-03:00'
+                timeZoneOffset = '-0300'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -956,7 +965,7 @@ namespace SynPSG
             end
             ('Eastern Standard Time  '),
             begin
-                timeZoneOffset = '-05:00'
+                timeZoneOffset = '-0500'
                 if(aDaylightSaving) then
                     timeZoneString = 'EDT'
                 else
@@ -964,7 +973,7 @@ namespace SynPSG
             end
             ('Egypt Standard Time  '),
             begin
-                timeZoneOffset = '+02:00'
+                timeZoneOffset = '+0200'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -972,7 +981,7 @@ namespace SynPSG
             end
             ('Ekaterinburg Standard Time  '),
             begin
-                timeZoneOffset = '+05:00'
+                timeZoneOffset = '+0500'
                 if(aDaylightSaving) then
                     timeZoneString = 'YETK'
                 else
@@ -980,7 +989,7 @@ namespace SynPSG
             end
             ('Fiji Standard Time  '),
             begin
-                timeZoneOffset = '+12:00'
+                timeZoneOffset = '+1200'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -988,7 +997,7 @@ namespace SynPSG
             end
             ('FLE Standard Time  '),
             begin
-                timeZoneOffset = '+02:00'
+                timeZoneOffset = '+0200'
                 if(aDaylightSaving) then
                     timeZoneString = 'CET'
                 else
@@ -996,7 +1005,7 @@ namespace SynPSG
             end
             ('Georgian Standard Time  '),
             begin
-                timeZoneOffset = '+04:00'
+                timeZoneOffset = '+0400'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1004,7 +1013,7 @@ namespace SynPSG
             end
             ('GMT Standard Time  '),
             begin
-                timeZoneOffset = '+00:00'
+                timeZoneOffset = '+0000'
                 if(aDaylightSaving) then
                     timeZoneString = 'BST'
                 else
@@ -1012,7 +1021,7 @@ namespace SynPSG
             end
             ('Greenland Standard Time  '),
             begin
-                timeZoneOffset = '-03:00'
+                timeZoneOffset = '-0300'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1020,7 +1029,7 @@ namespace SynPSG
             end
             ('Greenwich Standard Time  '),
             begin
-                timeZoneOffset = '+00:00'
+                timeZoneOffset = '+0000'
                 if(aDaylightSaving) then
                     timeZoneString = 'BST'
                 else
@@ -1028,7 +1037,7 @@ namespace SynPSG
             end
             ('GTB Standard Time  '),
             begin
-                timeZoneOffset = '+02:00'
+                timeZoneOffset = '+0200'
                 if(aDaylightSaving) then
                     timeZoneString = 'CET'
                 else
@@ -1036,7 +1045,7 @@ namespace SynPSG
             end
             ('Hawaiian Standard Time  '),
             begin
-                timeZoneOffset = '-10:00'
+                timeZoneOffset = '-1000'
                 if(aDaylightSaving) then
                     timeZoneString = 'AHST'
                 else
@@ -1044,7 +1053,7 @@ namespace SynPSG
             end
             ('India Standard Time  '),
             begin
-                timeZoneOffset = '+05:30'
+                timeZoneOffset = '+0530'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1052,7 +1061,7 @@ namespace SynPSG
             end
             ('Iran Standard Time  '),
             begin
-                timeZoneOffset = '+03:30'
+                timeZoneOffset = '+0330'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1060,7 +1069,7 @@ namespace SynPSG
             end
             ('Israel Standard Time  '),
             begin
-                timeZoneOffset = '+02:00'
+                timeZoneOffset = '+0200'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1068,7 +1077,7 @@ namespace SynPSG
             end
             ('Jordan Standard Time  '),
             begin
-                timeZoneOffset = '+02:00'
+                timeZoneOffset = '+0200'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1076,7 +1085,7 @@ namespace SynPSG
             end
             ('Kamchatka Standard Time  '),
             begin
-                timeZoneOffset = '+12:00'
+                timeZoneOffset = '+1200'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1084,7 +1093,7 @@ namespace SynPSG
             end
             ('Korea Standard Time  '),
             begin
-                timeZoneOffset = '+09:00'
+                timeZoneOffset = '+0900'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1092,7 +1101,7 @@ namespace SynPSG
             end
             ('Mauritius Standard Time  '),
             begin
-                timeZoneOffset = '+04:00'
+                timeZoneOffset = '+0400'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1100,7 +1109,7 @@ namespace SynPSG
             end
             ('Mid-Atlantic Standard Time  '),
             begin
-                timeZoneOffset = '-02:00'
+                timeZoneOffset = '-0200'
                 if(aDaylightSaving) then
                     timeZoneString = 'ADT'
                 else
@@ -1108,7 +1117,7 @@ namespace SynPSG
             end
             ('Middle East Standard Time  '),
             begin
-                timeZoneOffset = '+02:00'
+                timeZoneOffset = '+0200'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1116,7 +1125,7 @@ namespace SynPSG
             end
             ('Montevideo Standard Time  '),
             begin
-                timeZoneOffset = '-03:00'
+                timeZoneOffset = '-0300'
                 if(aDaylightSaving) then
                     timeZoneString = 'ART'
                 else
@@ -1132,7 +1141,7 @@ namespace SynPSG
             end
             ('Mountain Standard Time  '),
             begin
-                timeZoneOffset = '-07:00'
+                timeZoneOffset = '-0700'
                 if(aDaylightSaving) then
                     timeZoneString = 'MDT'
                 else
@@ -1140,7 +1149,7 @@ namespace SynPSG
             end
             ('Mountain Standard Time (Mexico)  '),
             begin
-                timeZoneOffset = '-7:00'
+                timeZoneOffset = '-700'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1148,7 +1157,7 @@ namespace SynPSG
             end
             ('Myanmar Standard Time  '),
             begin
-                timeZoneOffset = '+06:30'
+                timeZoneOffset = '+0630'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1156,7 +1165,7 @@ namespace SynPSG
             end
             ('N. Central Asia Standard Time  '),
             begin
-                timeZoneOffset = '+06:00'
+                timeZoneOffset = '+0600'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1164,7 +1173,7 @@ namespace SynPSG
             end
             ('Namibia Standard Time  '),
             begin
-                timeZoneOffset = '+01:00'
+                timeZoneOffset = '+0100'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1172,7 +1181,7 @@ namespace SynPSG
             end
             ('Nepal Standard Time  '),
             begin
-                timeZoneOffset = '+05:45'
+                timeZoneOffset = '+0545'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1180,7 +1189,7 @@ namespace SynPSG
             end
             ('New Zealand Standard Time  '),
             begin
-                timeZoneOffset = '+12:00'
+                timeZoneOffset = '+1200'
                 if(aDaylightSaving) then
                     timeZoneString = 'NZST'
                 else
@@ -1188,7 +1197,7 @@ namespace SynPSG
             end
             ('Newfoundland Standard Time  '),
             begin
-                timeZoneOffset = '-03:30'
+                timeZoneOffset = '-0330'
                 if(aDaylightSaving) then
                     timeZoneString = 'NT'
                 else
@@ -1196,7 +1205,7 @@ namespace SynPSG
             end
             ('North Asia East Standard Time  '),
             begin
-                timeZoneOffset = '+08:00'
+                timeZoneOffset = '+0800'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1204,7 +1213,7 @@ namespace SynPSG
             end
             ('North Asia Standard Time  '),
             begin
-                timeZoneOffset = '+07:00'
+                timeZoneOffset = '+0700'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1212,7 +1221,7 @@ namespace SynPSG
             end
             ('Pacific SA Standard Time  '),
             begin
-                timeZoneOffset = '-04:00'
+                timeZoneOffset = '-0400'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1220,7 +1229,7 @@ namespace SynPSG
             end
             ('Pacific Standard Time  '),
             begin
-                timeZoneOffset = '-08:00'
+                timeZoneOffset = '-0800'
                 if(aDaylightSaving) then
                     timeZoneString = 'PDT'
                 else
@@ -1228,7 +1237,7 @@ namespace SynPSG
             end
             ('Pacific Standard Time (Mexico)  '),
             begin
-                timeZoneOffset = '-6:00'
+                timeZoneOffset = '-600'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1236,7 +1245,7 @@ namespace SynPSG
             end
             ('Pakistan Standard Time  '),
             begin
-                timeZoneOffset = '+05:00'
+                timeZoneOffset = '+0500'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1244,7 +1253,7 @@ namespace SynPSG
             end
             ('Paraguay Standard Time  '),
             begin
-                timeZoneOffset = '-04:00'
+                timeZoneOffset = '-0400'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1252,7 +1261,7 @@ namespace SynPSG
             end
             ('Romance Standard Time  '),
             begin
-                timeZoneOffset = '+01:00'
+                timeZoneOffset = '+0100'
                 if(aDaylightSaving) then
                     timeZoneString = 'CET'
                 else
@@ -1260,7 +1269,7 @@ namespace SynPSG
             end
             ('Russian Standard Time  '),
             begin
-                timeZoneOffset = '+03:00'
+                timeZoneOffset = '+0300'
                 if(aDaylightSaving) then
                     timeZoneString = 'MSK'
                 else
@@ -1268,7 +1277,7 @@ namespace SynPSG
             end
             ('SA Eastern Standard Time  '),
             begin
-                timeZoneOffset = '-03:00'
+                timeZoneOffset = '-0300'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1276,7 +1285,7 @@ namespace SynPSG
             end
             ('SA Pacific Standard Time  '),
             begin
-                timeZoneOffset = '-05:00'
+                timeZoneOffset = '-0500'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1284,7 +1293,7 @@ namespace SynPSG
             end
             ('SA Western Standard Time  '),
             begin
-                timeZoneOffset = '-04:00'
+                timeZoneOffset = '-0400'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1292,7 +1301,7 @@ namespace SynPSG
             end
             ('Samoa Standard Time  '),
             begin
-                timeZoneOffset = '-11:00'
+                timeZoneOffset = '-1100'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1300,7 +1309,7 @@ namespace SynPSG
             end
             ('SE Asia Standard Time  '),
             begin
-                timeZoneOffset = '+07:00'
+                timeZoneOffset = '+0700'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1308,7 +1317,7 @@ namespace SynPSG
             end
             ('Singapore Standard Time  '),
             begin
-                timeZoneOffset = '+08:00'
+                timeZoneOffset = '+0800'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1316,7 +1325,7 @@ namespace SynPSG
             end
             ('South Africa Standard Time  '),
             begin
-                timeZoneOffset = '+02:00'
+                timeZoneOffset = '+0200'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1324,7 +1333,7 @@ namespace SynPSG
             end
             ('Sri Lanka Standard Time  '),
             begin
-                timeZoneOffset = '+05:30'
+                timeZoneOffset = '+0530'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1332,7 +1341,7 @@ namespace SynPSG
             end
             ('Syria Standard Time  '),
             begin
-                timeZoneOffset = '+02:00'
+                timeZoneOffset = '+0200'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1340,7 +1349,7 @@ namespace SynPSG
             end
             ('Taipei Standard Time  '),
             begin
-                timeZoneOffset = '+08:00'
+                timeZoneOffset = '+0800'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1348,7 +1357,7 @@ namespace SynPSG
             end
             ('Tasmania Standard Time  '),
             begin
-                timeZoneOffset = '+10:00'
+                timeZoneOffset = '+1000'
                 if(aDaylightSaving) then
                     timeZoneString = 'AEST'
                 else
@@ -1356,7 +1365,7 @@ namespace SynPSG
             end
             ('Tokyo Standard Time  '),
             begin
-                timeZoneOffset = '+09:00'
+                timeZoneOffset = '+0900'
                 if(aDaylightSaving) then
                     timeZoneString = 'JST'
                 else
@@ -1364,7 +1373,7 @@ namespace SynPSG
             end
             ('Tonga Standard Time  '),
             begin
-                timeZoneOffset = '+13:00'
+                timeZoneOffset = '+1300'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1372,7 +1381,7 @@ namespace SynPSG
             end
             ('Ulaanbaatar Standard Time  '),
             begin
-                timeZoneOffset = '+08:00'
+                timeZoneOffset = '+0800'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1380,7 +1389,7 @@ namespace SynPSG
             end
             ('US Eastern Standard Time  '),
             begin
-                timeZoneOffset = '-05:00'
+                timeZoneOffset = '-0500'
                 if(aDaylightSaving) then
                     timeZoneString = 'EDT'
                 else
@@ -1388,7 +1397,7 @@ namespace SynPSG
             end
             ('US Mountain Standard Time  '),
             begin
-                timeZoneOffset = '-07:00'
+                timeZoneOffset = '-0700'
                 if(aDaylightSaving) then
                     timeZoneString = 'MDT'
                 else
@@ -1396,12 +1405,12 @@ namespace SynPSG
             end
             ('UTC  '),
             begin
-                timeZoneOffset = '+00:00'
+                timeZoneOffset = '+0000'
                 timeZoneString = 'UTC'
             end
             ('Venezuela Standard Time  '),
             begin
-                timeZoneOffset = '-04:30'
+                timeZoneOffset = '-0430'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1409,7 +1418,7 @@ namespace SynPSG
             end
             ('Vladivostok Standard Time  '),
             begin
-                timeZoneOffset = '+10:00'
+                timeZoneOffset = '+1000'
                 if(aDaylightSaving) then
                     timeZoneString = 'VLAT'
                 else
@@ -1417,7 +1426,7 @@ namespace SynPSG
             end
             ('W. Australia Standard Time  '),
             begin
-                timeZoneOffset = '+08:00'
+                timeZoneOffset = '+0800'
                 if(aDaylightSaving) then
                     timeZoneString = 'WAST'
                 else
@@ -1425,7 +1434,7 @@ namespace SynPSG
             end
             ('W. Central Africa Standard Time  '),
             begin
-                timeZoneOffset = '+01:00'
+                timeZoneOffset = '+0100'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1433,7 +1442,7 @@ namespace SynPSG
             end
             ('W. Europe Standard Time  '),
             begin
-                timeZoneOffset = '+01:00'
+                timeZoneOffset = '+0100'
                 if(aDaylightSaving) then
                     timeZoneString = 'CET'
                 else
@@ -1441,7 +1450,7 @@ namespace SynPSG
             end
             ('West Asia Standard Time  '),
             begin
-                timeZoneOffset = '+05:00'
+                timeZoneOffset = '+0500'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1449,7 +1458,7 @@ namespace SynPSG
             end
             ('West Pacific Standard Time  '),
             begin
-                timeZoneOffset = '+10:00'
+                timeZoneOffset = '+1000'
                 if(aDaylightSaving) then
                     timeZoneString = ''
                 else
@@ -1457,7 +1466,7 @@ namespace SynPSG
             end
             ('Yakutsk Standard Time  '),
             begin
-                timeZoneOffset = '+09:00'
+                timeZoneOffset = '+0900'
                 if(aDaylightSaving) then
                     timeZoneString = 'YAKT'
                 else
@@ -1472,7 +1481,8 @@ namespace SynPSG
             if(!timeZoneString)
                 mreturn 'UTC'+timeZoneOffset
 
-            mreturn timeZoneString
+            mreturn %atrim(timeZoneString)
+			
         endmethod
 
         private static method isDate    ,boolean
@@ -1635,7 +1645,7 @@ namespace SynPSG
             endparams
         proc
             mreturn  %string(year, 'XXXX') + '-' + %string(mon ,'XX') + '-' + %string(day, 'XX')
-            &   + MilitaryTimeZone(%timezone())
+            &   + MilitaryTimeZone(workingTimeZone())
             &   + %string(hh, 'XX') + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX')
         endmethod
     ;;--------------------------------------------------------------------
@@ -1653,7 +1663,7 @@ namespace SynPSG
             mreturn  %string(year, 'XXXX') + '-' + %string(mon ,'XX') + '-' + %string(day, 'XX')
             &   + ' '
             &   + %string(hh, 'XX') + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX')
-            &   + MilitaryTimeZone(%timezone())
+            &   + MilitaryTimeZone(workingTimeZone())
         endmethod
 
         private static method UniversalFullDateTimePattern  ,a
@@ -1783,7 +1793,27 @@ namespace SynPSG
         proc
             mreturn 'PM'
         endmethod
-
+		
+		;;; <summary>
+		;;; This method is a workaround for the fact that the Synergy %TIMEZONE function
+		;;; returns an incorrect offset value if your local time zone is currently in
+		;;; daylight savings time. It turns out that the return value of %TIMEZONE is
+		;;; always the offset from UTC for the local time zone but WITHOUT taking DST
+		;;; into consideration. %TIMEZONE does however return a boolean parameter
+		;;; indicating that DST is currenty in effect.
+		;;; </summary>
+		;;; <returns>Offset in minutes between the local time zone and UTC.</returns>
+		private static method workingTimeZone, int
+			record 
+				offset, int
+				dst, d1
+			endrecord
+		proc
+			offset = %timezone(,dst)
+			if (dst)
+				offset += 60
+			mreturn offset
+		endmethod
 
     endclass
 
