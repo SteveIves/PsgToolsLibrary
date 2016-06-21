@@ -1,19 +1,24 @@
+;
+; This class includes functionality that relies on the Synergy PSG PDF API being present
+; in the environment. To enable this functionality set the USEPSFAPI identifier via the
+; -qdefine USEPDFAPI compiler option
+;
 
 .ifdef DBLNET
 import System
-import System.Collections
 import System.IO
 .else
-import System.Collections
 import SynPsg.System
 import SynPSG.System.IO
 .endc
 
-import system
-import synpsg
-import synpsg.pdf
-import synpsg.system
-import synpsg.windows
+import System.Collections
+import SynPSG
+import SynPSG.Windows
+
+.ifdef USEPDFAPI
+import SynPSG.PDF
+.endc
 
 .include "WND:windows.def"
 
@@ -89,7 +94,9 @@ namespace SynPSG
             xcall u_resize(ScreenHeight,ScreenWidth)
 
             PrintModeOld = false
+.ifdef USEPDFAPI
             PrintMode = false
+.endc
             MaxPrintWidth = 0
 
             ;;Set default colors
@@ -211,7 +218,9 @@ namespace SynPSG
                 clear MainWindow
                 mTerminalIsOpen = false
                 PrintModeOld = false
+.ifdef USEPDFAPI
                 PrintMode = false
+.endc
                 MaxPrintWidth = 0
                 mPrintFile = ""
                 mPrintChannel = 0
@@ -312,8 +321,10 @@ namespace SynPSG
         proc
             if (PrintModeOld || !mTerminalIsOpen) then
                 nop
+.ifdef USEPDFAPI
             else if (PrintMode) then
                 pdf.SetPosition(row,col)
+.endc
             else
                 xcall w_disp(MainWindow,WD_POS,row,col)
         endmethod
@@ -325,8 +336,10 @@ namespace SynPSG
         proc
             if (PrintModeOld || !mTerminalIsOpen) then
                 nop
+.ifdef USEPDFAPI
             else if (PrintMode) then
                 pdf.SetPosition(row,col) ;TODO: Needs clear line
+.endc
             else
             begin
                 xcall w_disp(MainWindow,WD_POS,row,col,WD_CLR,WDC_LIN)
@@ -341,11 +354,13 @@ namespace SynPSG
         proc
             if (PrintModeOld || !mTerminalIsOpen) then
                 nop
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 pdf.Row = pdf.Row + rows
                 pdf.Column = pdf.Column + cols
-            end
+			end
+.endc
             else
                 xcall w_disp(MainWindow,WD_MOVE,rows,cols)
         endmethod
@@ -355,8 +370,10 @@ namespace SynPSG
         proc
             if (PrintModeOld || !mTerminalIsOpen) then
                 nop
+.ifdef USEPDFAPI
             else if (PrintMode) then
                 pdf.Column = pdf.Column - 1
+.endc
             else
                 xcall w_disp(MainWindow,WD_MOVE,0,-1)
         endmethod
@@ -366,8 +383,10 @@ namespace SynPSG
         proc
             if (PrintModeOld || !mTerminalIsOpen) then
                 nop
+.ifdef USEPDFAPI
             else if (PrintMode) then
                 pdf.Column = pdf.Column + 1
+.endc
             else
                 xcall w_disp(MainWindow,WD_MOVE,0,1)
         endmethod
@@ -377,8 +396,10 @@ namespace SynPSG
         proc
             if (PrintModeOld || !mTerminalIsOpen) then
                 nop
+.ifdef USEPDFAPI
             else if (PrintMode) then
                 pdf.Row = pdf.Row - 1
+.endc
             else
                 xcall w_disp(MainWindow,WD_MOVE,-1,0)
         endmethod
@@ -388,8 +409,10 @@ namespace SynPSG
         proc
             if (PrintModeOld || !mTerminalIsOpen) then
                 nop
+.ifdef USEPDFAPI
             else if (PrintMode) then
                 pdf.Row = pdf.Row + 1
+.endc
             else
                 xcall w_disp(MainWindow,WD_MOVE,1,0)
         endmethod
@@ -399,8 +422,10 @@ namespace SynPSG
         proc
             if (PrintModeOld || !mTerminalIsOpen) then
                 nop
+.ifdef USEPDFAPI
             else if (PrintMode) then
                 pdf.Column = 1
+.endc
             else
                 xcall w_disp(MainWindow,WD_MOVE,0,-132)
         endmethod
@@ -412,6 +437,7 @@ namespace SynPSG
             if (PrintModeOld) then
                 forms(mPrintChannel,opt)
 
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 using opt select
@@ -427,7 +453,7 @@ namespace SynPSG
                 end
                 endusing
             end
-
+.endc
             else if (mTerminalIsOpen)
             begin
                 using opt select
@@ -733,6 +759,7 @@ eof,            close ch
             xcall ascii(characterNumber,character)
             if (PrintModeOld) then
                 display(mPrintChannel,character)
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 if (characterNumber==12) then
@@ -743,7 +770,8 @@ eof,            close ch
                     if ((newCol-1)>MaxPrintWidth)
                         MaxPrintWidth = newCol-1
                 end
-            end
+			end
+.endc
             else if (mTerminalIsOpen)
             begin
                 xcall w_disp(MainWindow,character)
@@ -757,6 +785,7 @@ eof,            close ch
         proc
             if (PrintModeOld) then
                 display(mPrintChannel,text)
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 if ((%trim(text)==1) && (%decml(text(1:1))==12)) then
@@ -767,7 +796,8 @@ eof,            close ch
                     if ((newCol-1)>MaxPrintWidth)
                         MaxPrintWidth = newCol-1
                 end
-            end
+			end
+.endc
             else if (mTerminalIsOpen)
             begin
                 xcall w_disp(MainWindow,text)
@@ -781,12 +811,14 @@ eof,            close ch
         proc
             if (PrintModeOld) then
                 display(mPrintChannel,text)
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 data newCol, int, pdf.DrawTextRC(text,,,true)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
-            end
+			end
+.endc
             else if (mTerminalIsOpen)
             begin
                 xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_BOLD,text,WD_ATTR,ATTR_CLR+ATTR_ALL)
@@ -800,12 +832,14 @@ eof,            close ch
         proc
             if (PrintModeOld) then
                 display(mPrintChannel,text)
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 data newCol, int, pdf.DrawTextRC(text,,,true)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
-            end
+			end
+.endc
             else if (mTerminalIsOpen)
             begin
                 xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_BOLD+ATTR_BLNK,text,WD_ATTR,ATTR_CLR+ATTR_ALL)
@@ -819,12 +853,14 @@ eof,            close ch
         proc
             if (PrintModeOld) then
                 display(mPrintChannel,text)
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 data newCol, int, pdf.DrawTextRC(text)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
-            end
+			end
+.endc
             else if (mTerminalIsOpen)
             begin
                 xcall w_disp(MainWindow,text,WD_BELL)
@@ -840,12 +876,14 @@ eof,            close ch
         proc
             if (PrintModeOld || !mTerminalIsOpen) then
                 nop
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 data newCol, int, pdf.DrawTextRC(text,row,col)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
-            end
+			end
+.endc
             else
             begin
                 xcall w_disp(MainWindow,WD_POS,row,col,text)
@@ -861,12 +899,14 @@ eof,            close ch
         proc
             if (PrintModeOld || !mTerminalIsOpen) then
                 nop
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 data newCol, int, pdf.DrawTextRC(text,row,col)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
-            end
+			end
+.endc
             else
             begin
                 xcall w_disp(MainWindow,
@@ -884,12 +924,14 @@ eof,            close ch
         proc
             if (PrintModeOld || !mTerminalIsOpen) then
                 nop
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 data newCol, int, pdf.DrawTextRC(text,row,col,true)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
-            end
+			end
+.endc
             else
             begin
                 xcall w_disp(MainWindow,WD_POS,row,col,WD_ATTR,ATTR_SET+ATTR_BOLD,text,WD_ATTR,ATTR_CLR+ATTR_ALL)
@@ -905,12 +947,14 @@ eof,            close ch
         proc
             if (PrintModeOld || !mTerminalIsOpen) then
                 nop
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 data newCol, int, pdf.DrawTextRC(text,row,col) ;TODO: Needs reverse support
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
-            end
+			end
+.endc
             else
             begin
                 xcall w_disp(MainWindow,WD_POS,row,col,WD_ATTR,ATTR_SET+ATTR_RVRS,text,WD_ATTR,ATTR_CLR+ATTR_ALL)
@@ -926,12 +970,14 @@ eof,            close ch
         proc
             if (PrintModeOld || !mTerminalIsOpen) then
                 nop
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 data newCol, int, pdf.DrawTextRC(text,row,col) ;TODO: Needs underline support
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
-            end
+			end
+.endc
             else
             begin
                 xcall w_disp(MainWindow,WD_POS,row,col,WD_ATTR,ATTR_SET+ATTR_UNDR,text,WD_ATTR,ATTR_CLR+ATTR_ALL)
@@ -945,9 +991,15 @@ eof,            close ch
             required in text, a
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
+            if (PrintModeOld) then
                 nop
-            else
+.ifdef USEPDFAPI
+            else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
+			else
             begin
                 xcall w_disp(MainWindow,WD_CLEAR,WD_POS,row,col,text)
                 xcall w_updt
@@ -967,13 +1019,15 @@ eof,            close ch
                 if (length > MaxPrintWidth)
                     MaxPrintWidth = length
                 writes(mPrintChannel,text)
-            end
+			end
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 data newCol, int, pdf.DrawTextRC(text,,,,,,true)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
-            end
+			end
+.endc
             else if (mUsingScrollWindow) then
             begin
                  mScrollWindow.AddItem(text)
@@ -995,7 +1049,8 @@ eof,            close ch
                 if (length > MaxPrintWidth)
                     MaxPrintWidth = length
                 display(mPrintChannel,13,10,text)
-            end
+			end
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 data newCol, int
@@ -1003,7 +1058,8 @@ eof,            close ch
                 newCol = pdf.DrawTextRC(text,,,,,,true)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
-            end
+			end
+.endc
             else if (mUsingScrollWindow) then
             begin
                 mScrollWindow.AddItem("")
@@ -1026,7 +1082,8 @@ eof,            close ch
                 if (length > MaxPrintWidth)
                     MaxPrintWidth = length
                 display(mPrintChannel,13,10,text,7)
-            end
+			end
+.ifdef USEPDFAPI
             else if (PrintMode) then
             begin
                 data newCol, int
@@ -1034,7 +1091,8 @@ eof,            close ch
                 newCol = pdf.DrawTextRC(text)
                 if ((newCol-1)>MaxPrintWidth)
                     MaxPrintWidth = newCol-1
-            end
+			end
+.endc
             else if (mUsingScrollWindow) then
             begin
                 mScrollWindow.AddItem("")
@@ -1056,9 +1114,15 @@ eof,            close ch
                 charnum, d3
             endrecord
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
+            if (PrintModeOld) then
                 charnum = 0
-            else
+.ifdef USEPDFAPI
+            else if (PrintMode) then
+				charnum = 0
+.endc
+			else if (!mTerminalIsOpen) then
+				charnum = 0
+			else
                 xcall w_disp(MainWindow,WD_ACCEPT,charnum)
             mreturn charnum
         endmethod
@@ -1070,8 +1134,14 @@ eof,            close ch
                 charnum, d3
             endrecord
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                charnum = 0
+			if (PrintModeOld) then
+				charnum = 0
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				charnum = 0
+.endc
+			else if (!mTerminalIsOpen) then
+				charnum = 0
             else
                 xcall w_disp(MainWindow,WD_ACCEPT,charnum,WD_WAIT,timeout)
             mreturn charnum
@@ -1083,9 +1153,15 @@ eof,            close ch
                 character, a1
             endrecord
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
+            if (PrintModeOld) then
                 character = ""
-            else
+.ifdef USEPDFAPI
+            else if (PrintMode) then
+				character = ""
+.endc
+			else if (!mTerminalIsOpen) then
+				character = ""
+			else
                     xcall w_disp(MainWindow,WD_ACCEPT,character)
             mreturn character
         endmethod
@@ -1097,7 +1173,13 @@ eof,            close ch
                 character, a1
             endrecord
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
+            if (PrintModeOld) then
+                character = ""
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+                character = ""
+.endc
+			else if (!mTerminalIsOpen) then
                 character = ""
             else
                     xcall w_disp(MainWindow,WD_ACCEPT,character,WD_WAIT,timeout)
@@ -1111,7 +1193,13 @@ eof,            close ch
             required inout field, a
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
+            if (PrintModeOld) then
+                field = " "
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+                field = " "
+.endc
+			else if (!mTerminalIsOpen) then
                 field = " "
             else
             begin
@@ -1127,7 +1215,13 @@ eof,            close ch
             required inout field, a
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
+            if (PrintModeOld) then
+                field = " "
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+                field = " "
+.endc
+			else if (!mTerminalIsOpen) then
                 field = " "
             else
             begin
@@ -1145,7 +1239,13 @@ eof,            close ch
             required in endRow, n
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
+            if (PrintModeOld) then
+                nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+                nop
+.endc
+			else if (!mTerminalIsOpen) then
                 nop
             else
                 xcall w_area(MainWindow,WA_SET,startRow,1,endRow-startRow+1,ScreenWidth)
@@ -1157,7 +1257,13 @@ eof,            close ch
         public static method ClearScreen, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
+            if (PrintModeOld) then
+                nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+                nop
+.endc
+			else if (!mTerminalIsOpen) then
                 nop
             else
             begin
@@ -1169,7 +1275,13 @@ eof,            close ch
         public static method ClearToBeginningOfScreen, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
+            if (PrintModeOld) then
+                nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+                nop
+.endc
+			else if (!mTerminalIsOpen) then
                 nop
             else
             begin
@@ -1181,7 +1293,13 @@ eof,            close ch
         public static method ClearToEndOfScreen, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
+            if (PrintModeOld) then
+                nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+                nop
+.endc
+			else if (!mTerminalIsOpen) then
                 nop
             else
             begin
@@ -1193,7 +1311,13 @@ eof,            close ch
         public static method ClearLine, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
+            if (PrintModeOld) then
+                nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+                nop
+.endc
+			else if (!mTerminalIsOpen) then
                 nop
             else
             begin
@@ -1205,8 +1329,14 @@ eof,            close ch
         public static method ClearToBeginningOfLine, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
             begin
                 xcall w_disp(MainWindow,WD_CLR,WDC_BOL)
@@ -1217,8 +1347,14 @@ eof,            close ch
         public static method ClearToEndOfLine, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
             begin
                 xcall w_disp(MainWindow,WD_CLR,WDC_EOL)
@@ -1232,8 +1368,14 @@ eof,            close ch
         public static method ClearAttributes, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
                 xcall w_disp(MainWindow,WD_ATTR,ATTR_CLR+ATTR_ALL)
         endmethod
@@ -1241,8 +1383,14 @@ eof,            close ch
         public static method Bold, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
                 xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_BOLD)
         endmethod
@@ -1250,8 +1398,14 @@ eof,            close ch
         public static method BoldOff, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
                 xcall w_disp(MainWindow,WD_ATTR,ATTR_CLR+ATTR_BOLD)
         endmethod
@@ -1259,8 +1413,14 @@ eof,            close ch
         public static method Blink, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
                 xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_BLNK)
         endmethod
@@ -1268,8 +1428,14 @@ eof,            close ch
         public static method BlinkOff, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
                 xcall w_disp(MainWindow,WD_ATTR,ATTR_CLR+ATTR_BLNK)
         endmethod
@@ -1277,8 +1443,14 @@ eof,            close ch
         public static method Reverse, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
                 xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_RVRS)
         endmethod
@@ -1286,8 +1458,14 @@ eof,            close ch
         public static method ReverseOff, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
                 xcall w_disp(MainWindow,WD_ATTR,ATTR_CLR+ATTR_RVRS)
         endmethod
@@ -1295,8 +1473,14 @@ eof,            close ch
         public static method BoldReverse, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
                 xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_BOLD+ATTR_RVRS)
         endmethod
@@ -1304,8 +1488,14 @@ eof,            close ch
         public static method BoldBlinkReverse, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
                 xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_BOLD+ATTR_BLNK+ATTR_RVRS)
         endmethod
@@ -1313,8 +1503,14 @@ eof,            close ch
         public static method Underline, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
                 xcall w_disp(MainWindow,WD_ATTR,ATTR_SET+ATTR_UNDR)
         endmethod
@@ -1322,8 +1518,14 @@ eof,            close ch
         public static method UnderlineOff, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
                 xcall w_disp(MainWindow,WD_ATTR,ATTR_CLR+ATTR_UNDR)
         endmethod
@@ -1331,8 +1533,14 @@ eof,            close ch
         public static method GraphicsOn, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
                 xcall w_disp(MainWindow,WD_ANSI,%char(14))
         endmethod
@@ -1340,8 +1548,14 @@ eof,            close ch
         public static method GraphicsOff, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
                 xcall w_disp(MainWindow,WD_ANSI,%char(15))
         endmethod
@@ -1352,8 +1566,14 @@ eof,            close ch
         public static method Beep, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
             begin
                 xcall w_disp(MainWindow,WD_BELL)
@@ -1367,8 +1587,14 @@ eof,            close ch
         public static method UpdateScreen, void
             endparams
         proc
-            if (PrintModeOld || PrintMode || !mTerminalIsOpen) then
-                nop
+			if (PrintModeOld) then
+				nop
+.ifdef USEPDFAPI
+			else if (PrintMode) then
+				nop
+.endc
+			else if (!mTerminalIsOpen) then
+				nop
             else
                 xcall w_updt
         endmethod
@@ -1411,9 +1637,10 @@ eof,            close ch
             end
 
             ;;Are we already in print mode?
+.ifdef USEPDFAPI
             if (PrintMode)
                 throw new ApplicationException("Can't use StartPrintModeOld and StartPrintMode at the same time!")
-
+.endc
             ;;If we were passed a title then use it
             if (^passed(previewTitle) && previewTitle) then
                 mPreviewTitle = %atrim(previewTitle)
@@ -1472,11 +1699,12 @@ eof,            close ch
             end
         endmethod
 
+.ifdef USEPDFAPI
         ;-------------------------------------------------
-        ;Terminal printing via VDSC.Report
+        ;Terminal printing via SynPSG.PDF.PdfFile
 
-        private static PrintMode,   boolean
-        private static pdf,         @PdfFile
+		private static PrintMode,   boolean,	false
+		private static pdf,         @PdfFile
 
         public static method StartPrintMode,    boolean
 
@@ -1618,6 +1846,8 @@ eof,            close ch
             endmethod
         endproperty
 
+.endc
+		
         ;-------------------------------------------------
         ;Echo on / off
 

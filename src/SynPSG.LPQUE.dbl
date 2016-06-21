@@ -1,6 +1,5 @@
 
 import SynPSG
-import SynPSG.PDF
 
 namespace SynPSG
 

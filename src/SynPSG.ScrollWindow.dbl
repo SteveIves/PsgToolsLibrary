@@ -1,4 +1,10 @@
 
+;
+; This class includes functionality that relies on the Synergy PSG PDF API being present
+; in the environment. To enable this functionality set the USEPSFAPI identifier via the
+; -qdefine USEPDFAPI compiler option
+;
+
 .ifdef DBLNET
 import System
 import System.Net
@@ -13,7 +19,9 @@ import SynPSG.System.Net
 import SynPSG.System.Net.Mail
 import SynPSG.System.Security
 import SynPSG
+.ifdef USEPDFAPI
 import SynPSG.PDF
+.endc
 import synpsg.system
 import SynPSG.Windows
 .endc
@@ -126,10 +134,11 @@ namespace SynPSG
 			if (!^passed(disableExcel) || !disableExcel)
 				xcall l_button(mLid,DSB_ADD,"COPY",DSB_TEXT,"Copy",,,"O")
 
+.ifdef USEPDFAPI
             ;;Add a "Print" button
             if (!^passed(disablePrint) || !disablePrint)
                 xcall l_button(mLid,DSB_ADD,"PRINT",DSB_TEXT,"Print",,,"P")
-
+.endc
             ;;Add an "Email" button
             if (!^passed(disableEmail) || !disableEmail)
                 xcall l_button(mLid,DSB_ADD,"EMAIL",DSB_TEXT,"Email",,,"E")
@@ -247,8 +256,10 @@ namespace SynPSG
                 if (g_select) then
                 begin
                     using g_entnam select
+.ifdef USEPDFAPI
                     ("PRINT"),
                         printList()
+.endc
                     ("EMAIL"),
                         emailList()
 					("COPY"),
@@ -440,6 +451,7 @@ namespace SynPSG
 ;
 ;       endmethod
 
+.ifdef USEPDFAPI
         private method printList, void
             endparams
             record
@@ -538,7 +550,8 @@ namespace SynPSG
             ;;Show the print preview window
             pdf.Preview()
 
-        endmethod
+		endmethod
+.endc
 
         private method emailList, void
             endparams

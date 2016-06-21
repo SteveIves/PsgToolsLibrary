@@ -80,7 +80,7 @@
                 Value="dblproto -out=StevesLibrary -platform=x86 %p%n%e"/>
             <SynSetting
                 Name="compile_command_line"
-                Value='dbl -T -d -qcheck -qalign -WD=762 -o OBJ:%rn.dbo "%p%n%e"'/>
+                Value='dbl -T -d -qcheck -qalign -WD=762 -o OBJ:%rn.dbo -l steve.lis "%p%n%e"'/>
             <SynSetting
                 Name="linklibr_command_line"
                 Value="dblink -d -l EXE:%rn.elb OBJ:%rn.dbo WND:tklib.elb"/>
@@ -129,24 +129,6 @@
         <Folder
             Name="Source Files"
             Filters="*.dbl;*.tpl;*.dbc">
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoBox.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoBoxAbsolute.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoBoxRowCol.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoImage.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoItem.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoLine.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoLineAbsolute.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoLineRowCol.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoText.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoTextAbsolute.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/AutoTextRowCol.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/ChartDataSet.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/ChartItem.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/ChartSeries.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/Enumerations.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/pdfdbl.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/PdfFile.dbl"/>
-            <F N="../../../SYNERGEX/SynPSG_PDF/SOURCE/PDF/Structures.dbl"/>
             <F N="../src/SynPSG.CanadianProvince.dbl"/>
             <F N="../src/SynPSG.CopyHandle.dbl"/>
             <F N="../src/SynPSG.DataServer.dbl"/>
@@ -320,7 +302,7 @@
                 Value="dblproto -out=StevesLibrary -platform=x64 %p%n%e"/>
             <SynSetting
                 Name="compile_command_line"
-                Value='dbl -T -d -qcheck -qalign -WD=762 -o OBJ:%rn.dbo "%p%n%e"'/>
+                Value='dbl -T -d -qcheck -qalign -WD=762 -o OBJ:%rn.dbo -l steve.lis "%p%n%e"'/>
             <SynSetting
                 Name="linklibr_command_line"
                 Value="dblink -d -l EXE:%rn.elb OBJ:%rn.dbo WND:tklib.elb"/>
@@ -440,7 +422,7 @@
                 Value="dblproto -out=StevesLibrary -platform=x86 %p%n%e"/>
             <SynSetting
                 Name="compile_command_line"
-                Value='dbl -T -qstrict -qalign -WD=762 -o OBJ:%rn.dbo "%p%n%e"'/>
+                Value='dbl -T -qstrict -qalign -WD=762 -o OBJ:%rn.dbo -l steve.lis "%p%n%e"'/>
             <SynSetting
                 Name="linklibr_command_line"
                 Value="dblink -l EXE:%rn.elb OBJ:%rn.dbo WND:tklib.elb"/>
@@ -560,7 +542,7 @@
                 Value="dblproto -out=StevesLibrary -platform=x64 %p%n%e"/>
             <SynSetting
                 Name="compile_command_line"
-                Value='dbl -T -qstrict -qalign -WD=762 -o OBJ:%rn.dbo "%p%n%e"'/>
+                Value='dbl -T -qstrict -qalign -WD=762 -o OBJ:%rn.dbo -l steve.lis "%p%n%e"'/>
             <SynSetting
                 Name="linklibr_command_line"
                 Value="dblink -l EXE:%rn.elb OBJ:%rn.dbo WND:tklib.elb"/>
