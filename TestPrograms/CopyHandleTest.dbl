@@ -19,7 +19,7 @@
 ;*****************************************************************************
 ;
 
-import SynPSG
+import SynPsg
 
 main CopyHandleTest
 

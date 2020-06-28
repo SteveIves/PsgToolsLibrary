@@ -36,8 +36,8 @@
 
 .ifndef DBLNET
 
-import SynPSG.System.Net
-import SynPSG.System.Net.Sockets
+import SynPsg.System.Net
+import SynPsg.System.Net.Sockets
 
 namespace SynPSG.System.Net.Sockets
 

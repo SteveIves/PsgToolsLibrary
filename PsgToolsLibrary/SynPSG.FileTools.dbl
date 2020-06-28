@@ -1,11 +1,10 @@
 
-import system
-import synpsg
-import synpsg.system
+import SynPsg
+import SynPsg.System
 .ifdef DBLNET
-import System.IO
+SynPsg.System.IO
 .else
-import synpsg.system.io
+import SynPsg.System.io
 .endc
 
 namespace SynPSG
@@ -76,8 +75,8 @@ namespace SynPSG
             endrecord
 
             structure block
-                            ,a32768         ;Block size - how many bytes to read at once.
-                                            ;Must be less than 64K
+                ,a32768         ;Block size - how many bytes to read at once.
+                ;Must be less than 64K
             endstructure
 
             stack record avars
@@ -94,7 +93,7 @@ namespace SynPSG
             if (false)
             begin
                 ;Failed to open file
-        err,    ok = false
+            err,    ok = false
             end
 
             if (ok)
@@ -116,7 +115,7 @@ namespace SynPSG
                 end
 
                 ;We hit EOF, save away the final buffer of data
-        ef,     if (chars=%rsize)
+            ef,     if (chars=%rsize)
                 begin
                     blocks+=1
                     a_mh = %mem_proc(DM_RESIZ,^size(block)*blocks,a_mh)
@@ -135,7 +134,7 @@ namespace SynPSG
 
         endmethod
 
-.ifndef OS_VMS
+        .ifndef OS_VMS
 
         public static method UnloadIsamFile, boolean
             required in  isamFile, string
@@ -183,146 +182,146 @@ namespace SynPSG
 
         endmethod
 
-	public static method LoadIsamFile, boolean
-	    required in  sequentialFile, string
-	    required in  isamFile, string
-	    required in  fdlOrXdlFile, string
-	    optional out errtxt, string
-	    endparams
-	    stack record
-		pipe,       i4
-		buffer,     a256
-		command,    string
-		err,        string
-	    endrecord
-	proc
-	    err = ""
+        public static method LoadIsamFile, boolean
+            required in  sequentialFile, string
+            required in  isamFile, string
+            required in  fdlOrXdlFile, string
+            optional out errtxt, string
+            endparams
+            stack record
+                pipe,       i4
+                buffer,     a256
+                command,    string
+                err,        string
+            endrecord
+        proc
+            err = ""
 
-	    ;;If the output file exists, delete it
-	    xcall delet(isamFile)
+            ;;If the output file exists, delete it
+            xcall delet(isamFile)
 
-	    ;;Define the fconvert command
-	    command = '|fconvert -it "' + ExpandLogicalInFilespec(sequentialFile) + '" -oi -f "' + ExpandLogicalInFilespec(isamFile) + '" -d "' + ExpandLogicalInFilespec(fdlOrXdlFile) + '"'
+            ;;Define the fconvert command
+            command = '|fconvert -it "' + ExpandLogicalInFilespec(sequentialFile) + '" -oi -f "' + ExpandLogicalInFilespec(isamFile) + '" -d "' + ExpandLogicalInFilespec(fdlOrXdlFile) + '"'
 
-	    ;;Execute the command file with "open pipe"
-	    open(pipe=0,i,command)
+            ;;Execute the command file with "open pipe"
+            open(pipe=0,i,command)
 
-	    ;;Wait until the command has completed
-	    repeat
-	    begin
-		sleep 0.1
-		reads(pipe,buffer,end_pipe)
-		if (buffer)
-		begin
-		    if (err.Length > 0)
-			err = err + ", "
-		    err = err + %atrim(buffer)
-		end
-	    end
+            ;;Wait until the command has completed
+            repeat
+            begin
+                sleep 0.1
+                reads(pipe,buffer,end_pipe)
+                if (buffer)
+                begin
+                    if (err.Length > 0)
+                        err = err + ", "
+                    err = err + %atrim(buffer)
+                end
+            end
 
-	end_pipe,
-	    close pipe
+        end_pipe,
+            close pipe
 
-	    if (^passed(errtxt))
-		errtxt = err
+            if (^passed(errtxt))
+                errtxt = err
 
-	    mreturn ((File.Exists(isamFile)) && (err.Length == 0))
+            mreturn ((File.Exists(isamFile)) && (err.Length == 0))
 
-	endmethod
+        endmethod
 	    
-	public static method StreamLfToText, boolean
-	    required in  streamFile, string
-	    required in  textFile, string
-	    optional out errtxt, string
-	    endparams
-	    stack record
-		pipe,       i4
-		buffer,     a256
-		command,    string
-		err,        string
-	    endrecord
-	proc
-	    err = ""
+        public static method StreamLfToText, boolean
+            required in  streamFile, string
+            required in  textFile, string
+            optional out errtxt, string
+            endparams
+            stack record
+                pipe,       i4
+                buffer,     a256
+                command,    string
+                err,        string
+            endrecord
+        proc
+            err = ""
 
-	    ;;If the output file exists, delete it
-	    xcall delet(textFile)
+            ;;If the output file exists, delete it
+            xcall delet(textFile)
 
-	    ;;Define the fconvert command
-	    command = '|fconvert -i1 "' + ExpandLogicalInFilespec(streamFile) + '" -ot -f "' + ExpandLogicalInFilespec(textFile)
+            ;;Define the fconvert command
+            command = '|fconvert -i1 "' + ExpandLogicalInFilespec(streamFile) + '" -ot -f "' + ExpandLogicalInFilespec(textFile)
 
-	    ;;Execute the command file with "open pipe"
-	    open(pipe=0,i,command)
+            ;;Execute the command file with "open pipe"
+            open(pipe=0,i,command)
 
-	    ;;Wait until the command has completed
-	    repeat
-	    begin
-		sleep 0.1
-		reads(pipe,buffer,end_pipe)
-		if (buffer)
-		begin
-		    if (err.Length > 0)
-			err = err + ", "
-		    err = err + %atrim(buffer)
-		end
-	    end
+            ;;Wait until the command has completed
+            repeat
+            begin
+                sleep 0.1
+                reads(pipe,buffer,end_pipe)
+                if (buffer)
+                begin
+                    if (err.Length > 0)
+                        err = err + ", "
+                    err = err + %atrim(buffer)
+                end
+            end
 
-	end_pipe,
-	    close pipe
+        end_pipe,
+            close pipe
 
-	    if (^passed(errtxt))
-		errtxt = err
+            if (^passed(errtxt))
+                errtxt = err
 
-	    mreturn ((File.Exists(textFile)) && (err.Length == 0))
+            mreturn ((File.Exists(textFile)) && (err.Length == 0))
 
-	endmethod
+        endmethod
 
-	public static method StreamCrLfToText, boolean
-	    required in  streamFile, string
-	    required in  textFile, string
-	    optional out errtxt, string
-	    endparams
-	    stack record
-		pipe,       i4
-		buffer,     a256
-		command,    string
-		err,        string
-	    endrecord
-	proc
-	    err = ""
+        public static method StreamCrLfToText, boolean
+            required in  streamFile, string
+            required in  textFile, string
+            optional out errtxt, string
+            endparams
+            stack record
+                pipe,       i4
+                buffer,     a256
+                command,    string
+                err,        string
+            endrecord
+        proc
+            err = ""
 
-	    ;;If the output file exists, delete it
-	    xcall delet(textFile)
+            ;;If the output file exists, delete it
+            xcall delet(textFile)
 
-	    ;;Define the fconvert command
-	    command = '|fconvert -i2 "' + ExpandLogicalInFilespec(streamFile) + '" -ot -f "' + ExpandLogicalInFilespec(textFile)
+            ;;Define the fconvert command
+            command = '|fconvert -i2 "' + ExpandLogicalInFilespec(streamFile) + '" -ot -f "' + ExpandLogicalInFilespec(textFile)
 
-	    ;;Execute the command file with "open pipe"
-	    open(pipe=0,i,command)
+            ;;Execute the command file with "open pipe"
+            open(pipe=0,i,command)
 
-	    ;;Wait until the command has completed
-	    repeat
-	    begin
-		sleep 0.1
-		reads(pipe,buffer,end_pipe)
-		if (buffer)
-		begin
-		    if (err.Length > 0)
-			err = err + ", "
-		    err = err + %atrim(buffer)
-		end
-	    end
+            ;;Wait until the command has completed
+            repeat
+            begin
+                sleep 0.1
+                reads(pipe,buffer,end_pipe)
+                if (buffer)
+                begin
+                    if (err.Length > 0)
+                        err = err + ", "
+                    err = err + %atrim(buffer)
+                end
+            end
 
-	end_pipe,
-	    close pipe
+        end_pipe,
+            close pipe
 
-	    if (^passed(errtxt))
-		errtxt = err
+            if (^passed(errtxt))
+                errtxt = err
 
-	    mreturn ((File.Exists(textFile)) && (err.Length == 0))
+            mreturn ((File.Exists(textFile)) && (err.Length == 0))
 
-	endmethod
+        endmethod
 
-.endc
+        .endc
 
     endclass
 

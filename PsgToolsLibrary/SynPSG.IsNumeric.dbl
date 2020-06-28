@@ -11,28 +11,23 @@
 ;=============================================================================
 ;
 
-namespace SynPSG
-
-	function IsNumeric, boolean
-		a_number, a
-		endparams
-		stack record
-			retval, boolean
-			number, d28.10
-		endrecord
-	proc
-		try 
-		begin
-			number = a_number
-			retval = true
-		end
-		catch (ex, @BadDigitException)
-		begin
-			retval = false
-		end
-		endtry
-		freturn retval
-	endfunction
-		
-endnamespace
-
+function IsNumeric, boolean
+    a_number, a
+    endparams
+    stack record
+        retval, boolean
+        number, d28.10
+    endrecord
+proc
+    try 
+    begin
+        number = a_number
+        retval = true
+    end
+    catch (ex, @BadDigitException)
+    begin
+        retval = false
+    end
+    endtry
+    freturn retval
+endfunction

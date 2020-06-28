@@ -19,47 +19,42 @@
 ;****************************************************************************
 ;
 
-namespace SynPSG.Windows
+function RdpClientName, string
+    record 
+        dll, D_ADDR
+        hserver		,i4
+        sessionid	,i4
+        request		,i4
+        bufadr		,D_ADDR
+        buflen		,i4
+        result		,boolean
+        name		,string
+    endrecord
+    structure oneCharacter
+        ,a1
+    endstructure
+proc
+    hserver = 0
+    sessionid = -1
+    request = 10
+    name = ""
 
-	function RdpClientName, string
-		record 
-			dll, D_ADDR
-			hserver		,i4
-			sessionid	,i4
-			request		,i4
-			bufadr		,D_ADDR
-			buflen		,i4
-			result		,boolean
-			name		,string
-		endrecord
-		structure oneCharacter
-					,a1
-		endstructure
-	proc
-		hserver = 0
-		sessionid = -1
-		request = 10
-		name = ""
+    dll = %dll_open("Wtsapi32.dll")
+    result = %dll_call(dll,DLL_TYPE_WINAPI,"WTSQuerySessionInformationA",
+    &    hserver,
+    &    sessionid,
+    &    request,
+    &    ^addr(bufadr),
+    &    ^addr(buflen))
+    xcall dll_close(dll)
 
-		dll = %dll_open("Wtsapi32.dll")
-		result = %dll_call(dll,DLL_TYPE_WINAPI,"WTSQuerySessionInformationA",
-		&	hserver,
-		&	sessionid,
-		&	request,
-		&	^addr(bufadr),
-		&	^addr(buflen))
-		xcall dll_close(dll)
+    if (result && buflen > 1)
+    begin
+        data mh, i4, %mem_proc(DM_REG,buflen-1,bufadr)
+        name = ^m(oneCharacter(1:buflen-1),mh)
+        mh = %mem_proc(DM_FREE,mh)
+    end
 
-		if (result && buflen > 1)
-		begin
-			data mh, i4, %mem_proc(DM_REG,buflen-1,bufadr)
-			name = ^m(oneCharacter(1:buflen-1),mh)
-			mh = %mem_proc(DM_FREE,mh)
-		end
-
-		freturn name
+    freturn name
 		
-	endfunction
-	
-endnamespace
-
+endfunction

@@ -38,8 +38,8 @@
 
 .ifndef DBLNET
 
-import SynPSG.System.Net
-import SynPSG.System.Net.Sockets
+import SynPsg.System.Net
+import SynPsg.System.Net.Sockets
 
 .include "DBLDIR:synsock.def"
 
@@ -108,7 +108,7 @@ namespace SynPSG.System.Net
                 throw new applicationException("DNS.GetHostEntry(a) Invalid HostName "+dnsAddress(1:%trim(dnsAddress)))
             (),
                 SynPSG.System.Net.SocketException.ThrowSocketException(socketError, "DNS.GetHostEntry()",
-                &   "SS_INET_ADDR error for "+dnsAddress(1:%trim(dnsAddress))+" (after SS_GETHOSTBYNAME error "+%string(errnum)+")")
+                &    "SS_INET_ADDR error for "+dnsAddress(1:%trim(dnsAddress))+" (after SS_GETHOSTBYNAME error "+%string(errnum)+")")
             endusing
             mreturn new IPHostEntry(inAddr)
         endmethod

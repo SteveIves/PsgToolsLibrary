@@ -41,7 +41,7 @@
 ;;
 ;;*****************************************************************************
 
-import SynPSG.Windows
+import SynPsg.Windows
 
 main ClipBoardTest
 

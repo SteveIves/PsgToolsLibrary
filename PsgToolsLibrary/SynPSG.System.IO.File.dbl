@@ -36,51 +36,50 @@
 
 .ifndef DBLNET
 
-import System
-import synpsg.system
-import SynPSG
+import SynPsg.System
+import SynPsg
 
 namespace SynPSG.System.IO
 
-	public class File
+    public class File
 
-		public static method Delete, boolean
-			required in path, string
-			endparams
-			stack record
-				ok	,boolean
-				dll	,D_ADDR ;;DLL Handle
-				file	,a260   ;;Null terminated file spec
-			endrecord
-		proc
-			dll = %dll_open("kernel32.dll")
-			xcall fill(char(0),file)
-			file(1,path.Trim().Length) = path.Trim()
-			ok = %dll_call(dll,DLL_TYPE_WINAPI,"DeleteFileA",^addr(file))
-			dll = dll_close(dll)
-			mreturn ok
-		endmethod
+        public static method Delete, boolean
+            required in path, string
+            endparams
+            stack record
+                ok	,boolean
+                dll	,D_ADDR ;;DLL Handle
+                file	,a260   ;;Null terminated file spec
+            endrecord
+        proc
+            dll = %dll_open("kernel32.dll")
+            xcall fill(char(0),file)
+            file(1,path.Trim().Length) = path.Trim()
+            ok = %dll_call(dll,DLL_TYPE_WINAPI,"DeleteFileA",^addr(file))
+            dll = dll_close(dll)
+            mreturn ok
+        endmethod
 
 		
-		public static method Exists, boolean
-			required in path, string
-			endparams
-		proc
-			try 
-			begin
-				data ch, int, 0
-				open(ch,i,path)
-				close ch
-				mreturn true
-			end
-			catch (e)
-			begin
-				mreturn false
-			end
-			endtry
-		endmethod
+        public static method Exists, boolean
+            required in path, string
+            endparams
+        proc
+            try 
+            begin
+                data ch, int, 0
+                open(ch,i,path)
+                close ch
+                mreturn true
+            end
+            catch (e)
+            begin
+                mreturn false
+            end
+            endtry
+        endmethod
 		
-	endclass
+    endclass
 	
 endnamespace
 

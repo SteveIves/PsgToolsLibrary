@@ -36,7 +36,7 @@
 
 .ifndef DBLNET
 
-import SynPSG.System.IO
+import SynPsg.System.IO
 
 namespace SynPSG.System.IO
 
@@ -189,16 +189,16 @@ namespace SynPSG.System.IO
                 fld     ,a1
             endstructure
         proc
-        if(byteArray.Length >= index) then
-        begin
-            mLength = byteArray.Length - index + 1
-            if(mLength > count)
-                mLength = count
-            ^m(struct.fld(1:mLength),mHandle) = byteArray(index:mLength)
-        end
-        else
-            mLength = 0
-        mreturn
+            if(byteArray.Length >= index) then
+            begin
+                mLength = byteArray.Length - index + 1
+                if(mLength > count)
+                    mLength = count
+                ^m(struct.fld(1:mLength),mHandle) = byteArray(index:mLength)
+            end
+            else
+                mLength = 0
+            mreturn
         endmethod
 
         ;;********************************************************************
@@ -471,9 +471,9 @@ namespace SynPSG.System.IO
             in offset   ,integer
             in origin   ,SeekOrigin
             endparams
-        stack record
-            m_loc   ,integer
-        endrecord
+            stack record
+                m_loc   ,integer
+            endrecord
         proc
             using origin select
             (SeekOrigin.fromBegin),

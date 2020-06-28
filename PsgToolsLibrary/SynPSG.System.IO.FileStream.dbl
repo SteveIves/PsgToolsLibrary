@@ -36,7 +36,7 @@
 
 .ifndef DBLNET
 
-import SynPSG.System.IO
+import SynPsg.System.IO
 
 namespace SynPSG.System.IO
 
@@ -65,69 +65,69 @@ namespace SynPSG.System.IO
             if (path.Length==0)
                 throw new ArgumentException("A path parameter is required.")
 
-			try 
-			begin
-				using mode select
-				(FileMode.Append),
-				begin
-					open(pChan=0,a,path)
-					mCanRead = %false
-					mCanSeek = %false
-					mCanWrite = %true
-				end
-				(FileMode.Create),
-				begin
-					open(pChan=0,o,path)
-					mCanRead = %false
-					mCanSeek = %false
-					mCanWrite = %true
-				end
-				(FileMode.CreateNew),
-				begin
-					open(pChan=0,o,path)
-					mCanRead = %false
-					mCanSeek = %false
-					mCanWrite = %true
-				end
-				(FileMode.Open),
-				begin
-					open(pChan=0,i,path)
-					mCanRead = %true
-					mCanSeek = %true
-					mCanWrite = %true
-				end
-				(FileMode.Truncate),
-				begin
-					open(pChan=0,o,path)
-					mCanRead = %false
-					mCanSeek = %false
-					mCanWrite = %true
-				end
-				endusing
-			end
-			catch (ex, @NoFileFoundException)
-			begin
-				throw new ApplicationException("File not found or invalid path name.")
-			end
-			catch (ex, @ProtectionViolationException)
-			begin
-				if (pChan)
-				begin
-					close pChan
-					clear pChan
-				end
-				throw new ApplicationException("IO protection violation.")
-			end
-			catch (ex, @Exception)
-			begin
-				if (pChan)
-				begin
-					close pChan
-					clear pChan
-				end
-				throw new ApplicationException("IO exception: " + ex.Message + ". Attempting to open file " + path)
-			end
-			endtry
+            try 
+            begin
+                using mode select
+                (FileMode.Append),
+                begin
+                    open(pChan=0,a,path)
+                    mCanRead = %false
+                    mCanSeek = %false
+                    mCanWrite = %true
+                end
+                (FileMode.Create),
+                begin
+                    open(pChan=0,o,path)
+                    mCanRead = %false
+                    mCanSeek = %false
+                    mCanWrite = %true
+                end
+                (FileMode.CreateNew),
+                begin
+                    open(pChan=0,o,path)
+                    mCanRead = %false
+                    mCanSeek = %false
+                    mCanWrite = %true
+                end
+                (FileMode.Open),
+                begin
+                    open(pChan=0,i,path)
+                    mCanRead = %true
+                    mCanSeek = %true
+                    mCanWrite = %true
+                end
+                (FileMode.Truncate),
+                begin
+                    open(pChan=0,o,path)
+                    mCanRead = %false
+                    mCanSeek = %false
+                    mCanWrite = %true
+                end
+                endusing
+            end
+            catch (ex, @NoFileFoundException)
+            begin
+                throw new ApplicationException("File not found or invalid path name.")
+            end
+            catch (ex, @ProtectionViolationException)
+            begin
+                if (pChan)
+                begin
+                    close pChan
+                    clear pChan
+                end
+                throw new ApplicationException("IO protection violation.")
+            end
+            catch (ex, @Exception)
+            begin
+                if (pChan)
+                begin
+                    close pChan
+                    clear pChan
+                end
+                throw new ApplicationException("IO exception: " + ex.Message + ". Attempting to open file " + path)
+            end
+            endtry
 			
             mName = path
             mFileMode = mode
@@ -373,22 +373,22 @@ namespace SynPSG.System.IO
             stack record
                 m_loc   ,integer
             endrecord
-            proc
-                if (!canSeek)
-                    throw new ApplicationException("FileStream does not support seeking.")
-                using origin select
-                (SeekOrigin.fromBegin),
-                    m_loc = 1
-                (SeekOrigin.fromCurrent),
-                    m_loc = mPosition
-                (SeekOrigin.fromEnd),
-                    m_loc = mLength
-                endusing
-                if (m_loc+offset<1)
-                    throw new ArgumentException("Attempted seeking before the beginning of the string.")
-                if (!pChan || !%chopen(pChan))
-                    throw new ApplicationException("The stream object has been closed.")
-                mreturn (mPosition=m_loc+offset)
+        proc
+            if (!canSeek)
+                throw new ApplicationException("FileStream does not support seeking.")
+            using origin select
+            (SeekOrigin.fromBegin),
+                m_loc = 1
+            (SeekOrigin.fromCurrent),
+                m_loc = mPosition
+            (SeekOrigin.fromEnd),
+                m_loc = mLength
+            endusing
+            if (m_loc+offset<1)
+                throw new ArgumentException("Attempted seeking before the beginning of the string.")
+            if (!pChan || !%chopen(pChan))
+                throw new ApplicationException("The stream object has been closed.")
+            mreturn (mPosition=m_loc+offset)
         endmethod
 
         ;;********************************************************************

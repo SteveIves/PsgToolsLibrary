@@ -13,18 +13,16 @@
 ;	we can know how to interpret this information.
 ;
 
-namespace SynPSG
+function get_precision, ^val
+    ^val(dscaddr)	,i			;Address of the descriptor of the value
+    endparams
 
-	function get_precision, ^val
-		^val(dscaddr)	,i			;Address of the descriptor of the value
-		endparams
+    .align
+    stack record
+        hnd			,i4					;Handle registered to descriptor address
+    endrecord                   		
 
-		.align
-		stack record
-			hnd			,i4					;Handle registered to descriptor address
-		endrecord                   		
-
-		.ifdef OS_VMS						;VMS has a native descriptor format
+    .ifdef OS_VMS						;VMS has a native descriptor format
 		structure s_descr           		
 			len		,i2						;Length of the field
 			dtype		,i1					;data type of the field
@@ -35,33 +33,30 @@ namespace SynPSG
 			flags		,i1					;flags
 			dimct		,i1					;number of dimensions
 		endstructure
-		.else
-		structure s_descr					;Synergy descriptor format
-			len		,i (D_ADDRSIZE / 2) 	;length of the field
-			ctl		,i (D_ADDRSIZE / 2) 	;control flags
-			addr		,D_ADDR				;address of the data
-		endstructure
+    .else
+    structure s_descr					;Synergy descriptor format
+        len		,i (D_ADDRSIZE / 2) 	;length of the field
+        ctl		,i (D_ADDRSIZE / 2) 	;control flags
+        addr		,D_ADDR				;address of the data
+    endstructure
 
-		.if D_ADDRSIZE .eq. 8				;64 bit systems
-		.define D_PRECMASK	^x(FF)			;use lower 8 bits of ctl
-		.else								;otherwise
+    .if D_ADDRSIZE .eq. 8				;64 bit systems
+    .define D_PRECMASK	^x(FF)			;use lower 8 bits of ctl
+    .else								;otherwise
 		.define D_PRECMASK  	^x(0F)		;use lower 4 bits of ctl
-		.endc
+    .endc
 
-		.endc
+    .endc
 		
-	proc
-		; Transform descriptor address into a handle (will be released on exit)
-		hnd = %mem_proc(DM_REG,^size(s_descr),dscaddr)
-		.ifdef OS_VMS
+proc
+    ; Transform descriptor address into a handle (will be released on exit)
+    hnd = %mem_proc(DM_REG,^size(s_descr),dscaddr)
+    .ifdef OS_VMS
 		; return negative scale
 		freturn (- ^m(s_descr.scale,hnd))
-		.else
-		; return lower bits of ctl
-		freturn (^m(s_descr.ctl,hnd) .band. D_PRECMASK)
-		.endc
+    .else
+    ; return lower bits of ctl
+    freturn (^m(s_descr.ctl,hnd) .band. D_PRECMASK)
+    .endc
 		
-	endfunction
-
-endnamespace
-
+endfunction

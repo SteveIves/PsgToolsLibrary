@@ -650,13 +650,13 @@ namespace SynPSG.Windows
                 ("HostName:"),
                     tsk.HostName = linevalue
                 ("TaskName:"),
-                    begin
-                        if (currentFolder.eqs."\") then
-                            tsk.Name = (a)linevalue - (currentFolder)
-                        else
-                            tsk.Name = (a)linevalue - (currentFolder + "\")
-                        tsk.FullName = linevalue
-                    end
+                begin
+                    if (currentFolder.eqs."\") then
+                        tsk.Name = (a)linevalue - (currentFolder)
+                    else
+                        tsk.Name = (a)linevalue - (currentFolder + "\")
+                    tsk.FullName = linevalue
+                end
                 ("Next Run Time:"),
                     tsk.NextRunTime = stringToDateAndTime(linevalue)
                 ("Status:"),

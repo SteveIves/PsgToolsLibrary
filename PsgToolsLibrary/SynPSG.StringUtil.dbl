@@ -44,7 +44,6 @@
 ;;              1.3  03/28/2011 - fixed "N. Central Asia Standard Time" offset
 ;;***************************************************************************
 
-import System
 
 namespace SynPSG
 
@@ -83,7 +82,7 @@ namespace SynPSG
             while %instr(lastPos, inString, separator, startPos) do
             begin
                 if (removeEmpty == StringSplitOptions.None ||
-                &   (startPos > lastPos && startPos < (inString.Length + 1 - separator.Length)))
+                &    (startPos > lastPos && startPos < (inString.Length + 1 - separator.Length)))
                     elementCount += 1
                 lastPos = startPos + separator.Length
             end
@@ -98,8 +97,8 @@ namespace SynPSG
                     ;; Nothing in this element
                     if (removeEmpty == StringSplitOptions.None)
                         splitArray[elementCount+=1]=""
-                else
-                    splitArray[elementCount +=1] = inString(lastPos:startPos-lastPos)
+                    else
+                        splitArray[elementCount +=1] = inString(lastPos:startPos-lastPos)
                 lastPos = startPos + separator.Length
             end
             ;; Get the final portion of the string and drop it in the last bucket of the Array
@@ -176,7 +175,7 @@ namespace SynPSG
         public static method ToLower    ,string
             req in inString             ,string
         proc
-	    mreturn inString.ToLower()
+            mreturn inString.ToLower()
         endmethod
 
         ;;;<summary>
@@ -450,7 +449,7 @@ namespace SynPSG
                 maskLength          ,i4         ;; max position
                 date_sep            ,a1
                 time_sep            ,a1
-			endrecord
+            endrecord
 			
         proc
             outString = ''
@@ -467,12 +466,12 @@ namespace SynPSG
             begin
                 currentPos += 1
 
-				;;Are we done?
+                ;;Are we done?
                 if(currentPos > maskLength)
                 begin
                     call processParam
                     exitloop
-				end
+                end
 				
                 using aResultMask(currentPos:1) select
                 (' '),
@@ -520,7 +519,7 @@ namespace SynPSG
                 ('%'),
                     nop ;todo single format parameters
                 endusing
-			end
+            end
 			
             mreturn outString
 
@@ -675,13 +674,13 @@ namespace SynPSG
                     hours = %trunc(minsOffset / 60)
                     UMToffset = (hours * 100) + (minsOffset - (hours * 60))
                     UMToffset = -UMToffset
-					outString = outString + %string(UMToffset,'-XXXX')
+                    outString = outString + %string(UMToffset,'-XXXX')
                 end
                 else
                 begin
                     hours = %trunc(minsOffset / 60)
                     UMToffset = (hours * 100) + (minsOffset - (hours * 60))
-					outString = outString + %string(UMToffset,'+XXXX')
+                    outString = outString + %string(UMToffset,'+XXXX')
                 end
             end
             endusing
@@ -689,7 +688,7 @@ namespace SynPSG
             return
         endmethod
 
-    ;;--------------------------------------------------------------------
+        ;;--------------------------------------------------------------------
 
         private static method MilitaryTimeZone  ,a
             req in  aUTCoffset                  ,n
@@ -1540,7 +1539,7 @@ namespace SynPSG
         proc
             myDate = aDate
             mreturn DayNames(myDate) + ', '
-            &   + MonthNames(mon) + DateSeperator() + %string(day) + DateSeperator() + %string(year, 'XXXX')
+            &    + MonthNames(mon) + DateSeperator() + %string(day) + DateSeperator() + %string(year, 'XXXX')
         endmethod
 
         private static method ShortDatePattern  ,a
@@ -1607,15 +1606,15 @@ namespace SynPSG
 
         private static method RFA1123Pattern    ,a
             req in  group aDateTime             ,a
-                        group myDate    ,d
-                            year        ,d4
-                            mon         ,d2
-                            day         ,d2
-                        endgroup
-                        hh          ,d2
-                        mm          ,d2
-                        ss          ,d2
-                    endgroup
+                group myDate    ,d
+                    year        ,d4
+                    mon         ,d2
+                    day         ,d2
+                endgroup
+                hh          ,d2
+                mm          ,d2
+                ss          ,d2
+            endgroup
             endparams
             record
                 timeZoneString      ,a40
@@ -1624,68 +1623,68 @@ namespace SynPSG
             endrecord
         proc
             offset = %timezone(timeZoneString, daylightSaving)
-			.ifdef D_GUI
+            .ifdef D_GUI
             windowsTimezoneToShort(timeZoneString, daylightSaving)
-			.endc ;D_GUI
+            .endc ;D_GUI
             mreturn AbbreviatedDayNames(myDate) + ', '
-            &   + %string(day, 'XX') + ' ' + AbbreviatedMonthNames(mon) + ' ' + %string(year, 'XXXX') + ' '
-            &   + %string(hh, 'XX') + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX') + ' '
-            &   + %atrim(timeZoneString)
+            &    + %string(day, 'XX') + ' ' + AbbreviatedMonthNames(mon) + ' ' + %string(year, 'XXXX') + ' '
+            &    + %string(hh, 'XX') + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX') + ' '
+            &    + %atrim(timeZoneString)
         endmethod
 
         private static method SortableDateTimePattern   ,a
             req in  group aDateTime                     ,a
-                        year        ,d4
-                        mon         ,d2
-                        day         ,d2
-                        hh          ,d2
-                        mm          ,d2
-                        ss          ,d2
-                    endgroup
+                year        ,d4
+                mon         ,d2
+                day         ,d2
+                hh          ,d2
+                mm          ,d2
+                ss          ,d2
+            endgroup
             endparams
         proc
             mreturn  %string(year, 'XXXX') + '-' + %string(mon ,'XX') + '-' + %string(day, 'XX')
-            &   + MilitaryTimeZone(workingTimeZone())
-            &   + %string(hh, 'XX') + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX')
+            &    + MilitaryTimeZone(workingTimeZone())
+            &    + %string(hh, 'XX') + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX')
         endmethod
-    ;;--------------------------------------------------------------------
+        ;;--------------------------------------------------------------------
         private static method UniversalSortableDateTimePtn  ,a
             req in  group aDateTime                         ,a
-                        year        ,d4
-                        mon         ,d2
-                        day         ,d2
-                        hh          ,d2
-                        mm          ,d2
-                        ss          ,d2
-                    endgroup
+                year        ,d4
+                mon         ,d2
+                day         ,d2
+                hh          ,d2
+                mm          ,d2
+                ss          ,d2
+            endgroup
             endparams
         proc
             mreturn  %string(year, 'XXXX') + '-' + %string(mon ,'XX') + '-' + %string(day, 'XX')
-            &   + ' '
-            &   + %string(hh, 'XX') + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX')
-            &   + MilitaryTimeZone(workingTimeZone())
+            &    + ' '
+            &    + %string(hh, 'XX') + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX')
+            &    + MilitaryTimeZone(workingTimeZone())
         endmethod
 
         private static method UniversalFullDateTimePattern  ,a
             req in  group aDateTime                         ,a
-                        group myDate    ,d
-                            year        ,d4
-                            mon         ,d2
-                            day         ,d2
-                        endgroup
-                        hh          ,d2
-                        mm          ,d2
-                        ss          ,d2
-                    endgroup
+                group myDate    ,d
+                    year        ,d4
+                    mon         ,d2
+                    day         ,d2
+                endgroup
+                hh          ,d2
+                mm          ,d2
+                ss          ,d2
+            endgroup
             endparams
         proc
             if(hh > 11)
                 mreturn DayNames(myDate) + ' '
-                &   + MonthNames(mon) + DateSeperator() + %string(day) + DateSeperator() + %string(year, 'XXXX') + ' '
-                &   + %string(hh-12) + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX') + ' ' + PMDesignator()
+                &    + MonthNames(mon) + DateSeperator() + %string(day) + DateSeperator() + %string(year, 'XXXX') + ' '
+                &    + %string(hh-12) + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX') + ' ' + PMDesignator()
             mreturn DayNames(myDate) + ' '
-            &   + MonthNames(mon) + DateSeperator() + %string(day) + DateSeperator() + %string(year, 'XXXX') + ' '
-            &   + %string(hh) + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX') + ' ' + AMDesignator()
+            &    + MonthNames(mon) + DateSeperator() + %string(day) + DateSeperator() + %string(year, 'XXXX') + ' '
+            &    + %string(hh) + TimeSeperator() + %string(mm, 'XX') + TimeSeperator() + %string(ss, 'XX') + ' ' + AMDesignator()
         endmethod
 
         private static method YearMonthPattern  ,a
@@ -1708,9 +1707,9 @@ namespace SynPSG
             endparams
             literal
                 longMonth       ,12a9   ,'January  ','February ','March    '
-                &                       ,'April    ','May      ','June     '
-                &                       ,'July     ','August   ','September'
-                &                       ,'October  ','November ','December '
+                &    ,'April    ','May      ','June     '
+                &    ,'July     ','August   ','September'
+                &    ,'October  ','November ','December '
             endliteral
         proc
             if(aMonth < 1 || aMonth > 12)
@@ -1723,7 +1722,7 @@ namespace SynPSG
             endparams
             literal
                 shortMonth      ,12a3   ,'Jan','Feb','Mar','Apr','May','Jun'
-                &                       ,'Jul','Aug','Sep','Oct','Nov','Dec'
+                &    ,'Jul','Aug','Sep','Oct','Nov','Dec'
             endliteral
         proc
             if(aMonth < 1 || aMonth > 12)
@@ -1736,8 +1735,8 @@ namespace SynPSG
             endparams
             literal
                 longDow         ,7a9    ,'Sunday   ','Monday   ','Tuesday  '
-                &                       ,'Wednesday','Thursday ','Friday   '
-                &                       ,'Saturday '
+                &    ,'Wednesday','Thursday ','Friday   '
+                &    ,'Saturday '
             endliteral
             record
                 group myDate    ,d
@@ -1756,7 +1755,7 @@ namespace SynPSG
             endparams
             literal
                 shortDow        ,9a3    ,'Sun','Mon','Tue','Wed','Thu','Fri'
-                &                       ,'Sat'
+                &    ,'Sat'
             endliteral
             record
                 group myDate    ,d
@@ -1794,26 +1793,26 @@ namespace SynPSG
             mreturn 'PM'
         endmethod
 		
-		;;; <summary>
-		;;; This method is a workaround for the fact that the Synergy %TIMEZONE function
-		;;; returns an incorrect offset value if your local time zone is currently in
-		;;; daylight savings time. It turns out that the return value of %TIMEZONE is
-		;;; always the offset from UTC for the local time zone but WITHOUT taking DST
-		;;; into consideration. %TIMEZONE does however return a boolean parameter
-		;;; indicating that DST is currenty in effect.
-		;;; </summary>
-		;;; <returns>Offset in minutes between the local time zone and UTC.</returns>
-		private static method workingTimeZone, int
-			record 
-				offset, int
-				dst, d1
-			endrecord
-		proc
-			offset = %timezone(,dst)
-			if (dst)
-				offset += 60
-			mreturn offset
-		endmethod
+        ;;; <summary>
+        ;;; This method is a workaround for the fact that the Synergy %TIMEZONE function
+        ;;; returns an incorrect offset value if your local time zone is currently in
+        ;;; daylight savings time. It turns out that the return value of %TIMEZONE is
+        ;;; always the offset from UTC for the local time zone but WITHOUT taking DST
+        ;;; into consideration. %TIMEZONE does however return a boolean parameter
+        ;;; indicating that DST is currenty in effect.
+        ;;; </summary>
+        ;;; <returns>Offset in minutes between the local time zone and UTC.</returns>
+        private static method workingTimeZone, int
+            record 
+                offset, int
+                dst, d1
+            endrecord
+        proc
+            offset = %timezone(,dst)
+            if (dst)
+                offset += 60
+            mreturn offset
+        endmethod
 
     endclass
 

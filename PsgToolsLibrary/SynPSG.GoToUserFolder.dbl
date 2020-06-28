@@ -1,6 +1,4 @@
 
-namespace SynPSG
-
     subroutine GoToUserFolder
     proc
 
@@ -13,5 +11,3 @@ namespace SynPSG
         xreturn
 
     endsubroutine
-
-endnamespace

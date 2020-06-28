@@ -6,24 +6,23 @@
 ;
 
 .ifdef DBLNET
-import System
-import System.Net
-import System.Net.Mail
-import System.Security
-import SynPSG
-import SynPSG.Windows
+SynPsg.System
+SynPsg.System.Net
+SynPsg.System.Net.Mail
+SynPsg.System.Security
+import SynPsg
+import SynPsg.Windows
 .else
-import System
-import SynPSG.System
-import SynPSG.System.Net
-import SynPSG.System.Net.Mail
-import SynPSG.System.Security
-import SynPSG
+import SynPsg.System
+import SynPsg.System.Net
+import SynPsg.System.Net.Mail
+import SynPsg.System.Security
+import SynPsg
 .ifdef USEPDFAPI
-import SynPSG.PDF
+import SynPsg.PDF
 .endc
-import synpsg.system
-import SynPSG.Windows
+import SynPsg.System
+import SynPsg.Windows
 .endc
 
 namespace SynPSG
@@ -66,7 +65,7 @@ namespace SynPSG
             optional in disablePgUp,    boolean
             optional in disablePgDn,    boolean
             optional in disableBotm,    boolean
-			optional in disableExcel,   boolean
+            optional in disableExcel,   boolean
             endparams
 
             .include "WND:tools.def"
@@ -130,15 +129,15 @@ namespace SynPSG
             if (footers)
                 xcall l_sect(mLid,mFooterText,D_FOOTER)
 
-			;;Add an "Excel" button
-			if (!^passed(disableExcel) || !disableExcel)
-				xcall l_button(mLid,DSB_ADD,"COPY",DSB_TEXT,"Copy",,,"O")
+            ;;Add an "Excel" button
+            if (!^passed(disableExcel) || !disableExcel)
+                xcall l_button(mLid,DSB_ADD,"COPY",DSB_TEXT,"Copy",,,"O")
 
-.ifdef USEPDFAPI
+            .ifdef USEPDFAPI
             ;;Add a "Print" button
             if (!^passed(disablePrint) || !disablePrint)
                 xcall l_button(mLid,DSB_ADD,"PRINT",DSB_TEXT,"Print",,,"P")
-.endc
+            .endc
             ;;Add an "Email" button
             if (!^passed(disableEmail) || !disableEmail)
                 xcall l_button(mLid,DSB_ADD,"EMAIL",DSB_TEXT,"Email",,,"E")
@@ -256,14 +255,14 @@ namespace SynPSG
                 if (g_select) then
                 begin
                     using g_entnam select
-.ifdef USEPDFAPI
+                        .ifdef USEPDFAPI
                     ("PRINT"),
                         printList()
-.endc
+                        .endc
                     ("EMAIL"),
                         emailList()
-					("COPY"),
-						copyToClipboard()
+                    ("COPY"),
+                        copyToClipboard()
                     ("CLOSE"),
                         exitloop
                     endusing
@@ -290,168 +289,168 @@ namespace SynPSG
             mreturn this.Process()
         endmethod
 
-;       private method printList, void
-;           endparams
-;           record
-;               ch, int
-;               reportFile, string
-;               errorMessage, string
-;               now, a20
-;               tmpTitle, string
-;           endrecord
-;       proc
-;           ;;Make a file spec for the print file
-;
-;           now = %datetime()
-;
-;           ;;Remove characters that can't be used in file specs
-;           tmpTitle = mTitle
-;           tmpTitle = tmpTitle.Trim().Replace("&","and").Replace("/","-").Replace("\","-").Replace(","," ")
-;           while (tmpTitle.Contains("  "))
-;               tmpTitle = tmpTitle.Replace("  "," ")
-;
-;           reportFile = "SYS$LOGIN:" + %string(^d(now(1:8)),"XXXX-XX-XX ") + tmpTitle + ".txt"
-;
-;           ;;Remove the list from the screen
-;           xcall l_remove(mLid)
-;
-;           ;;Put up a "Preparing report..." window
-;           begin
-;               data msgWinId, i4
-;               xcall w_proc(WP_CREATE,msgWinId,"",3,21,WP_PLACE,msgWinId,9,32)
-;               xcall w_disp(msgWinId,WD_POS,2,2,"Preparing report...")
-;               xcall w_updt
-;               xcall w_proc(WP_DELETE,msgWinId)
-;           end
-;
-;           ;;Open output file
-;           repeat
-;           begin
-;               try
-;               begin
-;                   open(ch=0,o:s,reportFile)
-;                   exitloop
-;               end
-;               catch (ex, @FileNameException)
-;               begin
-;                   reportFile = "SYS$LOGIN:" + %string(^d(now(1:14)),"XXXX-XX-XX XX.XX.XX Temp Print File.rep")
-;               end
-;               endtry
-;           end
-;
-;           ;;If the list has a header then output the header text to the print file
-;           if (mHeaderText.Length > 0)
-;           begin
-;               writes(ch,%atrim(mHeaderText))
-;               writes(ch,"")
-;           end
-;
-;           ;Go to the top of the list
-;           xcall l_process(mLid,mReq=D_LTOP,mData)
-;
-;           repeat
-;           begin
-;               data atBottom, i4
-;
-;               writes(ch,%atrim(mData))
-;               xcall l_process(mLid,mReq=D_LDOWN,mData)
-;
-;               ;;Are we at the end of the list?
-;               xcall l_status(mLid,D_LATBOTTOM,atBottom)
-;               if (atBottom)
-;               begin
-;                   writes(ch,%atrim(mData))
-;                   exitloop
-;               end
-;           end
-;
-;           ;;If the list has a header then output the header text to the print file
-;           if (mFooterText.Length > 0)
-;           begin
-;               writes(ch,"")
-;               writes(ch,%atrim(mFooterText))
-;           end
-;
-;           ;;Close the output file
-;           close ch
-;
-;           ;;Go back to the top of the list
-;           xcall l_process(mLid,mReq=D_LTOP,mData)
-;
-;           ;;Put the list back on the screen
-;           xcall l_place(mLid)
-;
-;           ;;Print the file
-;           PrintAPI.PrintFile(mTitle,reportFile,errorMessage,(mListCols > 80))
-;
-;           ;;Delete the report file
-;           xcall delet(reportFile)
-;
-;       endmethod
+        ;       private method printList, void
+        ;           endparams
+        ;           record
+        ;               ch, int
+        ;               reportFile, string
+        ;               errorMessage, string
+        ;               now, a20
+        ;               tmpTitle, string
+        ;           endrecord
+        ;       proc
+        ;           ;;Make a file spec for the print file
+        ;
+        ;           now = %datetime()
+        ;
+        ;           ;;Remove characters that can't be used in file specs
+        ;           tmpTitle = mTitle
+        ;           tmpTitle = tmpTitle.Trim().Replace("&","and").Replace("/","-").Replace("\","-").Replace(","," ")
+        ;           while (tmpTitle.Contains("  "))
+        ;               tmpTitle = tmpTitle.Replace("  "," ")
+        ;
+        ;           reportFile = "SYS$LOGIN:" + %string(^d(now(1:8)),"XXXX-XX-XX ") + tmpTitle + ".txt"
+        ;
+        ;           ;;Remove the list from the screen
+        ;           xcall l_remove(mLid)
+        ;
+        ;           ;;Put up a "Preparing report..." window
+        ;           begin
+        ;               data msgWinId, i4
+        ;               xcall w_proc(WP_CREATE,msgWinId,"",3,21,WP_PLACE,msgWinId,9,32)
+        ;               xcall w_disp(msgWinId,WD_POS,2,2,"Preparing report...")
+        ;               xcall w_updt
+        ;               xcall w_proc(WP_DELETE,msgWinId)
+        ;           end
+        ;
+        ;           ;;Open output file
+        ;           repeat
+        ;           begin
+        ;               try
+        ;               begin
+        ;                   open(ch=0,o:s,reportFile)
+        ;                   exitloop
+        ;               end
+        ;               catch (ex, @FileNameException)
+        ;               begin
+        ;                   reportFile = "SYS$LOGIN:" + %string(^d(now(1:14)),"XXXX-XX-XX XX.XX.XX Temp Print File.rep")
+        ;               end
+        ;               endtry
+        ;           end
+        ;
+        ;           ;;If the list has a header then output the header text to the print file
+        ;           if (mHeaderText.Length > 0)
+        ;           begin
+        ;               writes(ch,%atrim(mHeaderText))
+        ;               writes(ch,"")
+        ;           end
+        ;
+        ;           ;Go to the top of the list
+        ;           xcall l_process(mLid,mReq=D_LTOP,mData)
+        ;
+        ;           repeat
+        ;           begin
+        ;               data atBottom, i4
+        ;
+        ;               writes(ch,%atrim(mData))
+        ;               xcall l_process(mLid,mReq=D_LDOWN,mData)
+        ;
+        ;               ;;Are we at the end of the list?
+        ;               xcall l_status(mLid,D_LATBOTTOM,atBottom)
+        ;               if (atBottom)
+        ;               begin
+        ;                   writes(ch,%atrim(mData))
+        ;                   exitloop
+        ;               end
+        ;           end
+        ;
+        ;           ;;If the list has a header then output the header text to the print file
+        ;           if (mFooterText.Length > 0)
+        ;           begin
+        ;               writes(ch,"")
+        ;               writes(ch,%atrim(mFooterText))
+        ;           end
+        ;
+        ;           ;;Close the output file
+        ;           close ch
+        ;
+        ;           ;;Go back to the top of the list
+        ;           xcall l_process(mLid,mReq=D_LTOP,mData)
+        ;
+        ;           ;;Put the list back on the screen
+        ;           xcall l_place(mLid)
+        ;
+        ;           ;;Print the file
+        ;           PrintAPI.PrintFile(mTitle,reportFile,errorMessage,(mListCols > 80))
+        ;
+        ;           ;;Delete the report file
+        ;           xcall delet(reportFile)
+        ;
+        ;       endmethod
 
-;       private method printList, void
-;           endparams
-;           record
-;               rpt,        @Report
-;               errorMessage,   string
-;           endrecord
-;       proc
-;           rpt = new Report(mTitle)
-;
-;           if (mHeaderText.Length > 0)
-;               rpt.PageHeader.Add(mHeaderText)
-;
-;           if (rpt.Initialize(,mMaxDataWidth,0.5,0.5,0.5,0.5,,,,true,errorMessage)) then
-;           begin
-;               ;;Remove the list from the screen
-;               xcall l_remove(mLid)
-;
-;               ;;Put up a "Preparing report..." window
-;               begin
-;                   data msgWinId, i4
-;                   xcall w_proc(WP_CREATE,msgWinId,"",3,21,WP_PLACE,msgWinId,9,32)
-;                   xcall w_disp(msgWinId,WD_POS,2,2,"Preparing report...")
-;                   xcall w_updt
-;                   xcall w_proc(WP_DELETE,msgWinId)
-;               end
-;
-;               ;Go to the top of the list
-;               xcall l_process(mLid,mReq=D_LTOP,mData)
-;
-;               rpt.NewPage()
-;
-;               repeat
-;               begin
-;                   data atBottom, i4
-;
-;                   rpt.PrintText(%atrim(mData))
-;
-;                   xcall l_process(mLid,mReq=D_LDOWN,mData)
-;
-;                   ;;Are we at the end of the list?
-;                   xcall l_status(mLid,D_LATBOTTOM,atBottom)
-;                   if (atBottom)
-;                   begin
-;                       rpt.PrintText(%atrim(mData))
-;                       exitloop
-;                   end
-;               end
-;
-;               ;;Go back to the top of the list
-;               xcall l_process(mLid,mReq=D_LTOP,mData)
-;
-;               ;;Put the list back on the screen
-;               xcall l_place(mLid)
-;
-;               ;;Show the print preview window
-;               rpt.Preview()
-;           end
-;           else
-;               xcall u_msgbox(errorMessage,D_MOK|D_MICONEXCLAM,"Print Failed")
-;
-;       endmethod
+        ;       private method printList, void
+        ;           endparams
+        ;           record
+        ;               rpt,        @Report
+        ;               errorMessage,   string
+        ;           endrecord
+        ;       proc
+        ;           rpt = new Report(mTitle)
+        ;
+        ;           if (mHeaderText.Length > 0)
+        ;               rpt.PageHeader.Add(mHeaderText)
+        ;
+        ;           if (rpt.Initialize(,mMaxDataWidth,0.5,0.5,0.5,0.5,,,,true,errorMessage)) then
+        ;           begin
+        ;               ;;Remove the list from the screen
+        ;               xcall l_remove(mLid)
+        ;
+        ;               ;;Put up a "Preparing report..." window
+        ;               begin
+        ;                   data msgWinId, i4
+        ;                   xcall w_proc(WP_CREATE,msgWinId,"",3,21,WP_PLACE,msgWinId,9,32)
+        ;                   xcall w_disp(msgWinId,WD_POS,2,2,"Preparing report...")
+        ;                   xcall w_updt
+        ;                   xcall w_proc(WP_DELETE,msgWinId)
+        ;               end
+        ;
+        ;               ;Go to the top of the list
+        ;               xcall l_process(mLid,mReq=D_LTOP,mData)
+        ;
+        ;               rpt.NewPage()
+        ;
+        ;               repeat
+        ;               begin
+        ;                   data atBottom, i4
+        ;
+        ;                   rpt.PrintText(%atrim(mData))
+        ;
+        ;                   xcall l_process(mLid,mReq=D_LDOWN,mData)
+        ;
+        ;                   ;;Are we at the end of the list?
+        ;                   xcall l_status(mLid,D_LATBOTTOM,atBottom)
+        ;                   if (atBottom)
+        ;                   begin
+        ;                       rpt.PrintText(%atrim(mData))
+        ;                       exitloop
+        ;                   end
+        ;               end
+        ;
+        ;               ;;Go back to the top of the list
+        ;               xcall l_process(mLid,mReq=D_LTOP,mData)
+        ;
+        ;               ;;Put the list back on the screen
+        ;               xcall l_place(mLid)
+        ;
+        ;               ;;Show the print preview window
+        ;               rpt.Preview()
+        ;           end
+        ;           else
+        ;               xcall u_msgbox(errorMessage,D_MOK|D_MICONEXCLAM,"Print Failed")
+        ;
+        ;       endmethod
 
-.ifdef USEPDFAPI
+        .ifdef USEPDFAPI
         private method printList, void
             endparams
             record
@@ -551,7 +550,7 @@ namespace SynPSG
             pdf.Preview()
 
 		endmethod
-.endc
+        .endc
 
         private method emailList, void
             endparams
@@ -651,60 +650,60 @@ namespace SynPSG
 
         endmethod
 
-		private method copyToClipboard, void
-			endparams
-			record
-				tmpdata,    string
-				cb,         @Clipboard
-			endrecord
-		proc
-			tmpdata = ""
+        private method copyToClipboard, void
+            endparams
+            record
+                tmpdata,    string
+                cb,         @Clipboard
+            endrecord
+        proc
+            tmpdata = ""
 
-			;;Remove the list from the screen
-			xcall l_remove(mLid)
+            ;;Remove the list from the screen
+            xcall l_remove(mLid)
 
-			;;Put up a "Exporting data to Excel..." window
-			begin
-				data msgWinId, i4
-				xcall w_proc(WP_CREATE,msgWinId,"",3,21,WP_PLACE,msgWinId,9,32)
-				xcall w_disp(msgWinId,WD_POS,2,2,"Exporting Data to Excel...")
-				xcall w_updt
-				xcall w_proc(WP_DELETE,msgWinId)
-			end
+            ;;Put up a "Exporting data to Excel..." window
+            begin
+                data msgWinId, i4
+                xcall w_proc(WP_CREATE,msgWinId,"",3,21,WP_PLACE,msgWinId,9,32)
+                xcall w_disp(msgWinId,WD_POS,2,2,"Exporting Data to Excel...")
+                xcall w_updt
+                xcall w_proc(WP_DELETE,msgWinId)
+            end
 
-			;Go to the top of the list
-			xcall l_process(mLid,mReq=D_LTOP,mData)
+            ;Go to the top of the list
+            xcall l_process(mLid,mReq=D_LTOP,mData)
 
-			repeat
-			begin
-				data atBottom, i4
+            repeat
+            begin
+                data atBottom, i4
 
-				tmpdata = tmpdata + %atrim(mData) + %char(13) + %char(10)
+                tmpdata = tmpdata + %atrim(mData) + %char(13) + %char(10)
 
-				xcall l_process(mLid,mReq=D_LDOWN,mData)
+                xcall l_process(mLid,mReq=D_LDOWN,mData)
 
-				;;Are we at the end of the list?
-				xcall l_status(mLid,D_LATBOTTOM,atBottom)
-				if (atBottom)
-				begin
-					tmpdata = tmpdata + %atrim(mData)
-					exitloop
-				end
-			end
+                ;;Are we at the end of the list?
+                xcall l_status(mLid,D_LATBOTTOM,atBottom)
+                if (atBottom)
+                begin
+                    tmpdata = tmpdata + %atrim(mData)
+                    exitloop
+                end
+            end
 
-			;;Go back to the top of the list
-			xcall l_process(mLid,mReq=D_LTOP,mData)
+            ;;Go back to the top of the list
+            xcall l_process(mLid,mReq=D_LTOP,mData)
 
-			;;Put the list back on the screen
-			xcall l_place(mLid)
+            ;;Put the list back on the screen
+            xcall l_place(mLid)
 
-			cb = new Clipboard()
-			cb.Copy(tmpdata)
+            cb = new Clipboard()
+            cb.Copy(tmpdata)
 
-			xcall u_msgbox("The data was coped to the clipboard.",D_MCENTER|D_MICONINFO,"Information")
+            xcall u_msgbox("The data was coped to the clipboard.",D_MCENTER|D_MICONINFO,"Information")
 
 
-		endmethod
+        endmethod
 
     endclass
 

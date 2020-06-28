@@ -41,30 +41,25 @@
 ;;
 ;;*****************************************************************************
 
-namespace SynPSG.Windows
+function WinSaveFileDialog,	^val
+    optional in title,		string
+    optional in filters,	string
+    required out filename,	a
 
-	function WinSaveFileDialog,	^val
-		optional in title,		string
-		optional in filters,	string
-		required out filename,	a
-		endparams
+    .define D_DEFINES_ONLY          ;;Make syre you use D_DEFINES_ONLY like this
+    .include "WND:tools.def"        ;;otherwise you'll wind up with 4NB of toolkit
+    .undefine D_DEFINES_ONLY        ;;global data in your app!!!
 
-		.define D_DEFINES_ONLY          ;;Make syre you use D_DEFINES_ONLY like this
-		.include "WND:tools.def"        ;;otherwise you'll wind up with 4NB of toolkit
-		.undefine D_DEFINES_ONLY        ;;global data in your app!!!
-
-		record 
-			status,	int
-		endrecord
+    record 
+        status,	int
+    endrecord
 		
-	proc
+proc
 
-		if (!(status=%synmsw_getfilename(filename,title,filters,,,D_OFN_CENTER|D_OFN_SAVEAS)))
-			filename=""
+    if (!(status=%synmsw_getfilename(filename,title,filters,,,D_OFN_CENTER|D_OFN_SAVEAS)))
+        filename=""
 
-		freturn status
+    freturn status
 
-	endfunction
-
-endnamespace
+endfunction
 .endc

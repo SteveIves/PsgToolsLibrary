@@ -36,53 +36,52 @@
 
 .ifndef DBLNET
 
-import system
-import synpsg.system
-import synpsg
+import SynPsg.System
+import SynPsg
 
 namespace SynPSG.System
 
-	public class Environment
+    public class Environment
 		
-		public static property CurrentDirectory, string
-			method get
-			proc
-				mreturn %atrim(%syn_getdir())
-			endmethod
-			method set
-			proc
-				if (%syn_setdir(value))
-					nop
-			endmethod
-		endproperty
+        public static property CurrentDirectory, string
+            method get
+            proc
+                mreturn %atrim(%syn_getdir())
+            endmethod
+            method set
+            proc
+                if (%syn_setdir(value))
+                    nop
+            endmethod
+        endproperty
 		
-		public static method GetEnvironmentVariable, string
-			required in variable, string
-			endparams
-			record 
-				trans,	a1024
-				length,	int
-			endrecord
-		proc
-			xcall getlog(variable,trans,length)
-			if (length) then
-				mreturn trans(1:length)
-			else
-				mreturn ^null
-		endmethod
+        public static method GetEnvironmentVariable, string
+            required in variable, string
+            endparams
+            record 
+                trans,	a1024
+                length,	int
+            endrecord
+        proc
+            xcall getlog(variable,trans,length)
+            if (length) then
+                mreturn trans(1:length)
+            else
+                mreturn ^null
+        endmethod
 		
-		public static method SetEnvironmentVariable, void
-			required in variable, string
-			required in value, string
-			endparams
-			record 
-				status,	int
-			endrecord
-		proc
-			xcall setlog(variable,value,status)
-		endmethod
+        public static method SetEnvironmentVariable, void
+            required in variable, string
+            required in value, string
+            endparams
+            record 
+                status,	int
+            endrecord
+        proc
+            xcall setlog(variable,value,status)
+        endmethod
 
-	endclass
+    endclass
 	
 endnamespace
 

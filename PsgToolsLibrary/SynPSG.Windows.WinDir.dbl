@@ -43,8 +43,6 @@
 
 import System.Collections
 
-namespace SynPSG.Windows
-
 	function WinDir, boolean
 
 		required in  searchSpec		,a			;;Search spec
@@ -138,6 +136,3 @@ namespace SynPSG.Windows
 		freturn (matchingFiles.Count > 0)
 
 	endfunction
-	
-endnamespace
-

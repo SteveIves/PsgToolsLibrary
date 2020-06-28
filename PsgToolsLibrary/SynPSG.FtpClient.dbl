@@ -36,20 +36,20 @@
 ;;*****************************************************************************
 
 .ifdef DBLNET
-import System
-import System.IO
-import System.Net
-import System.Net.Sockets
-import System.Net.Mime
+SynPsg.System
+SynPsg.System.IO
+SynPsg.System.Net
+SynPsg.System.Net.Sockets
+SynPsg.System.Net.Mime
 .else
-import SynPSG.System
-import SynPSG.System.IO
-import SynPSG.System.Net
-import SynPSG.System.Net.Sockets
-import SynPSG.System.Net.Mime
+import SynPsg.System
+import SynPsg.System.IO
+import SynPsg.System.Net
+import SynPsg.System.Net.Sockets
+import SynPsg.System.Net.Mime
 .endc
 
-import System.collections
+import System.Collections
 
 .define CRLF    %char(13)+%char(10)
 .define CR      %char(13)
@@ -59,1028 +59,1028 @@ import System.collections
 
 namespace SynPSG
 	
-	public enum FtpConnectMode
-		Active
-		Passive
-	endenum
+    public enum FtpConnectMode
+        Active
+        Passive
+    endenum
 	
-	public enum FtpTransferType
-		Ascii
-		Binary
-	endenum
+    public enum FtpTransferType
+        Ascii
+        Binary
+    endenum
 	
-	public class FtpClient
+    public class FtpClient
 		
-		public ConnectMode      ,FtpConnectMode
-		public Host             ,string
-		public LogFile          ,string
-		public Port             ,integer
-		public Pwd              ,string
-		public User             ,string
-		public TransferType     ,FtpTransferType
-		public RemoteDirectory  ,string
-		public RemoteDirListing ,@ArrayList
+        public ConnectMode      ,FtpConnectMode
+        public Host             ,string
+        public LogFile          ,string
+        public Port             ,integer
+        public Pwd              ,string
+        public User             ,string
+        public TransferType     ,FtpTransferType
+        public RemoteDirectory  ,string
+        public RemoteDirListing ,@ArrayList
 		
-		private mByte           ,byte
-		private mChLog          ,integer
-		private mCtrlContinues  ,boolean
-		private mCtrlStream     ,@NetworkStream
-		.ifdef DBLNET
+        private mByte           ,byte
+        private mChLog          ,integer
+        private mCtrlContinues  ,boolean
+        private mCtrlStream     ,@NetworkStream
+        .ifdef DBLNET
 		private mDataBlock      ,[#]byte
-		.else
-		private mDataBlock      ,a32768
-		.endc
-		private mDataClient     ,@TcpClient
-		private mDataStream     ,@NetworkStream
-		private mDirSeparator   ,a1
-		private mLocalDirectory ,string
-		private mLoggingEnabled ,boolean
-		private mTcpClient      ,@TcpClient
-		private mIsLoggedIn     ,boolean
-		private mRespCode       ,integer
-		private mFtpResponse    ,string
-		private mErrorMessage   ,string
+        .else
+        private mDataBlock      ,a32768
+        .endc
+        private mDataClient     ,@TcpClient
+        private mDataStream     ,@NetworkStream
+        private mDirSeparator   ,a1
+        private mLocalDirectory ,string
+        private mLoggingEnabled ,boolean
+        private mTcpClient      ,@TcpClient
+        private mIsLoggedIn     ,boolean
+        private mRespCode       ,integer
+        private mFtpResponse    ,string
+        private mErrorMessage   ,string
 		
-		;;********************************************************************
+        ;;********************************************************************
 		
-		public method FtpClient
-			req in host             ,string
-			req in port             ,integer
-			req in connectMode     ,FtpConnectMode
-			endparams
-		proc
-			if host.Length > 0 then
-				this.Host = host
-			else
-				this.Host = "localhost"
+        public method FtpClient
+            req in host             ,string
+            req in port             ,integer
+            req in connectMode     ,FtpConnectMode
+            endparams
+        proc
+            if host.Length > 0 then
+                this.Host = host
+            else
+                this.Host = "localhost"
 				
-			if (port > 0) then
-				this.Port = port
-			else
-				this.Port = 21
+            if (port > 0) then
+                this.Port = port
+            else
+                this.Port = 21
 				
-			this.ConnectMode = connectMode
+            this.ConnectMode = connectMode
 			
-			User = "anonymous"
-			Pwd = ""
-			LogFile = "SynFtpClient.log"
-			TransferType = FtpTransferType.Ascii
-			mLocalDirectory = %syn_getdir
-			mFtpResponse = ""
-			mErrorMessage = ""
-			mLoggingEnabled = false
-			mIsLoggedIn = false
-			RemoteDirListing = new ArrayList()
-.ifdef D_GUI
-			mDirSeparator = "\"
-.endc
-.ifdef OS_UNIX
+            User = "anonymous"
+            Pwd = ""
+            LogFile = "SynFtpClient.log"
+            TransferType = FtpTransferType.Ascii
+            mLocalDirectory = %syn_getdir
+            mFtpResponse = ""
+            mErrorMessage = ""
+            mLoggingEnabled = false
+            mIsLoggedIn = false
+            RemoteDirListing = new ArrayList()
+            .ifdef D_GUI
+            mDirSeparator = "\"
+            .endc
+            .ifdef OS_UNIX
 			mDirSeparator = "/"
-.endc 
-.ifdef OS_VMS
+            .endc 
+            .ifdef OS_VMS
 			mDirSeparator = ""
-.endc
-		endmethod
+            .endc
+        endmethod
 		
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		public method FtpClient
-			req in host ,string
-			endparams
-			this(host, 21, FtpConnectMode.Passive)
-		proc
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        public method FtpClient
+            req in host ,string
+            endparams
+            this(host, 21, FtpConnectMode.Passive)
+        proc
 			
-		endmethod
+        endmethod
 		
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		public method FtpClient
-			endparams
-			this("localhost", 21, FtpConnectMode.Passive)
-		proc
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        public method FtpClient
+            endparams
+            this("localhost", 21, FtpConnectMode.Passive)
+        proc
 			
-		endmethod
+        endmethod
 		
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		;;; <param name="username"></param>
-		;;; <param name="password"></param>
-		public method Connect,  boolean
-			req in  username,   string
-			req in  password,   string
-			endparams
-			record
-				ok,             boolean
-				buff,           string
-				tempbuf,        a1024
-			endrecord
-		proc
-			mErrorMessage = ""
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        ;;; <param name="username"></param>
+        ;;; <param name="password"></param>
+        public method Connect,  boolean
+            req in  username,   string
+            req in  password,   string
+            endparams
+            record
+                ok,             boolean
+                buff,           string
+                tempbuf,        a1024
+            endrecord
+        proc
+            mErrorMessage = ""
 			
-			User = username
-			Pwd = password
+            User = username
+            Pwd = password
 			
-			try 
-			begin
-				mTcpClient = new TcpClient(Host, Port)
-			end
-			catch (ex, @Exception)
-			begin
-				mErrorMessage = "Connect failed!"
-				mreturn false
-			end
-			endtry
+            try 
+            begin
+                mTcpClient = new TcpClient(Host, Port)
+            end
+            catch (ex, @Exception)
+            begin
+                mErrorMessage = "Connect failed!"
+                mreturn false
+            end
+            endtry
 			
-			mCtrlStream = mTcpClient.GetStream()
+            mCtrlStream = mTcpClient.GetStream()
 			
-			;;Get initial response from the server. Set the timeout to 20 seconds
-			mCtrlStream.ReadTimeout = 20000
+            ;;Get initial response from the server. Set the timeout to 20 seconds
+            mCtrlStream.ReadTimeout = 20000
 			
-			do
-				getResponse(mCtrlStream, mRespCode)
-			until !(mCtrlContinues)
+            do
+                getResponse(mCtrlStream, mRespCode)
+            until !(mCtrlContinues)
 			
-			if (mRespCode == 220)
-			begin
-				sendCommand("USER " + User)
-				do
-					getResponse(mCtrlStream, mRespCode)
-				until !(mCtrlContinues)
+            if (mRespCode == 220)
+            begin
+                sendCommand("USER " + User)
+                do
+                    getResponse(mCtrlStream, mRespCode)
+                until !(mCtrlContinues)
 				
-				if (mRespCode == 331)
-				begin
-					sendCommand("PASS " + Pwd)
-					do
-						getResponse(mCtrlStream, mRespCode)
-					until !(mCtrlContinues)
-				end
+                if (mRespCode == 331)
+                begin
+                    sendCommand("PASS " + Pwd)
+                    do
+                        getResponse(mCtrlStream, mRespCode)
+                    until !(mCtrlContinues)
+                end
 				
-				if (mRespCode!=230)
-				begin
-					mErrorMessage = "Login failed!"
-					mreturn false
-				end
+                if (mRespCode!=230)
+                begin
+                    mErrorMessage = "Login failed!"
+                    mreturn false
+                end
 				
-				mIsLoggedIn = true
+                mIsLoggedIn = true
 				
-				GetRemoteDirectory()
+                GetRemoteDirectory()
 				
-				if (mRespCode<300)
-					GetDirectoryListing()
-			end
+                if (mRespCode<300)
+                    GetDirectoryListing()
+            end
 			
-			mreturn true
+            mreturn true
 			
-		endmethod
+        endmethod
 		
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		;;; <param name="username"></param>
-		public method Connect,  boolean
-			req in username,    string
-			endparams
-		proc
-			mreturn Connect(username, Pwd)
-		endmethod
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        ;;; <param name="username"></param>
+        public method Connect,  boolean
+            req in username,    string
+            endparams
+        proc
+            mreturn Connect(username, Pwd)
+        endmethod
 		
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		public method Connect, boolean
-			endparams
-		proc
-			mreturn Connect(User, Pwd)
-		endmethod
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        public method Connect, boolean
+            endparams
+        proc
+            mreturn Connect(User, Pwd)
+        endmethod
 		
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		public method Disconnect, void
-			endparams
-		proc
-			mErrorMessage = ""
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        public method Disconnect, void
+            endparams
+        proc
+            mErrorMessage = ""
 			
-			sendCommand("QUIT")
+            sendCommand("QUIT")
 			
-			do
-				getResponse(mCtrlStream, mRespCode)
-			until !(mCtrlContinues || mCtrlStream.DataAvailable)
+            do
+                getResponse(mCtrlStream, mRespCode)
+            until !(mCtrlContinues || mCtrlStream.DataAvailable)
 			
-			mCtrlStream.Close()
-			mIsLoggedIn = false
+            mCtrlStream.Close()
+            mIsLoggedIn = false
 			
-		endmethod
+        endmethod
 		
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		;;; <param name="dirPath"></param>
-		public method ChangeRemoteDirectory,    boolean
-			req in dirPath,                     string
-			endparams
-		proc
-			mErrorMessage = ""
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        ;;; <param name="dirPath"></param>
+        public method ChangeRemoteDirectory,    boolean
+            req in dirPath,                     string
+            endparams
+        proc
+            mErrorMessage = ""
 			
-			sendCommand("CWD " + dirPath)
+            sendCommand("CWD " + dirPath)
 			
-			do
-				getResponse(mCtrlStream, mRespCode)
-			until !(mCtrlContinues)
+            do
+                getResponse(mCtrlStream, mRespCode)
+            until !(mCtrlContinues)
 			
-			if (mRespCode<300)
-			begin
-				RemoteDirListing.Clear()
-				GetRemoteDirectory()
-				if (mRespCode<300)
-					GetDirectoryListing()
-			end
+            if (mRespCode<300)
+            begin
+                RemoteDirListing.Clear()
+                GetRemoteDirectory()
+                if (mRespCode<300)
+                    GetDirectoryListing()
+            end
 			
-			mreturn (mRespCode < 300)
+            mreturn (mRespCode < 300)
 			
-		endmethod
+        endmethod
 		
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		;;; <param name="fileSpec"></param>
-		public method Delete,   boolean
-			req in fileSpec,    string
-			endparams
-		proc
-			mErrorMessage = ""
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        ;;; <param name="fileSpec"></param>
+        public method Delete,   boolean
+            req in fileSpec,    string
+            endparams
+        proc
+            mErrorMessage = ""
 			
-			sendCommand("DELE "+fileSpec)
-			do
-				getResponse(mCtrlStream, mRespCode)
-			until !(mCtrlContinues)
+            sendCommand("DELE "+fileSpec)
+            do
+                getResponse(mCtrlStream, mRespCode)
+            until !(mCtrlContinues)
 			
-			mreturn (mRespCode < 300)
+            mreturn (mRespCode < 300)
 			
-		endmethod
+        endmethod
 		
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		;;; <param name="fileSpec"></param>
-		public method GetDirectoryListing, boolean
-			req in fileSpec ,string
-			endparams
-		proc
-			mErrorMessage = ""
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        ;;; <param name="fileSpec"></param>
+        public method GetDirectoryListing, boolean
+            req in fileSpec ,string
+            endparams
+        proc
+            mErrorMessage = ""
 			
-			if (!establishDataPort())
-				mreturn false
+            if (!establishDataPort())
+                mreturn false
 			
-			sendCommand("TYPE A")
-			do
-				getResponse(mCtrlStream, mRespCode)
-			until !(mCtrlContinues)
+            sendCommand("TYPE A")
+            do
+                getResponse(mCtrlStream, mRespCode)
+            until !(mCtrlContinues)
 			
-			sendCommand(%atrim("LIST "+fileSpec))
+            sendCommand(%atrim("LIST "+fileSpec))
 			
-			do
-				getResponse(mCtrlStream, mRespCode)
-			until !(mCtrlContinues)
+            do
+                getResponse(mCtrlStream, mRespCode)
+            until !(mCtrlContinues)
 			
-			if (mRespCode<300)
-			begin
-				RemoteDirListing.Clear()
-				do
-				begin
-					getResponse(mDataStream)
-					RemoteDirListing.Add(mFtpResponse)
-				end
-				until !(mDataStream.DataAvailable)
+            if (mRespCode<300)
+            begin
+                RemoteDirListing.Clear()
+                do
+                begin
+                    getResponse(mDataStream)
+                    RemoteDirListing.Add(mFtpResponse)
+                end
+                until !(mDataStream.DataAvailable)
 				
-				;; close down the data connection to signify receipt of listing
-				closeDataPort()
+                ;; close down the data connection to signify receipt of listing
+                closeDataPort()
 				
-				do
-					getResponse(mCtrlStream, mRespCode)
-				until !(mCtrlContinues || mCtrlStream.DataAvailable)
-			end
+                do
+                    getResponse(mCtrlStream, mRespCode)
+                until !(mCtrlContinues || mCtrlStream.DataAvailable)
+            end
 			
-			if (mRespCode >= 300)
-				mErrorMessage = "Failed to retrieve directory listing!"
+            if (mRespCode >= 300)
+                mErrorMessage = "Failed to retrieve directory listing!"
 			
-			mreturn (mRespCode < 300)
+            mreturn (mRespCode < 300)
 			
-		endmethod
+        endmethod
 		
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		public method GetDirectoryListing   ,void
-			endparams
-		proc
-			GetDirectoryListing("")
-		endmethod
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        public method GetDirectoryListing   ,void
+            endparams
+        proc
+            GetDirectoryListing("")
+        endmethod
 		
-		;;; <summary>
-		;;; Download a file from the server, specifying a different name for
-		;;; the file when saved locally, and specifting the transfer mode to use.
-		;;; </summary>
-		;;; <param name="remoteFileName">Remote file to download</param>
-		;;; <param name="localFileName">Name to save downloaded file as</param>
-		;;; <param name="transferType">Transfer mode</param>
-		;;; <returns>Returns true if the download is successful, if not check the ErrorMessage property.</returns>
-		public method Download,     boolean
-			req in remoteFileName,  string
-			req in localFileName,   string
-			req in transferType,    FtpTransferType
-			endparams
-		proc
-			mErrorMessage = ""
+        ;;; <summary>
+        ;;; Download a file from the server, specifying a different name for
+        ;;; the file when saved locally, and specifting the transfer mode to use.
+        ;;; </summary>
+        ;;; <param name="remoteFileName">Remote file to download</param>
+        ;;; <param name="localFileName">Name to save downloaded file as</param>
+        ;;; <param name="transferType">Transfer mode</param>
+        ;;; <returns>Returns true if the download is successful, if not check the ErrorMessage property.</returns>
+        public method Download,     boolean
+            req in remoteFileName,  string
+            req in localFileName,   string
+            req in transferType,    FtpTransferType
+            endparams
+        proc
+            mErrorMessage = ""
 			
-			using transferType select
-			(FtpTransferType.Ascii),
-				sendCommand("TYPE A")
-			(FtpTransferType.Binary),
-				sendCommand("TYPE I")
-			endusing
+            using transferType select
+            (FtpTransferType.Ascii),
+                sendCommand("TYPE A")
+            (FtpTransferType.Binary),
+                sendCommand("TYPE I")
+            endusing
 			
-			do
-				getResponse(mCtrlStream, mRespCode)
-			until !(mCtrlContinues)
+            do
+                getResponse(mCtrlStream, mRespCode)
+            until !(mCtrlContinues)
 			
-			if (!establishDataPort())
-				mreturn false
+            if (!establishDataPort())
+                mreturn false
 				
-			sendCommand("RETR "+remoteFileName)
+            sendCommand("RETR "+remoteFileName)
 			
-			do
-				getResponse(mCtrlStream, mRespCode)
-			until !(mCtrlContinues)
+            do
+                getResponse(mCtrlStream, mRespCode)
+            until !(mCtrlContinues)
 			
-			if (mRespCode >= 300) then
-			begin
-				closeDataPort()
-				mErrorMessage = "Failed to download file!"
-			end
-			else
-			begin
-				data newFile, @FileStream, new FileStream(mLocalDirectory + mDirSeparator + localFileName, FileMode.Create)
-				data byteCount, integer
+            if (mRespCode >= 300) then
+            begin
+                closeDataPort()
+                mErrorMessage = "Failed to download file!"
+            end
+            else
+            begin
+                data newFile, @FileStream, new FileStream(mLocalDirectory + mDirSeparator + localFileName, FileMode.Create)
+                data byteCount, integer
 				
-.ifdef DBLNET
+                .ifdef DBLNET
 				mDataBlock = new byte[32768]
 				while (byteCount = mDataStream.Read(mDataBlock, 0, 32768))
 					newFile.Write(mDataBlock, 0, byteCount)
-.else
-				while (byteCount = mDataStream.Read(mDataBlock, 0, ^size(mDataBlock)))
-					newFile.Write(mDataBlock(1:byteCount), 0, byteCount)
-.endc
+                .else
+                while (byteCount = mDataStream.Read(mDataBlock, 0, ^size(mDataBlock)))
+                    newFile.Write(mDataBlock(1:byteCount), 0, byteCount)
+                .endc
 					
-				newFile.Close()
+                newFile.Close()
 				
-				closeDataPort()
+                closeDataPort()
 				
-				do
-					getResponse(mCtrlStream, mRespCode)
-				until (!mCtrlContinues || !mCtrlStream.DataAvailable)
+                do
+                    getResponse(mCtrlStream, mRespCode)
+                until (!mCtrlContinues || !mCtrlStream.DataAvailable)
 				
-				if (mRespCode >= 300)
-					mErrorMessage = "Failed to download file!"
-			end
+                if (mRespCode >= 300)
+                    mErrorMessage = "Failed to download file!"
+            end
 			
-			mreturn (mRespCode < 300)
+            mreturn (mRespCode < 300)
 			
-		endmethod
+        endmethod
 		
-		;;; <summary>
-		;;; Download a file from the server using a specified transfer mode.
-		;;; </summary>
-		;;; <param name="fileName">File to download</param>
-		;;; <param name="transferType">Transfer mode to use</param>
-		public method Download, boolean
-			req in fileName ,string
-			req in transferType ,FtpTransferType
-			endparams
-		proc
-			mreturn Download(fileName, fileName, transferType)
-		endmethod
+        ;;; <summary>
+        ;;; Download a file from the server using a specified transfer mode.
+        ;;; </summary>
+        ;;; <param name="fileName">File to download</param>
+        ;;; <param name="transferType">Transfer mode to use</param>
+        public method Download, boolean
+            req in fileName ,string
+            req in transferType ,FtpTransferType
+            endparams
+        proc
+            mreturn Download(fileName, fileName, transferType)
+        endmethod
 		
-		;;; <summary>
-		;;; Download a file from the server using the current default transfer mode.
-		;;; </summary>
-		;;; <param name="fileName"></param>
-		;;; <returns></returns>
-		public method Download, boolean
-			req in fileName ,string
-			endparams
-		proc
-			mreturn Download(fileName, fileName, this.TransferType)
-		endmethod
+        ;;; <summary>
+        ;;; Download a file from the server using the current default transfer mode.
+        ;;; </summary>
+        ;;; <param name="fileName"></param>
+        ;;; <returns></returns>
+        public method Download, boolean
+            req in fileName ,string
+            endparams
+        proc
+            mreturn Download(fileName, fileName, this.TransferType)
+        endmethod
 		
-		;;; <summary>
-		;;; Doenload multple files from the server using the currently selected
-		;;; transfer method.
-		;;; </summary>
-		;;; <param name="files">Files to retrieve (each as a string)</param>
-		;;; <returns>Retuens true if ALL downloads were successful</returns>
-		public method DownloadMultiple, boolean
-			req in files, @ArrayList
-			endparams
-			record 
-				file, string
-				allok, boolean
-			endrecord
-		proc
-			allok = true
-			foreach file in files
-				if (!Download(file,file,this.TransferType))
-					allok = false
-			mreturn allok
-		endmethod
+        ;;; <summary>
+        ;;; Doenload multple files from the server using the currently selected
+        ;;; transfer method.
+        ;;; </summary>
+        ;;; <param name="files">Files to retrieve (each as a string)</param>
+        ;;; <returns>Retuens true if ALL downloads were successful</returns>
+        public method DownloadMultiple, boolean
+            req in files, @ArrayList
+            endparams
+            record 
+                file, string
+                allok, boolean
+            endrecord
+        proc
+            allok = true
+            foreach file in files
+                if (!Download(file,file,this.TransferType))
+                    allok = false
+            mreturn allok
+        endmethod
 		
-		;;; <summary>
-		;;; Upload a file to the current working directory on the server,
-		;;; specifying a different name for the file on the server, and
-		;;; specifying the transfer mode to be used.
-		;;; </summary>
-		;;; <param name="localFileName"></param>
-		;;; <param name="remoteFileName"></param>
-		;;; <param name="transferType"></param>
-		;;; <returns></returns>
-		public method Upload,       boolean
-			req in localFileName,   string
-			req in remoteFileName,  string
-			req in transferType,    FtpTransferType
-			endparams
-			stack record
-				sendFile        ,@FileStream
-				byteCount       ,integer
-				separator       ,a1
-				fileToSend      ,string
-			endrecord
-		proc
-			mErrorMessage = ""
+        ;;; <summary>
+        ;;; Upload a file to the current working directory on the server,
+        ;;; specifying a different name for the file on the server, and
+        ;;; specifying the transfer mode to be used.
+        ;;; </summary>
+        ;;; <param name="localFileName"></param>
+        ;;; <param name="remoteFileName"></param>
+        ;;; <param name="transferType"></param>
+        ;;; <returns></returns>
+        public method Upload,       boolean
+            req in localFileName,   string
+            req in remoteFileName,  string
+            req in transferType,    FtpTransferType
+            endparams
+            stack record
+                sendFile        ,@FileStream
+                byteCount       ,integer
+                separator       ,a1
+                fileToSend      ,string
+            endrecord
+        proc
+            mErrorMessage = ""
 			
-			;;Set the transfer mode
-			using transferType select
-			(FtpTransferType.Ascii),
-				sendCommand("TYPE A")
-			(FtpTransferType.Binary),
-				sendCommand("TYPE I")
-			endusing
+            ;;Set the transfer mode
+            using transferType select
+            (FtpTransferType.Ascii),
+                sendCommand("TYPE A")
+            (FtpTransferType.Binary),
+                sendCommand("TYPE I")
+            endusing
 			
-			;;Get the server response
-			do
-				getResponse(mCtrlStream, mRespCode)
-			until !(mCtrlContinues)
+            ;;Get the server response
+            do
+                getResponse(mCtrlStream, mRespCode)
+            until !(mCtrlContinues)
 			
-			;;Prepare for transfer
-			if (!establishDataPort())
-				mreturn false
+            ;;Prepare for transfer
+            if (!establishDataPort())
+                mreturn false
 				
-			;;Send the command to initiate an upload
-			sendCommand("STOR "+remoteFileName)
+            ;;Send the command to initiate an upload
+            sendCommand("STOR "+remoteFileName)
 			
-			;;Get the server response
-			getResponse(mCtrlStream, mRespCode)
+            ;;Get the server response
+            getResponse(mCtrlStream, mRespCode)
 			
-			;;Does localFileName translate to a full file spec?
-			if (File.Exists(localFileName)) then
-			begin
-				;;Yes, so use it alone
-				fileToSend = localFileName
-			end
-			else
-			begin
-				;;No, so try looking in the currently defined local folder
-				fileToSend = mLocalDirectory + mDirSeparator + localFileName
-				if (!File.Exists(fileToSend))
-				begin
-					mRespCode = 550
-					mreturn false
-				end
-			end
+            ;;Does localFileName translate to a full file spec?
+            if (File.Exists(localFileName)) then
+            begin
+                ;;Yes, so use it alone
+                fileToSend = localFileName
+            end
+            else
+            begin
+                ;;No, so try looking in the currently defined local folder
+                fileToSend = mLocalDirectory + mDirSeparator + localFileName
+                if (!File.Exists(fileToSend))
+                begin
+                    mRespCode = 550
+                    mreturn false
+                end
+            end
 			
-			;;Load the file into a stream
-			sendFile = new FileStream(fileToSend, FileMode.Open)
+            ;;Load the file into a stream
+            sendFile = new FileStream(fileToSend, FileMode.Open)
 			
-			;;Send the data to the server in 32K blocks
-.ifdef DBLNET
+            ;;Send the data to the server in 32K blocks
+            .ifdef DBLNET
 			mDataBlock = new byte[32768]
 			while (byteCount = sendFile.Read(mDataBlock, 0, 32768))
 				mDataStream.Write(mDataBlock, 0, byteCount)
-.else
-			while (byteCount = sendFile.Read(mDataBlock, 0, ^size(mDataBlock)))
-				mDataStream.Write(mDataBlock, 0, byteCount)
-.endc
+            .else
+            while (byteCount = sendFile.Read(mDataBlock, 0, ^size(mDataBlock)))
+                mDataStream.Write(mDataBlock, 0, byteCount)
+            .endc
 				
-			;;Close the stream
-			sendFile.Close()
+            ;;Close the stream
+            sendFile.Close()
 			
-			;;Close the data connection to tell the server "End Of File"
-			using ConnectMode select
-			(FtpConnectMode.Active),
-				mDataStream.Close()
-			(FtpConnectMode.Passive),
-			begin
-				mDataStream.Close()
-				mDataClient.Close()
-			end
-			endusing
+            ;;Close the data connection to tell the server "End Of File"
+            using ConnectMode select
+            (FtpConnectMode.Active),
+                mDataStream.Close()
+            (FtpConnectMode.Passive),
+            begin
+                mDataStream.Close()
+                mDataClient.Close()
+            end
+            endusing
 			
-			;;Get the final server response
-			do
-				getResponse(mCtrlStream, mRespCode)
-			until !(mCtrlContinues || mCtrlStream.DataAvailable)
+            ;;Get the final server response
+            do
+                getResponse(mCtrlStream, mRespCode)
+            until !(mCtrlContinues || mCtrlStream.DataAvailable)
 			
-			if (mRespCode >= 300)
-				mErrorMessage = "Failed to upload file!"
+            if (mRespCode >= 300)
+                mErrorMessage = "Failed to upload file!"
 			
-			mreturn (mRespCode < 300)
+            mreturn (mRespCode < 300)
 			
-		endmethod
+        endmethod
 		
-		;;; <summary>
-		;;; Upload a file to the current working directory on the server using
-		;;; a specified transfer mode.
-		;;; </summary>
-		;;; <param name="fileName">File to send</param>
-		;;; <param name="transferType">Transfer mode to use</param>
-		;;; <returns></returns>
-		public method Upload,       boolean
-			req in fileName,        string
-			req in transferType,    FtpTransferType
-			endparams
-		proc
-			mreturn Upload(fileName, fileName, transferType)
-		endmethod
+        ;;; <summary>
+        ;;; Upload a file to the current working directory on the server using
+        ;;; a specified transfer mode.
+        ;;; </summary>
+        ;;; <param name="fileName">File to send</param>
+        ;;; <param name="transferType">Transfer mode to use</param>
+        ;;; <returns></returns>
+        public method Upload,       boolean
+            req in fileName,        string
+            req in transferType,    FtpTransferType
+            endparams
+        proc
+            mreturn Upload(fileName, fileName, transferType)
+        endmethod
 		
-		;;; <summary>
-		;;; Upload a file to the server using a different name on the server
-		;;; using the current default transfer type.
-		;;; </summary>
-		;;; <param name="fileName">Local file name</param>
-		;;; <param name="remoteFileName">Remote file name</param>
-		public method Upload,       boolean
-			req in fileName,        string
-			req in remoteFileName,  string
-			endparams
-		proc
-			mreturn Upload(fileName, remoteFileName, this.TransferType)
-		endmethod
+        ;;; <summary>
+        ;;; Upload a file to the server using a different name on the server
+        ;;; using the current default transfer type.
+        ;;; </summary>
+        ;;; <param name="fileName">Local file name</param>
+        ;;; <param name="remoteFileName">Remote file name</param>
+        public method Upload,       boolean
+            req in fileName,        string
+            req in remoteFileName,  string
+            endparams
+        proc
+            mreturn Upload(fileName, remoteFileName, this.TransferType)
+        endmethod
 		
-		;;; <summary>
-		;;; Upload a file to the current working directory on the server server
-		;;; using the current default transfer type. The file name on the server
-		;;; will be the same as the local file name.
-		;;; </summary>
-		;;; <param name="fileNames">Collection of filenames, each is a string</param>
-		public method Upload,   boolean
-			req in fileName,    string
-			endparams
-		proc
-			mreturn Upload(fileName, fileName, this.TransferType)
-		endmethod
+        ;;; <summary>
+        ;;; Upload a file to the current working directory on the server server
+        ;;; using the current default transfer type. The file name on the server
+        ;;; will be the same as the local file name.
+        ;;; </summary>
+        ;;; <param name="fileNames">Collection of filenames, each is a string</param>
+        public method Upload,   boolean
+            req in fileName,    string
+            endparams
+        proc
+            mreturn Upload(fileName, fileName, this.TransferType)
+        endmethod
 		
-		;;; <summary>
-		;;; Upload multiple files to the current working directory on the server server
-		;;; using the current default transfer type. The file names on the server will
-		;;; be the same as the local file names.
-		;;; </summary>
-		;;; <param name="fileNames">Collection of filenames, each is a string</param>
-		;;; <returns>Returns true if ALL uploads were successful</returns>
-		public method UploadMultiple,   boolean
-			req in fileNames,           @ArrayList ;Of string
-			endparams
-			record 
-				file, string
-				allok, boolean
-			endrecord
-		proc
-			allok = true
-			foreach file in fileNames
-			begin
-				if (!Upload(file, file, this.TransferType))
-					allok = false
-			end
-			mreturn allok
-		endmethod
+        ;;; <summary>
+        ;;; Upload multiple files to the current working directory on the server server
+        ;;; using the current default transfer type. The file names on the server will
+        ;;; be the same as the local file names.
+        ;;; </summary>
+        ;;; <param name="fileNames">Collection of filenames, each is a string</param>
+        ;;; <returns>Returns true if ALL uploads were successful</returns>
+        public method UploadMultiple,   boolean
+            req in fileNames,           @ArrayList ;Of string
+            endparams
+            record 
+                file, string
+                allok, boolean
+            endrecord
+        proc
+            allok = true
+            foreach file in fileNames
+            begin
+                if (!Upload(file, file, this.TransferType))
+                    allok = false
+            end
+            mreturn allok
+        endmethod
 		
-		;;; <summary>
-		;;; Rename a file on the server.
-		;;; </summary>
-		;;; <param name="fileName">Current file name.</param>
-		;;; <param name="renameTo">New file name.</param>
-		public method Rename,   boolean
-			req in fileName,    string
-			req in renameTo,    string
-			endparams
-		proc
-			mErrorMessage = ""
-			sendCommand("RNFR " + fileName)
-			getResponse(mCtrlStream, mRespCode)
-			if (mRespCode<400)
-				sendCommand("RNTO " + renameTo)
-			getResponse(mCtrlStream, mRespCode)
+        ;;; <summary>
+        ;;; Rename a file on the server.
+        ;;; </summary>
+        ;;; <param name="fileName">Current file name.</param>
+        ;;; <param name="renameTo">New file name.</param>
+        public method Rename,   boolean
+            req in fileName,    string
+            req in renameTo,    string
+            endparams
+        proc
+            mErrorMessage = ""
+            sendCommand("RNFR " + fileName)
+            getResponse(mCtrlStream, mRespCode)
+            if (mRespCode<400)
+                sendCommand("RNTO " + renameTo)
+            getResponse(mCtrlStream, mRespCode)
 			
-			if (mRespCode >= 300)
-				mErrorMessage = "Failed to rename file!"
+            if (mRespCode >= 300)
+                mErrorMessage = "Failed to rename file!"
 			
-			mreturn (mRespCode < 300)
+            mreturn (mRespCode < 300)
 			
-		endmethod
+        endmethod
 		
-		;;********************************************************************
+        ;;********************************************************************
 		
-		private method establishDataPort, boolean
-			endparams
-			stack record
-				count           ,integer
-				tmpAddress      ,a15
-				tmpPort         ,a7
-				tmpCmd          ,string
-				secondOrderPort ,integer
-				firstOrderPort  ,integer
-				peerSocket      ,integer
-				parsedAddress   ,[#]string
-				serverAddress   ,string
-				serverPort      ,integer
-				addrBegin       ,integer
-				addrEnd         ,integer
-				tmpBuf          ,a1024
-			endrecord
-		proc
+        private method establishDataPort, boolean
+            endparams
+            stack record
+                count           ,integer
+                tmpAddress      ,a15
+                tmpPort         ,a7
+                tmpCmd          ,string
+                secondOrderPort ,integer
+                firstOrderPort  ,integer
+                peerSocket      ,integer
+                parsedAddress   ,[#]string
+                serverAddress   ,string
+                serverPort      ,integer
+                addrBegin       ,integer
+                addrEnd         ,integer
+                tmpBuf          ,a1024
+            endrecord
+        proc
 			
-			using ConnectMode select
+            using ConnectMode select
 			
-			(FtpConnectMode.Active),
-			begin
-				mDataStream = new NetworkStream(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
-				mDataStream.ReadTimeout = 5000
-				mDataStream.Socket.Bind(new IPEndPoint(mTcpClient.Client.LocalEndPoint.Address,0))
-				tmpAddress = mDataStream.Socket.LocalEndPoint.ToString()
-				if (count = instr(2,tmpAddress,':'))
-					tmpAddress = tmpAddress(1:count-1)
-				secondOrderPort = (mDataStream.Socket.LocalEndPoint.Port / 256)
-				firstOrderPort = mDataStream.Socket.LocalEndPoint.Port - (secondOrderPort * 256)
-				tmpPort = %string(secondOrderPort)+","+%string(firstOrderPort)
-				tmpCmd = "PORT "+StringUtil.Replace(%atrim(tmpAddress)+","+%atrim(tmpPort),".",",")
-				sendCommand(tmpCmd)
+            (FtpConnectMode.Active),
+            begin
+                mDataStream = new NetworkStream(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+                mDataStream.ReadTimeout = 5000
+                mDataStream.Socket.Bind(new IPEndPoint(mTcpClient.Client.LocalEndPoint.Address,0))
+                tmpAddress = mDataStream.Socket.LocalEndPoint.ToString()
+                if (count = instr(2,tmpAddress,':'))
+                    tmpAddress = tmpAddress(1:count-1)
+                secondOrderPort = (mDataStream.Socket.LocalEndPoint.Port / 256)
+                firstOrderPort = mDataStream.Socket.LocalEndPoint.Port - (secondOrderPort * 256)
+                tmpPort = %string(secondOrderPort)+","+%string(firstOrderPort)
+                tmpCmd = "PORT "+StringUtil.Replace(%atrim(tmpAddress)+","+%atrim(tmpPort),".",",")
+                sendCommand(tmpCmd)
 				
-				do
-					getResponse(mCtrlStream, mRespCode)
-				until !(mCtrlContinues)
+                do
+                    getResponse(mCtrlStream, mRespCode)
+                until !(mCtrlContinues)
 				
-				if (mRespCode < 300) then
-				begin
-					mDataStream.Socket.Listen()
-					if (%ss_accept(mDataStream.Socket.Handle, peerSocket)) then
-					begin
-						mErrorMessage = "Server failed to establish data connection within allotted time."
-						mreturn false
-					end
-					else
-						mDataStream.Socket.Handle = peerSocket
-					if (mLoggingEnabled)
-						writeLog("Data connection established.")
-				end
-				else
-				begin
-					mErrorMessage = "Data connection failed with error " + %string(mRespCode)
-					mreturn false
-				end
-			end
+                if (mRespCode < 300) then
+                begin
+                    mDataStream.Socket.Listen()
+                    if (%ss_accept(mDataStream.Socket.Handle, peerSocket)) then
+                    begin
+                        mErrorMessage = "Server failed to establish data connection within allotted time."
+                        mreturn false
+                    end
+                    else
+                        mDataStream.Socket.Handle = peerSocket
+                    if (mLoggingEnabled)
+                        writeLog("Data connection established.")
+                end
+                else
+                begin
+                    mErrorMessage = "Data connection failed with error " + %string(mRespCode)
+                    mreturn false
+                end
+            end
 			
-			(FtpConnectMode.Passive),
-			begin
-				sendCommand("PASV")
+            (FtpConnectMode.Passive),
+            begin
+                sendCommand("PASV")
 				
-				do
-					getResponse(mCtrlStream, mRespCode)
-				until !(mCtrlContinues)
+                do
+                    getResponse(mCtrlStream, mRespCode)
+                until !(mCtrlContinues)
 				
-				if (mRespCode!=227)
-				begin
-					mErrorMessage = "Passive mode request failed."
-					mreturn false
-				end
+                if (mRespCode!=227)
+                begin
+                    mErrorMessage = "Passive mode request failed."
+                    mreturn false
+                end
 				
-				;; Get the address and port number passed back by the FTP server. The format is
-				;; xxx,xxx,xxx,xxx,xxx,xxx
-				tmpBuf = mFtpResponse
-				for addrBegin from 5 thru mFtpResponse.Length
-					if (tmpBuf(addrBegin:1)>="0" && tmpBuf(addrBegin:1)<="9")
-						exitloop
-				for addrEnd from (addrBegin+1) thru mFtpResponse.Length
-					if (tmpBuf(addrEnd:1)<"0" || tmpBuf(addrEnd:1)>"9")
-						if (tmpBuf(addrEnd:1)!=",")
-							exitloop
-				if (addrEnd>addrBegin+9) then
-				begin
-					if (addrEnd>mFtpResponse.Length)
-						addrEnd = mFtpResponse.Length
-					tmpBuf = tmpBuf(addrBegin,addrEnd-1)
-					parsedAddress = StringUtil.Split(tmpBuf, ",")
-					if (parsedAddress.Length!=6)
-						exit
-					serverAddress = parsedAddress[1]
-					for count from 2 thru 4
-					begin
-						serverAddress = String.Concat(serverAddress,"."+parsedAddress[count])
-					end
-					serverPort = (%integer(parsedAddress[5])*256) + %integer(parsedAddress[6])
-				end
-				else
-				begin
-					mErrorMessage = "Invalid address returned in PASV request."
-					mreturn false
-				end
+                ;; Get the address and port number passed back by the FTP server. The format is
+                ;; xxx,xxx,xxx,xxx,xxx,xxx
+                tmpBuf = mFtpResponse
+                for addrBegin from 5 thru mFtpResponse.Length
+                    if (tmpBuf(addrBegin:1)>="0" && tmpBuf(addrBegin:1)<="9")
+                        exitloop
+                for addrEnd from (addrBegin+1) thru mFtpResponse.Length
+                    if (tmpBuf(addrEnd:1)<"0" || tmpBuf(addrEnd:1)>"9")
+                        if (tmpBuf(addrEnd:1)!=",")
+                            exitloop
+                if (addrEnd>addrBegin+9) then
+                begin
+                    if (addrEnd>mFtpResponse.Length)
+                        addrEnd = mFtpResponse.Length
+                    tmpBuf = tmpBuf(addrBegin,addrEnd-1)
+                    parsedAddress = StringUtil.Split(tmpBuf, ",")
+                    if (parsedAddress.Length!=6)
+                        exit
+                    serverAddress = parsedAddress[1]
+                    for count from 2 thru 4
+                    begin
+                        serverAddress = String.Concat(serverAddress,"."+parsedAddress[count])
+                    end
+                    serverPort = (%integer(parsedAddress[5])*256) + %integer(parsedAddress[6])
+                end
+                else
+                begin
+                    mErrorMessage = "Invalid address returned in PASV request."
+                    mreturn false
+                end
 				
-				;; Now that we've got the Address information, connect to the server on the data channel
-				mDataClient = new TcpClient(serverAddress, serverPort)
-				mDataStream = mDataClient.GetStream()
-				if (mLoggingEnabled)
-					writeLog("Data connection established.")
-			end
-			endusing
+                ;; Now that we've got the Address information, connect to the server on the data channel
+                mDataClient = new TcpClient(serverAddress, serverPort)
+                mDataStream = mDataClient.GetStream()
+                if (mLoggingEnabled)
+                    writeLog("Data connection established.")
+            end
+            endusing
 			
-			mreturn true
+            mreturn true
 			
-		endmethod
+        endmethod
 		
-		;;********************************************************************
+        ;;********************************************************************
 		
-		private method closeDataPort	,void
-			endparams
-		proc
-			if (mDataStream != ^null)
-				using ConnectMode select
-				(FtpConnectMode.Active),
-					mDataStream.Close()
-				(FtpConnectMode.Passive),
-				begin
-					mDataStream.Close()
-					mDataClient.Close()
-				end
-				endusing
-		endmethod
+        private method closeDataPort	,void
+            endparams
+        proc
+            if (mDataStream != ^null)
+                using ConnectMode select
+                (FtpConnectMode.Active),
+                    mDataStream.Close()
+                (FtpConnectMode.Passive),
+                begin
+                    mDataStream.Close()
+                    mDataClient.Close()
+                end
+                endusing
+        endmethod
 		
-		;;********************************************************************
+        ;;********************************************************************
 		
-		private method sendCommand  ,void
-			req in Command  ,string
-			endparams
-		proc
-			if (Command.Length)
-			begin
-				if (mLoggingEnabled)
-					writeLog(Command)
-				mCtrlStream.Write(Command + CRLF, 0, Command.Length + 2)
-			end
-		endmethod
+        private method sendCommand  ,void
+            req in Command  ,string
+            endparams
+        proc
+            if (Command.Length)
+            begin
+                if (mLoggingEnabled)
+                    writeLog(Command)
+                mCtrlStream.Write(Command + CRLF, 0, Command.Length + 2)
+            end
+        endmethod
 		
-		;;********************************************************************
+        ;;********************************************************************
 		
-		private method getResponse, void
-			req in responseStream,  @NetworkStream
-			endparams
+        private method getResponse, void
+            req in responseStream,  @NetworkStream
+            endparams
 			
-			stack record vars
-				lineBuf     ,a1024
-				tempBuf     ,string
-				byteCount   ,i4
-			endrecord
+            stack record vars
+                lineBuf     ,a1024
+                tempBuf     ,string
+                byteCount   ,i4
+            endrecord
 			
-		proc
-			init lineBuf,byteCount
-			tempBuf = ""
+        proc
+            init lineBuf,byteCount
+            tempBuf = ""
 			
-			;; Read one byte at a time from the stream, so that we can identify
-			;; when a LineFeed has been passed
-			while ((mByte=responseStream.ReadByte())!=(-1) && %char(mByte)!=LF)
-				lineBuf(byteCount+=1:1)=%char(mByte)
+            ;; Read one byte at a time from the stream, so that we can identify
+            ;; when a LineFeed has been passed
+            while ((mByte=responseStream.ReadByte())!=(-1) && %char(mByte)!=LF)
+                lineBuf(byteCount+=1:1)=%char(mByte)
 				
-			;; Remove trailing CR
-			if (byteCount>1) then
-				if (linebuf(byteCount:1)==CR) then
-					mFtpResponse = linebuf(1:byteCount-1)
-				else
-					mFtpResponse = linebuf(1:byteCount)
-			else
-				mFtpResponse = ""
+            ;; Remove trailing CR
+            if (byteCount>1) then
+                if (linebuf(byteCount:1)==CR) then
+                    mFtpResponse = linebuf(1:byteCount-1)
+                else
+                    mFtpResponse = linebuf(1:byteCount)
+            else
+                mFtpResponse = ""
 				
-			if mLoggingEnabled
-				writeLog(mFtpResponse)
+            if mLoggingEnabled
+                writeLog(mFtpResponse)
 			
-		endmethod
+        endmethod
 		
-		;;********************************************************************
+        ;;********************************************************************
 		
-		private method getResponse  ,void
-			req in responseStream       ,@NetworkStream
-			req out responseCode        ,integer
-			endparams
-			stack record vars
-				lineBuf     ,a1024
-			endrecord
-		proc
-			getResponse(responseStream)
-			if (mFtpResponse.Length > 0) then
-				try
-				begin
-					lineBuf = mFtpResponse
-					ResponseCode = %integer(lineBuf(1:3))
-				end
-				catch (ex)
-					ResponseCode = 999
-				endtry
-			else
-				ResponseCode = 999
+        private method getResponse  ,void
+            req in responseStream       ,@NetworkStream
+            req out responseCode        ,integer
+            endparams
+            stack record vars
+                lineBuf     ,a1024
+            endrecord
+        proc
+            getResponse(responseStream)
+            if (mFtpResponse.Length > 0) then
+                try
+                begin
+                    lineBuf = mFtpResponse
+                    ResponseCode = %integer(lineBuf(1:3))
+                end
+                catch (ex)
+                    ResponseCode = 999
+                endtry
+            else
+                ResponseCode = 999
 				
-			if (mFtpResponse.Length>3 && lineBuf(4:1)=="-" && ResponseCode!=999) then
-				mCtrlContinues = true
-			else
-				mCtrlContinues = false
+            if (mFtpResponse.Length>3 && lineBuf(4:1)=="-" && ResponseCode!=999) then
+                mCtrlContinues = true
+            else
+                mCtrlContinues = false
 				
-		endmethod
+        endmethod
 		
-		;;********************************************************************
+        ;;********************************************************************
 		
-		;; Get the remote working directory
-		private method GetRemoteDirectory   ,void
-			endparams
-		proc
-			;; Get the remote working directory
-			sendCommand("PWD")
-			do
-				getResponse(mCtrlStream, mRespCode)
-			until !(mCtrlContinues)
-			if (mRespCode == 257) then
-			begin
-				data dirBegins  ,integer
-				data dirEnds    ,integer
-				if (dirBegins = %instr(4,mFtpResponse,'"'))
-					if ((dirEnds = %instr(dirBegins+1,mFtpResponse,'"'))>dirBegins+1)
-						RemoteDirectory = mFtpResponse(dirBegins+1:dirEnds-dirBegins+1)
-			end
-			else
-				RemoteDirectory = ""
-		endmethod
+        ;; Get the remote working directory
+        private method GetRemoteDirectory   ,void
+            endparams
+        proc
+            ;; Get the remote working directory
+            sendCommand("PWD")
+            do
+                getResponse(mCtrlStream, mRespCode)
+            until !(mCtrlContinues)
+            if (mRespCode == 257) then
+            begin
+                data dirBegins  ,integer
+                data dirEnds    ,integer
+                if (dirBegins = %instr(4,mFtpResponse,'"'))
+                    if ((dirEnds = %instr(dirBegins+1,mFtpResponse,'"'))>dirBegins+1)
+                        RemoteDirectory = mFtpResponse(dirBegins+1:dirEnds-dirBegins+1)
+            end
+            else
+                RemoteDirectory = ""
+        endmethod
 		
-		;;********************************************************************
+        ;;********************************************************************
 		
-		private method writeLog ,void
-			logLine     ,string
-			endparams
-		proc
-			if (!mChLog)
-				if (LogFile == "TT:") then
-					open(mChLog=0, O, LogFile)
-				else
-					open(mChLog=0, O:S, LogFile)
-			writes(mChLog, logLine)
-		endmethod
+        private method writeLog ,void
+            logLine     ,string
+            endparams
+        proc
+            if (!mChLog)
+                if (LogFile == "TT:") then
+                    open(mChLog=0, O, LogFile)
+                else
+                    open(mChLog=0, O:S, LogFile)
+            writes(mChLog, logLine)
+        endmethod
 		
-		;;********************************************************************
+        ;;********************************************************************
 		
-		public property IsConnected ,boolean
-			method get
-			proc
-				if (mTcpClient!=^null) then
-					mreturn mTcpClient.Connected
-				else
-					mreturn false
-			endmethod
-		endproperty
+        public property IsConnected ,boolean
+            method get
+            proc
+                if (mTcpClient!=^null) then
+                    mreturn mTcpClient.Connected
+                else
+                    mreturn false
+            endmethod
+        endproperty
 		
-		;;********************************************************************
+        ;;********************************************************************
 		
-		public property IsLoggedIn ,boolean
-			method get
-			proc
-				mreturn mIsLoggedIn
-			endmethod
-		endproperty
+        public property IsLoggedIn ,boolean
+            method get
+            proc
+                mreturn mIsLoggedIn
+            endmethod
+        endproperty
 		
-		;;********************************************************************
+        ;;********************************************************************
 		
-		public property LoggingEnabled  ,boolean
-			method get
-			proc
-				mreturn mLoggingEnabled
-			endmethod
-			method set
-			proc
-				if !(mLoggingEnabled = value)
-					if (mChLog && chopen(mChLog))
-					begin
-						close mChLog
-						init mChLog
-					end
-			endmethod
-		endproperty
+        public property LoggingEnabled  ,boolean
+            method get
+            proc
+                mreturn mLoggingEnabled
+            endmethod
+            method set
+            proc
+                if !(mLoggingEnabled = value)
+                    if (mChLog && chopen(mChLog))
+                    begin
+                        close mChLog
+                        init mChLog
+                    end
+            endmethod
+        endproperty
 		
-		;;********************************************************************
+        ;;********************************************************************
 		
-		public property LocalDirectory  ,string
-			method get
-			proc
-				mreturn mLocalDirectory
-			endmethod
-			method set
-				record
-					sts ,integer
-				endrecord
-			proc
-				xcall syn_setdir(value)
-				mLocalDirectory = %syn_getdir
-			endmethod
-		endproperty
+        public property LocalDirectory  ,string
+            method get
+            proc
+                mreturn mLocalDirectory
+            endmethod
+            method set
+                record
+                    sts ,integer
+                endrecord
+            proc
+                xcall syn_setdir(value)
+                mLocalDirectory = %syn_getdir
+            endmethod
+        endproperty
 		
-		;;********************************************************************
+        ;;********************************************************************
 		
-		public property LastServerResponse	,string
-			method get
-			proc
-				mreturn mFtpResponse
-			endmethod
-		endproperty
+        public property LastServerResponse	,string
+            method get
+            proc
+                mreturn mFtpResponse
+            endmethod
+        endproperty
 		
-		;;; <summary>
-		;;; The error message associated with a false return value from a method
-		;;; </summary>
-		public property ErrorMessage	,string
-			method get
-			proc
-				mreturn mErrorMessage
-			endmethod
-		endproperty
+        ;;; <summary>
+        ;;; The error message associated with a false return value from a method
+        ;;; </summary>
+        public property ErrorMessage	,string
+            method get
+            proc
+                mreturn mErrorMessage
+            endmethod
+        endproperty
 		
 		
-		;;********************************************************************
+        ;;********************************************************************
 		
-		private method checkResponseCode,   boolean
-			req in Code1    ,integer
-			endparams
-		proc
-			mErrorMessage = ""
+        private method checkResponseCode,   boolean
+            req in Code1    ,integer
+            endparams
+        proc
+            mErrorMessage = ""
 			
-			using mRespCode select
-			(<400),
-				nop
-			(421),
-				mErrorMessage = "Service not available, closing control connection."
-			(425),
-				mErrorMessage = "Can't open data connection"
-			(426),
-				mErrorMessage = "Connection closed; transfer aborted."
-			(450),
-				mErrorMessage = "Requested file action not taken."
-			(451),
-				mErrorMessage = "Requested action aborted. Local error in processing."
-			(452),
-				mErrorMessage = "Requested action not taken. Insufficient storage space in system or file unavailable."
-			(500),
-				mErrorMessage = "Syntax error, command unrecognized."
-			(501),
-				mErrorMessage = "Syntax error in parameters or arguments."
-			(502),
-				mErrorMessage = "Command not implemented."
-			(503),
-				mErrorMessage = "Bad sequence of commands."
-			(504),
-				mErrorMessage = "Command not implemented for that parameter."
-			(530),
-				mErrorMessage = "Not logged in."
-			(532),
-				mErrorMessage = "Need account for storing files."
-			(550),
-				mErrorMessage = "Requested action not taken. File unavailable."
-			(551),
-				mErrorMessage = "Requested action aborted. Page type unknown."
-			(552),
-				mErrorMessage = "Requested file action aborted. Exceeded storage allocation."
-			(553),
-				mErrorMessage = "Requested action not taken. File name not allowed."
-			(),
-				mErrorMessage = "Unknown FTP server response code."
-			endusing
+            using mRespCode select
+            (<400),
+                nop
+            (421),
+                mErrorMessage = "Service not available, closing control connection."
+            (425),
+                mErrorMessage = "Can't open data connection"
+            (426),
+                mErrorMessage = "Connection closed; transfer aborted."
+            (450),
+                mErrorMessage = "Requested file action not taken."
+            (451),
+                mErrorMessage = "Requested action aborted. Local error in processing."
+            (452),
+                mErrorMessage = "Requested action not taken. Insufficient storage space in system or file unavailable."
+            (500),
+                mErrorMessage = "Syntax error, command unrecognized."
+            (501),
+                mErrorMessage = "Syntax error in parameters or arguments."
+            (502),
+                mErrorMessage = "Command not implemented."
+            (503),
+                mErrorMessage = "Bad sequence of commands."
+            (504),
+                mErrorMessage = "Command not implemented for that parameter."
+            (530),
+                mErrorMessage = "Not logged in."
+            (532),
+                mErrorMessage = "Need account for storing files."
+            (550),
+                mErrorMessage = "Requested action not taken. File unavailable."
+            (551),
+                mErrorMessage = "Requested action aborted. Page type unknown."
+            (552),
+                mErrorMessage = "Requested file action aborted. Exceeded storage allocation."
+            (553),
+                mErrorMessage = "Requested action not taken. File name not allowed."
+            (),
+                mErrorMessage = "Unknown FTP server response code."
+            endusing
 			
-			if (^passed(Code1) && mRespCode!=Code1)
-				if !(mErrorMessage.Length)
-				begin
-					mErrorMessage = "Invalid or unexpected SMTP response."
-					mreturn true
-				end
+            if (^passed(Code1) && mRespCode!=Code1)
+                if !(mErrorMessage.Length)
+                begin
+                    mErrorMessage = "Invalid or unexpected SMTP response."
+                    mreturn true
+                end
 			
-			if (mErrorMessage.Length && mRespCode >=400)
-			begin
-				if (mRespCode >= 500)
-					mCtrlStream.Close()
-				mreturn true
-			end
-			mreturn false
-		endmethod
+            if (mErrorMessage.Length && mRespCode >=400)
+            begin
+                if (mRespCode >= 500)
+                    mCtrlStream.Close()
+                mreturn true
+            end
+            mreturn false
+        endmethod
 		
-	endclass
+    endclass
 	
 endnamespace

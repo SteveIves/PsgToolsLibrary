@@ -18,32 +18,26 @@
 ;
 ;****************************************************************************
 
-namespace SynPSG.Windows
+function WinSound, ^val
 
-	function WinSound, ^val
-		endparams
+    .align
+    stack record
+        dll_handle		,i4		;DLL handle
+        numdevs			,i4		;Return status from DLL call
+    endrecord
 
-		.align
-		stack record
-			dll_handle		,i4		;DLL handle
-			numdevs			,i4		;Return status from DLL call
-		endrecord
+proc
 
-	proc
+    onerror Error
 
-		onerror Error
+    dll_handle = %dll_open("winmm.dll")
 
-		dll_handle = %dll_open("winmm.dll")
+    numdevs = %dll_call(dll_handle,DLL_TYPE_WINAPI,"waveOutGetNumDevs")
 
-		numdevs = %dll_call(dll_handle,DLL_TYPE_WINAPI,"waveOutGetNumDevs")
+    dll_handle = %dll_close(dll_handle)
 
-		dll_handle = %dll_close(dll_handle)
-
-	Error,
+Error,
 		
-		freturn numdevs
+    freturn numdevs
 
-	endfunction
-	
-endnamespace
-
+endfunction

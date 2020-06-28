@@ -36,15 +36,15 @@
 
 .ifndef DBLNET
 
-import SynPSG.System
+import SynPsg.System
 
 namespace SynPSG.System.Net.Mime
 
     public enum TransferEncoding
-         Base64
-         QuotedPrintable
-         SevenBit
-         Unknown
+        Base64
+        QuotedPrintable
+        SevenBit
+        Unknown
     endenum
 
     ;;;<summary>

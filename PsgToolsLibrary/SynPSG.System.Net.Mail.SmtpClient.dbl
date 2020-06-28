@@ -53,13 +53,13 @@
 
 .ifndef DBLNET
 
-import SynPSG.System
-import SynPSG.System.IO
-import SynPSG.System.Net
-import SynPSG.System.Net.Mail
-import SynPSG.System.Net.Mime
-import SynPSG.System.Net.Sockets
-import SynPSG.System.Text.encoding
+import SynPsg.System
+import SynPsg.System.IO
+import SynPsg.System.Net
+import SynPsg.System.Net.Mail
+import SynPsg.System.Net.Mime
+import SynPsg.System.Net.Sockets
+import SynPsg.System.Text.encoding
 import System.Collections
 
 .include "DBLDIR:synsock.def"

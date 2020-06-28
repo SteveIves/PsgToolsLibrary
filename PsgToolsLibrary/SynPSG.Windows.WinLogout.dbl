@@ -18,29 +18,24 @@
 ;
 ;****************************************************************************
 
-namespace SynPSG.Windows
+subroutine WinLogout
 
-	subroutine WinLogout
-		endparams
+    .align
+    stack record
+        dll		 	,i4				;DLL handle
+        reserved1	,i4
+        reserved2	,i2
+    endrecord
 
-		.align
-		stack record
-			dll		 	,i4				;DLL handle
-			reserved1	,i4
-			reserved2	,i2
-		endrecord
+proc
 
-	proc
+    clear reserved1, reserved2
 
-		clear reserved1, reserved2
+    dll = %dll_open("user32.dll")		
+    xcall dll_call(dll,DLL_TYPE_WINAPI,"ExitWindows",reserved1,reserved2)
+    xcall dll_close(dll)
 
-		dll = %dll_open("user32.dll")		
-		xcall dll_call(dll,DLL_TYPE_WINAPI,"ExitWindows",reserved1,reserved2)
-		xcall dll_close(dll)
+    xreturn
 
-		xreturn
-
-	endsubroutine
-		
-endnamespace
+endsubroutine
 

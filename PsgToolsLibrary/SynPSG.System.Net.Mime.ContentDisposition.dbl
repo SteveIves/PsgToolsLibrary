@@ -36,7 +36,7 @@
 
 .ifndef DBLNET
 
-import SynPSG.System
+import SynPsg.System
 
 namespace SynPSG.System.Net.Mime
 

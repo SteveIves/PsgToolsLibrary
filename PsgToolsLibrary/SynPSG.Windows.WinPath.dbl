@@ -42,45 +42,40 @@
 ;;
 ;;*****************************************************************************
 
-namespace SynPSG.Windows
+function WinPath, string
 
-	function WinPath, string
-		endparams
+    .define MAX_PATH	260
 
-		.define MAX_PATH	260
+    .align
+    stack record
+        status,			i4			;Return status from DLL call
+        dll_handle,		i4			;DLL handle
+        len,			i4			;Max length of path
+        path,			a MAX_PATH	;Return buffer from DLL call
+        return_path,	string		;Synergy return value
+    endrecord
 
-		.align
-		stack record
-			status,			i4			;Return status from DLL call
-			dll_handle,		i4			;DLL handle
-			len,			i4			;Max length of path
-			path,			a MAX_PATH	;Return buffer from DLL call
-			return_path,	string		;Synergy return value
-		endrecord
+proc
 
-	proc
+    onerror Error
 
-		onerror Error
+    dll_handle = %dll_open("kernel32")
 
-		dll_handle = %dll_open("kernel32")
+    xcall fill(%char(0),path)
+    len = MAX_PATH
 
-		xcall fill(%char(0),path)
-		len = MAX_PATH
+    status = %dll_call(dll_handle,DLL_TYPE_WINAPI,"GetWindowsDirectoryA",path,len)
 
-		status = %dll_call(dll_handle,DLL_TYPE_WINAPI,"GetWindowsDirectoryA",path,len)
+    if (status.ne.0) then
+        return_path = path(1:%instr(1,path,%char(0))-1) + "\"
+    else
+        return_path = "\"
 
-		if (status.ne.0) then
-			return_path = path(1:%instr(1,path,%char(0))-1) + "\"
-		else
-			return_path = "\"
+    dll_handle = %dll_close(dll_handle)
 
-		dll_handle = %dll_close(dll_handle)
-
-	Error,
+Error,
 		
-		freturn return_path
+    freturn return_path
 
-	endfunction
-
-endnamespace
+endfunction
 

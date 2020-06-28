@@ -1,280 +1,279 @@
 
-import System
 import System.Collections
-import SynPSG
-import SynPSG.System
-import SynPSG.System.IO
-import SynPSG.System.Net.Mail
-import SynPSG.System.Net.Mime
+import SynPsg
+import SynPsg.System
+import SynPsg.System.IO
+import SynPsg.System.Net.Mail
+import SynPsg.System.Net.Mime
 
 namespace SynPSG
 
     public class MailServerClient
 
-		private mSmtpServer, 		String
-		private mFromAddress, 		String
-		private mFromName,	 		String
-		private mSubject, 			String
-		private mBodyTextOrFile,	String
-		private mErrorMessage, 		String
-		private mRecipients, 		@ArrayList
-		private mCcRecipients,		@ArrayList
-		private mAttachments, 		@ArrayList
+        private mSmtpServer, 		String
+        private mFromAddress, 		String
+        private mFromName,	 		String
+        private mSubject, 			String
+        private mBodyTextOrFile,	String
+        private mErrorMessage, 		String
+        private mRecipients, 		@ArrayList
+        private mCcRecipients,		@ArrayList
+        private mAttachments, 		@ArrayList
 
-		public method MailServerClient
-			required in aFromAddress,	string
-			required in aToAddress,		string
-		proc
+        public method MailServerClient
+            required in aFromAddress,	string
+            required in aToAddress,		string
+        proc
 
-			mErrorMessage = ""
-			mSubject = ""
+            mErrorMessage = ""
+            mSubject = ""
 
-			mRecipients = new ArrayList()
-			mCcRecipients = new ArrayList()
-			mAttachments = new ArrayList()
+            mRecipients = new ArrayList()
+            mCcRecipients = new ArrayList()
+            mAttachments = new ArrayList()
 
-			mFromAddress = aFromAddress
-			mRecipients.Add(aToAddress)
+            mFromAddress = aFromAddress
+            mRecipients.Add(aToAddress)
 
-			mSmtpServer = Environment.GetEnvironmentVariable("SMTP_SERVER")
+            mSmtpServer = Environment.GetEnvironmentVariable("SMTP_SERVER")
 
-		endmethod
+        endmethod
 
-		public property FromAddress, string
-			method get
-			proc
-				mreturn mFromAddress
-			endmethod
-			method set
-			proc
-				mFromAddress = value
-			endmethod
-		endproperty
+        public property FromAddress, string
+            method get
+            proc
+                mreturn mFromAddress
+            endmethod
+            method set
+            proc
+                mFromAddress = value
+            endmethod
+        endproperty
 
-		public property FromName, string
-			method get
-			proc
-				mreturn mFromName
-			endmethod
-			method set
-			proc
-				mFromName = value
-			endmethod
-		endproperty
+        public property FromName, string
+            method get
+            proc
+                mreturn mFromName
+            endmethod
+            method set
+            proc
+                mFromName = value
+            endmethod
+        endproperty
 
-		public property Subject, string
-			method get
-			proc
-				mreturn mSubject
-			endmethod
-			method set
-			proc
-				mSubject = value
-			endmethod
-		endproperty
+        public property Subject, string
+            method get
+            proc
+                mreturn mSubject
+            endmethod
+            method set
+            proc
+                mSubject = value
+            endmethod
+        endproperty
 
-		public property BodyTextOrFile, string
-			method get
-			proc
-				mreturn mBodyTextOrFile
-			endmethod
-			method set
-			proc
-				mBodyTextOrFile = value
-			endmethod
-		endproperty
+        public property BodyTextOrFile, string
+            method get
+            proc
+                mreturn mBodyTextOrFile
+            endmethod
+            method set
+            proc
+                mBodyTextOrFile = value
+            endmethod
+        endproperty
 
-		public property ErrorMessage, string
-			method get
-			proc
-				mreturn mErrorMessage
-			endmethod
-			private method set
-			proc
-				mErrorMessage = value
-			endmethod
-		endproperty
+        public property ErrorMessage, string
+            method get
+            proc
+                mreturn mErrorMessage
+            endmethod
+            private method set
+            proc
+                mErrorMessage = value
+            endmethod
+        endproperty
 
-		public property SmtpServer, string
-			method get
-			proc
-				mreturn mSmtpServer
-			endmethod
-			method set
-			proc
-				mSmtpServer = value
-			endmethod
-		endproperty
+        public property SmtpServer, string
+            method get
+            proc
+                mreturn mSmtpServer
+            endmethod
+            method set
+            proc
+                mSmtpServer = value
+            endmethod
+        endproperty
 
-		public method AddRecipient, void
-			required in aRecipient, string
-		proc
-			mRecipients.Add(aRecipient)
-		endmethod
+        public method AddRecipient, void
+            required in aRecipient, string
+        proc
+            mRecipients.Add(aRecipient)
+        endmethod
 
-		public method AddCcRecipient, void
-			required in aRecipient, string
-		proc
-			mCcRecipients.Add(aRecipient)
-		endmethod
+        public method AddCcRecipient, void
+            required in aRecipient, string
+        proc
+            mCcRecipients.Add(aRecipient)
+        endmethod
 
-		public method AddAttachment, void
-			required in aFileToAttach, string
-		proc
-			mAttachments.Add(aFileToAttach)
-		endmethod
+        public method AddAttachment, void
+            required in aFileToAttach, string
+        proc
+            mAttachments.Add(aFileToAttach)
+        endmethod
 
-		public method Send, boolean
-			endparams
-			record
-				ok,			boolean
-				msg,		@MailMessage
-				client, 	@SmtpClient
-				recipient,	string
-			endrecord
-		proc
+        public method Send, boolean
+            endparams
+            record
+                ok,			boolean
+                msg,		@MailMessage
+                client, 	@SmtpClient
+                recipient,	string
+            endrecord
+        proc
 
-			if (mSmtpServer == ^null)
-			begin
-				mErrorMessage = "No email server was defined. Set environment variable SMTP_SERVER or set the SmtpServer property."
-				mreturn false
-			end
+            if (mSmtpServer == ^null)
+            begin
+                mErrorMessage = "No email server was defined. Set environment variable SMTP_SERVER or set the SmtpServer property."
+                mreturn false
+            end
 
-			ok = true
+            ok = true
 
-			;;Prepare the message
-			msg = new MailMessage()
+            ;;Prepare the message
+            msg = new MailMessage()
 
-			;;Add the sender email address & optional name
-			if (mFromName!=^null && mFromName.Length>0) then
-			    msg.From = new MailAddress(mFromAddress,mFromName)
-			else
-				msg.From = new MailAddress(mFromAddress)
+            ;;Add the sender email address & optional name
+            if (mFromName!=^null && mFromName.Length>0) then
+                msg.From = new MailAddress(mFromAddress,mFromName)
+            else
+                msg.From = new MailAddress(mFromAddress)
 
-			;;Add subject
-			msg.Subject = mSubject
+            ;;Add subject
+            msg.Subject = mSubject
 
-			;;Add to recipients
-			foreach recipient in mRecipients
-				msg.To.Add((string)recipient)
+            ;;Add to recipients
+            foreach recipient in mRecipients
+                msg.To.Add((string)recipient)
 
-			;;Add cc recipients
-			foreach recipient in mCcRecipients
-				msg.CC.Add(recipient)
+            ;;Add cc recipients
+            foreach recipient in mCcRecipients
+                msg.CC.Add(recipient)
 
-			;;Add body
-			if ((mBodyTextOrFile!=^null) && (mBodyTextOrFile.Trim().Length > 0))
-			begin
-				if (File.Exists(mBodyTextOrFile)) then
-				begin
-					data tmpChn, int
-					data tmpBuf, a512
-					data body, string
-					data firstRec, string
-					data bodyWasHtml, boolean
+            ;;Add body
+            if ((mBodyTextOrFile!=^null) && (mBodyTextOrFile.Trim().Length > 0))
+            begin
+                if (File.Exists(mBodyTextOrFile)) then
+                begin
+                    data tmpChn, int
+                    data tmpBuf, a512
+                    data body, string
+                    data firstRec, string
+                    data bodyWasHtml, boolean
 
-					open(tmpChn=0,i,mBodyTextOrFile)
+                    open(tmpChn=0,i,mBodyTextOrFile)
 
-					reads(tmpChn,tmpBuf,bodyEof)
+                    reads(tmpChn,tmpBuf,bodyEof)
 
-					firstRec = %atrim(tmpBuf)
-					if (firstRec.ToLower().Contains("<html>")) then
-					begin
-						bodyWasHtml = true
-						body = firstRec
-					end
-					else
-					begin
-						bodyWasHtml = false
-						body = "<html><head></head><body><pre>" + firstRec
-					end
+                    firstRec = %atrim(tmpBuf)
+                    if (firstRec.ToLower().Contains("<html>")) then
+                    begin
+                        bodyWasHtml = true
+                        body = firstRec
+                    end
+                    else
+                    begin
+                        bodyWasHtml = false
+                        body = "<html><head></head><body><pre>" + firstRec
+                    end
 
-					repeat
-					begin
-						reads(tmpChn,tmpBuf,bodyEof)
-						body = body + %atrim(tmpBuf)
-						if (!bodyWasHtml)
-							body = body + "<br>"
-					end
-	bodyEof,
-					close tmpChn
+                    repeat
+                    begin
+                        reads(tmpChn,tmpBuf,bodyEof)
+                        body = body + %atrim(tmpBuf)
+                        if (!bodyWasHtml)
+                            body = body + "<br>"
+                    end
+                bodyEof,
+                    close tmpChn
 
-					if (!bodyWasHtml)
-						body = body + "</pre></body></html>"
+                    if (!bodyWasHtml)
+                        body = body + "</pre></body></html>"
 
-					msg.Body = body
-					msg.IsBodyHtml = true
-				end
-				else
-				begin
-					msg.Body = mBodyTextOrFile
-					msg.IsBodyHtml = mBodyTextOrFile.ToLower().Contains("<html>")
-				end
-			end
+                    msg.Body = body
+                    msg.IsBodyHtml = true
+                end
+                else
+                begin
+                    msg.Body = mBodyTextOrFile
+                    msg.IsBodyHtml = mBodyTextOrFile.ToLower().Contains("<html>")
+                end
+            end
 
-			;;Add attachment file
-			if (mAttachments.Count > 0)
-			begin
-				data fileToAttach, string
-				foreach fileToAttach in mAttachments
-				begin
-					if (File.Exists(fileToAttach)) then
-					begin
-						data contentType, string
+            ;;Add attachment file
+            if (mAttachments.Count > 0)
+            begin
+                data fileToAttach, string
+                foreach fileToAttach in mAttachments
+                begin
+                    if (File.Exists(fileToAttach)) then
+                    begin
+                        data contentType, string
 
-						if (fileToAttach.ToLower().EndsWith(".pdf")) then
-							contentType = "application/pdf"
-						else if (fileToAttach.ToLower().EndsWith(".doc")) then
-							contentType = "application/msword"
-						else if (fileToAttach.ToLower().EndsWith(".docx")) then
-							contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-						else if (fileToAttach.ToLower().EndsWith(".xls")) then
-							contentType = "application/vnd.ms-excel"
-						else if (fileToAttach.ToLower().EndsWith(".xlsx")) then
-							contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-						else
-							contentType = "text/plain"
+                        if (fileToAttach.ToLower().EndsWith(".pdf")) then
+                            contentType = "application/pdf"
+                        else if (fileToAttach.ToLower().EndsWith(".doc")) then
+                            contentType = "application/msword"
+                        else if (fileToAttach.ToLower().EndsWith(".docx")) then
+                            contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        else if (fileToAttach.ToLower().EndsWith(".xls")) then
+                            contentType = "application/vnd.ms-excel"
+                        else if (fileToAttach.ToLower().EndsWith(".xlsx")) then
+                            contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        else
+                            contentType = "text/plain"
 
-						msg.Attachments.Add(new Attachment(fileToAttach,new ContentType(contentType)))
-					end
-					else
-					begin
-						mErrorMessage = "Attachment " + fileToAttach.Trim() + " was not found!"
-						ok = false
-						exitloop
-					end
-				end
-			end
+                        msg.Attachments.Add(new Attachment(fileToAttach,new ContentType(contentType)))
+                    end
+                    else
+                    begin
+                        mErrorMessage = "Attachment " + fileToAttach.Trim() + " was not found!"
+                        ok = false
+                        exitloop
+                    end
+                end
+            end
 
-			if (ok)
-			begin
-				client = new SmtpClient(mSmtpServer)
+            if (ok)
+            begin
+                client = new SmtpClient(mSmtpServer)
 
-				try
-				begin
-					client.Send(msg)
-				end
-				catch (ex)
-				begin
-					ok = false
-					mErrorMessage = ex.Message
-				end
-				endtry
+                try
+                begin
+                    client.Send(msg)
+                end
+                catch (ex)
+                begin
+                    ok = false
+                    mErrorMessage = ex.Message
+                end
+                endtry
 
-				try
-				begin
-					client.Dispose()
-				end
-				catch (ex)
-				begin
-					nop
-				end
-				endtry
-			end
+                try
+                begin
+                    client.Dispose()
+                end
+                catch (ex)
+                begin
+                    nop
+                end
+                endtry
+            end
 
-			mreturn ok
+            mreturn ok
 
-		endmethod
+        endmethod
 
     endclass
 

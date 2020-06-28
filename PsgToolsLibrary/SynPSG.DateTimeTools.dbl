@@ -1,6 +1,6 @@
 
-import system
-import synpsg
+import SynPsg
+import SynPsg.System
 
 namespace SynPSG
 
@@ -106,7 +106,7 @@ namespace SynPSG
             a_week = week_no
             mreturn ok
 
-        ;-------------------------------------------------------------------------
+            ;-------------------------------------------------------------------------
 
         calculate_first_thursday,
 
@@ -159,9 +159,9 @@ namespace SynPSG
         ;;; <returns></returns>
         public static method FormatDate,    string
             optional in a_date,             n   ;Date to format
-                                                ;   YYYYMMDD    ->  MM/DD/YYYY
-                                                ;   YYMMDD      ->  MM/DD/YY
-                                                ;   YYPP        ->  PP/YY
+            ;   YYYYMMDD    ->  MM/DD/YYYY
+            ;   YYMMDD      ->  MM/DD/YY
+            ;   YYPP        ->  PP/YY
             optional in a_seperator,        a   ;Seperator character (default /)
             optional in a_european,         n   ;European formatting (DD/DD/YYYY or DD/MM/YY)
             endparams

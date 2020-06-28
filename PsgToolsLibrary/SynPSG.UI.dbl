@@ -5,19 +5,19 @@
 ;
 
 .ifdef DBLNET
-import System
-import System.IO
+SynPsg.System
+SynPsg.System.IO
 .else
 import SynPsg.System
-import SynPSG.System.IO
+import SynPsg.System.IO
 .endc
 
 import System.Collections
-import SynPSG
-import SynPSG.Windows
+import SynPsg
+import SynPsg.Windows
 
 .ifdef USEPDFAPI
-import SynPSG.PDF
+import SynPsg.PDF
 .endc
 
 .include "WND:windows.def"

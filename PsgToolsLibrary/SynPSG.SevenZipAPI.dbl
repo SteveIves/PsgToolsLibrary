@@ -35,133 +35,133 @@
 ;;***********************************************************************************
 
 .ifdef DBLNET
-import System.IO
+SynPsg.System.IO
 .else
-import SynPSG.System.IO
+import SynPsg.System.IO
 .endc
 
 namespace SynPSG.SevenZipAPI
 
-	public enum OverwriteMode
-		Always
-		Never
-		RenameNewFile
-		RenameExistingFile
-	endenum
+    public enum OverwriteMode
+        Always
+        Never
+        RenameNewFile
+        RenameExistingFile
+    endenum
 
-	public class SevenZip
+    public class SevenZip
 		
-		private exePath, string
+        private exePath, string
 		
-		public method SevenZip
-			endparams
-		proc
-			;;Make sure we can finf the 7-Zip executable
-			if (!File.Exists(exePath="C:\Program Files\7-Zip\7z.exe"))
-				if (!File.Exists(exePath="C:\Program Files (x86)\7-Zip\7z.exe"))
-					throw new ApplicationException("7-Zip is not installed!")		
-		endmethod
+        public method SevenZip
+            endparams
+        proc
+            ;;Make sure we can finf the 7-Zip executable
+            if (!File.Exists(exePath="C:\Program Files\7-Zip\7z.exe"))
+                if (!File.Exists(exePath="C:\Program Files (x86)\7-Zip\7z.exe"))
+                    throw new ApplicationException("7-Zip is not installed!")		
+        endmethod
 		
-		public method CompressFolder,	boolean
-			required in folder,	string
-			required in zipFile,	string
-			required in recurse,	boolean
-			endparams
-			record 
-				ok,		boolean
-				command,	string
-				ch,		int
-				buffer,		a256
-			endrecord
-		proc
-			ok = false
-			command = "|" + exePath + " a -y "
-			if (recurse)
-				command = command + "-r "
-			command = command + zipFile + " "
-			command = command + folder
+        public method CompressFolder,	boolean
+            required in folder,	string
+            required in zipFile,	string
+            required in recurse,	boolean
+            endparams
+            record 
+                ok,		boolean
+                command,	string
+                ch,		int
+                buffer,		a256
+            endrecord
+        proc
+            ok = false
+            command = "|" + exePath + " a -y "
+            if (recurse)
+                command = command + "-r "
+            command = command + zipFile + " "
+            command = command + folder
 			
-			open(ch,i,command)
-			repeat
-			begin
-				reads(ch,buffer,eof)
-				if (buffer=="Everything is Ok")
-				begin
-					ok = true
-					exitloop
-				end
-			end
-		eof,	close ch
-			mreturn ok
-		endmethod
+            open(ch,i,command)
+            repeat
+            begin
+                reads(ch,buffer,eof)
+                if (buffer=="Everything is Ok")
+                begin
+                    ok = true
+                    exitloop
+                end
+            end
+        eof,	close ch
+            mreturn ok
+        endmethod
 		
-		;;; <summary>
-		;;; Extracts all files from a zip file to a folder without overwriting any existing files.
-		;;; </summary>
-		;;; <param name="zipFile">Zip file to extract.</param>
-		;;; <param name="folder">Folder to extract to.</param>
-		;;; <returns></returns>
-		public method ExtractToFolder,	boolean
-			required in zipFile,	string
-			required in folder,	string
-			endparams
-			record 
-				ok,		boolean
-				command,	string
-				ch,		int
-				buffer,		a256
-			endrecord
-		proc
-			mreturn this.ExtractToFolder(zipFile,folder,OverwriteMode.Never)
-		endmethod
+        ;;; <summary>
+        ;;; Extracts all files from a zip file to a folder without overwriting any existing files.
+        ;;; </summary>
+        ;;; <param name="zipFile">Zip file to extract.</param>
+        ;;; <param name="folder">Folder to extract to.</param>
+        ;;; <returns></returns>
+        public method ExtractToFolder,	boolean
+            required in zipFile,	string
+            required in folder,	string
+            endparams
+            record 
+                ok,		boolean
+                command,	string
+                ch,		int
+                buffer,		a256
+            endrecord
+        proc
+            mreturn this.ExtractToFolder(zipFile,folder,OverwriteMode.Never)
+        endmethod
 		
-		public method ExtractToFolder,	boolean
-			required in zipFile,	string
-			required in folder,	string
-			required in mode,	OverWriteMode
-			endparams
-			record 
-				ok,		boolean
-				command,	string
-				ch,		int
-				buffer,		a256
-			endrecord
-		proc
-			ok = false
-			command = '|"' + exePath + '" e "' + zipFile + '" -o"' + folder + '" -y'
+        public method ExtractToFolder,	boolean
+            required in zipFile,	string
+            required in folder,	string
+            required in mode,	OverWriteMode
+            endparams
+            record 
+                ok,		boolean
+                command,	string
+                ch,		int
+                buffer,		a256
+            endrecord
+        proc
+            ok = false
+            command = '|"' + exePath + '" e "' + zipFile + '" -o"' + folder + '" -y'
 			
-			using mode select
-			(OverwriteMode.Always),
-				command = command + ' -aoa'
-			(OverwriteMode.Never),
-				command = command + ' -aos'
-			(OverwriteMode.RenameNewFile),
-				command = command + ' -aou'
-			(OverwriteMode.RenameExistingFile),
-				command = command + ' -aot'
-			endusing
+            using mode select
+            (OverwriteMode.Always),
+                command = command + ' -aoa'
+            (OverwriteMode.Never),
+                command = command + ' -aos'
+            (OverwriteMode.RenameNewFile),
+                command = command + ' -aou'
+            (OverwriteMode.RenameExistingFile),
+                command = command + ' -aot'
+            endusing
 
-			command = command + ""
+            command = command + ""
 			
-			open(ch,i,command)
-			repeat
-			begin
-				reads(ch,buffer,eof)
-				if (buffer=="Everything is Ok") then
-				begin
-					ok = true
-					exitloop
-				end
-				else if (buffer=="Error:")
-				begin
-					exitloop
-				end
-			end
-		eof,	close ch
-			mreturn ok
-		endmethod
+            open(ch,i,command)
+            repeat
+            begin
+                reads(ch,buffer,eof)
+                if (buffer=="Everything is Ok") then
+                begin
+                    ok = true
+                    exitloop
+                end
+                else if (buffer=="Error:")
+                begin
+                    exitloop
+                end
+            end
+        eof,	close ch
+            mreturn ok
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace
 

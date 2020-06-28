@@ -42,8 +42,8 @@ namespace SynPSG.System
     ;;;Convert.ToBase64String methods insert line breaks in their output.
     ;;;</summary>
     public enum Base64FormattingOptions
-         InsertLineBreaks
-         None
+        InsertLineBreaks
+        None
     endenum
 
     public class Convert
@@ -76,7 +76,7 @@ namespace SynPSG.System
                 decodedString   ,string
             endrecord
             structure dataBlock
-                                ,a32768
+                ,a32768
             endstructure
             structure byteStruct
                 oneByte         ,a1
@@ -144,9 +144,9 @@ namespace SynPSG.System
                 ;; memory handle since byteCtr never reached 4.
                 if (extraChars && byteCtr)
                 begin
-                   ^m(byteStruct[decodeCtr+=1],mh_decodedString) = ^a(^b(bits32_1))
-                   if (extraChars==1)
-                       ^m(byteStruct[decodeCtr+=1],mh_decodedString) = ^a(^b(bits32_2))
+                    ^m(byteStruct[decodeCtr+=1],mh_decodedString) = ^a(^b(bits32_1))
+                    if (extraChars==1)
+                        ^m(byteStruct[decodeCtr+=1],mh_decodedString) = ^a(^b(bits32_2))
                 end
 
                 ;; Build up the return string one block at a time
@@ -172,7 +172,7 @@ namespace SynPSG.System
             in inArray                          ,[#]@byte
             in formattingOptions                ,Base64FormattingOptions
             endparams
-.align
+            .align
             stack record wrkVars
                 b64ctr          ,i4
                 b64LineLength   ,i4
@@ -200,7 +200,7 @@ namespace SynPSG.System
             endrecord
 
             structure dataBlock
-                        ,a32768
+                ,a32768
             endstructure
 
             structure byteStruct

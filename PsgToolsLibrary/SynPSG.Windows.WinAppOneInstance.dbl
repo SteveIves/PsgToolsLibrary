@@ -12,61 +12,57 @@
 ;   passed.
 ;
 
-namespace SynPSG.Windows
+subroutine AppOneInstance
+    a_caption   ,a  ;Caption of the application
+    endparams
 
-	subroutine AppOneInstance
-		a_caption   ,a  ;Caption of the application
-		endparams
+    .ifdef D_GUI
 
-.ifdef D_GUI
+    .include "DBLDIR:windows.def"
+    .include "WND:tools.def"
 
-		.include "DBLDIR:windows.def"
-		.include "WND:tools.def"
+    .align
+    record
+        dll_hndl    ,i4 ;Handle to the DLL
+        hndl        ,i4 ;Handle to the application container
+        state       ,i4
+    endrecord
 
-		.align
-		record
-			dll_hndl    ,i4 ;Handle to the DLL
-			hndl        ,i4 ;Handle to the application container
-			state       ,i4
-		endrecord
+    .define SW_SHOWNORMAL   %integer(1)
 
-		.define SW_SHOWNORMAL   %integer(1)
+    .endc
 
-.endc
+proc
 
-	proc
+    .ifdef D_GUI
 
-.ifdef D_GUI
+    dll_hndl = %dll_open("user32")  ;Open user32.dll
 
-		dll_hndl = %dll_open("user32")  ;Open user32.dll
+    if (hndl = %dll_call(dll_hndl,DLL_TYPE_WINAPI,"FindWindowA","Synergy Container",a_caption))
+    begin
+        ;Found our application
 
-		if (hndl = %dll_call(dll_hndl,DLL_TYPE_WINAPI,"FindWindowA","Synergy Container",a_caption))
-		begin
-			;Found our application
+        ;Bring it to the front and activate
+        xcall dll_call(dll_hndl,DLL_TYPE_WINAPI,"ShowWindow", hndl, SW_SHOWNORMAL)
+        xcall dll_call(dll_hndl,DLL_TYPE_WINAPI,"SetForegroundWindow", hndl)
 
-			;Bring it to the front and activate
-			xcall dll_call(dll_hndl,DLL_TYPE_WINAPI,"ShowWindow", hndl, SW_SHOWNORMAL)
-			xcall dll_call(dll_hndl,DLL_TYPE_WINAPI,"SetForegroundWindow", hndl)
+        ;Don't allow multiple instances
+        xcall dll_close(dll_hndl)
+        xcall u_finish
+        stop
 
-			;Don't allow multiple instances
-			xcall dll_close(dll_hndl)
-			xcall u_finish
-			stop
+    end
 
-		end
+    xcall dll_close(dll_hndl)
 
-		xcall dll_close(dll_hndl)
+    xcall e_sect(a_caption, D_CAPTION)  ;Set the caption
 
-		xcall e_sect(a_caption, D_CAPTION)  ;Set the caption
+    if (%w_info(WIF_STATE, WID_CONTAINER) .ne. WPS_MAXIMIZED);If not maximized
+        xcall w_proc(WP_STATE, WID_CONTAINER, WPS_NORMAL)  ;Restore us
 
-		if (%w_info(WIF_STATE, WID_CONTAINER) .ne. WPS_MAXIMIZED);If not maximized
-		  xcall w_proc(WP_STATE, WID_CONTAINER, WPS_NORMAL)  ;Restore us
+    .endc
 
-.endc
+    xreturn
 
-		xreturn
-
-	endsubroutine
-		
-endnamespace
+endsubroutine
 

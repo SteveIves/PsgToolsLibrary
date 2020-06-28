@@ -1,6 +1,6 @@
 
-import SynPSG
-import SynPSG.PDF
+import SynPsg
+import SynPsg.PDF
 
 main TestScrollWindow
 

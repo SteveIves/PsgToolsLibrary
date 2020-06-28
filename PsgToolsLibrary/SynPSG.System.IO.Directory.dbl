@@ -36,9 +36,8 @@
 
 .ifndef DBLNET
 
-import system
-import synpsg.system
-import synpsg
+import SynPsg.System
+import SynPsg
 
 import System.Collections
 
@@ -46,7 +45,7 @@ import System.Collections
 
 namespace SynPSG.System.IO
 
-.ifdef D_GUI
+    .ifdef D_GUI
 
     public enum SearchOption
         AllDirectories
@@ -486,7 +485,7 @@ namespace SynPSG.System.IO
 
     endclass
 
-.endc
+    .endc
 
 endnamespace
 

@@ -45,9 +45,8 @@
 .ifdef D_GUI
 
 import System.Collections
-import System
-import synpsg.system
-import synpsg
+import SynPsg.System
+import SynPsg
 
 namespace SynPSG.Windows
 

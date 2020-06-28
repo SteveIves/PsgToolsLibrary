@@ -197,10 +197,10 @@ namespace SynPSG.System
         ;;;</summary>
         public property DayOfYear   ,integer
             method get
-            stack record
-                monthCtr    ,integer
-                totalDays   ,integer
-            endrecord
+                stack record
+                    monthCtr    ,integer
+                    totalDays   ,integer
+                endrecord
             proc
                 totalDays=0
                 for monthCtr from 1 thru mMonth-1
@@ -255,16 +255,16 @@ namespace SynPSG.System
         ;;;</summary>
         public static property Now  ,@datetime
             method get
-            stack record
-                sysDate                             ,a20
-                intYear                             ,i4
-                intMonth                            ,i4
-                intDay                              ,i4
-                intHour                             ,i4
-                intMinute                           ,i4
-                intSecond                           ,i4
-                intMilli                            ,i4
-            endrecord
+                stack record
+                    sysDate                             ,a20
+                    intYear                             ,i4
+                    intMonth                            ,i4
+                    intDay                              ,i4
+                    intHour                             ,i4
+                    intMinute                           ,i4
+                    intSecond                           ,i4
+                    intMilli                            ,i4
+                endrecord
             proc
                 sysDate = Synergex.synergyde.datetime()
                 intYear = sysDate(1:4)
@@ -293,12 +293,12 @@ namespace SynPSG.System
         ;;;</summary>
         public static property Today    ,@datetime
             method get
-            stack record
-                curDate ,d8
-                curYear ,d4@curDate
-                curMonth,d2@curDate+4
-                curDay  ,d2@curDate+6
-            endrecord
+                stack record
+                    curDate ,d8
+                    curYear ,d4@curDate
+                    curMonth,d2@curDate+4
+                    curDay  ,d2@curDate+6
+                endrecord
             proc
                 curDate = %ndate
                 mreturn new datetime(%integer(curYear),%integer(curMonth),%integer(curDay))
@@ -372,10 +372,10 @@ namespace SynPSG.System
         public method AddMonths  ,@Datetime
             req in intValue    ,int
             endparams
-        stack record
-            mNewYear    ,i4
-            mNewMonth   ,i4
-        endrecord
+            stack record
+                mNewYear    ,i4
+                mNewMonth   ,i4
+            endrecord
         proc
             mNewYear = mYear
             mNewMonth = mMonth + intValue
@@ -464,15 +464,15 @@ namespace SynPSG.System
         public method ToLongDateString  ,string
             endparams
 
-        stack record
-            dateText    ,string
-        endrecord
+            stack record
+                dateText    ,string
+            endrecord
 
         proc
             if dateInvalid()
                 throw new ArgumentOutOfRangeException("Un-representable DateTime instance.")
             mreturn %atrim(mLongDayText[%wkday(mDate)])+", "+
-            &   %atrim(mLongMonthText[mMonth])+" "+%string(mDay,'XX')+", "+%string(mYear,'XXXX')
+            &    %atrim(mLongMonthText[mMonth])+" "+%string(mDay,'XX')+", "+%string(mYear,'XXXX')
         endmethod
 
         ;;;<summary>
@@ -561,7 +561,7 @@ namespace SynPSG.System
                 mreturn %atrim(mLongMonthText[mMonth])+" "+%string(mDay,'XX')
             ("s"),
                 mreturn %string(mYear,'XXXX')+"-"+%string(mMonth,'XX')+"-"+%string(mDay,'XX')+
-                &   "T"+%string(mHour,'XX')+":"+%string(mMinute,'XX')+":"+%string(mSecond,'XX')
+                &    "T"+%string(mHour,'XX')+":"+%string(mMinute,'XX')+":"+%string(mSecond,'XX')
             ("t"),
                 mreturn this.ToShortTimeString()
             ("T"),
@@ -594,9 +594,9 @@ namespace SynPSG.System
                     if IsLeapYear(%integer(mYear)) then
                         if (mDay>29)
                             mreturn true
-                    else
-                        if (mDay>28)
-                            mreturn true
+                        else
+                            if (mDay>28)
+                                mreturn true
                 endusing
             mreturn false
         endmethod
@@ -605,22 +605,22 @@ namespace SynPSG.System
             valueToAdd  ,decimal
             valueType   ,TimeValueType
             endparams
-        stack record timesToAdd
-            wholeDays   ,i4
-            wholeHours  ,i4
-            wholeMinutes,i4
-            wholeSeconds,i4
-            wholeMillis ,i4
-        endrecord
-        stack record wrkVars
-            group workDate  ,d8
-                Year    ,d4
-                Month   ,d2
-                Day     ,d2
-            endgroup
-            workValue   ,decimal
-            workType    ,TimeValueType
-        endrecord
+            stack record timesToAdd
+                wholeDays   ,i4
+                wholeHours  ,i4
+                wholeMinutes,i4
+                wholeSeconds,i4
+                wholeMillis ,i4
+            endrecord
+            stack record wrkVars
+                group workDate  ,d8
+                    Year    ,d4
+                    Month   ,d2
+                    Day     ,d2
+                endgroup
+                workValue   ,decimal
+                workType    ,TimeValueType
+            endrecord
 
         proc
             init timesToAdd
@@ -682,7 +682,7 @@ namespace SynPSG.System
                     workType = TimeValueType.Hour
                 end
                 endusing
-                end
+            end
             until (workType == TimeValueType.Millisecond)
 
             ;; Now work in the opposite direction (from least time increment to greatest), creating
@@ -721,10 +721,10 @@ namespace SynPSG.System
 
             ;; Return our new datetime based on the work variables we've modified
             mreturn new DateTime(%integer(workDate.Year),%integer(workDate.Month),%integer(workDate.Day),
-            &   wholeHours,wholeMinutes,wholeSeconds,wholeMillis)
+            &    wholeHours,wholeMinutes,wholeSeconds,wholeMillis)
         endmethod
 
-   endclass
+    endclass
 
 endnamespace
 

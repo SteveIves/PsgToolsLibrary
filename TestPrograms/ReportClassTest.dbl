@@ -1,9 +1,8 @@
 
-import system
-import synpsg
-import synpsg.pdf
-import synpsg.system
-import synpsg.windows
+import SynPsg
+import SynPsg.PDF
+import SynPsg.System
+import SynPsg.windows
 
 main ReportClassTest
 

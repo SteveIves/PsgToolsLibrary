@@ -36,8 +36,8 @@
 
 .ifndef DBLNET
 
-import SynPSG.System.IO
-import SynPSG.System.Net.Mime
+import SynPsg.System.IO
+import SynPsg.System.Net.Mime
 
 namespace SynPSG.System.Net.Mail
 	

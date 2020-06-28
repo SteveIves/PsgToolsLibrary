@@ -9,38 +9,32 @@
 ;Requirements:  Synergy/DE V8.1 or higher
 ;
 ;
+function HtmlEncode, string
+    required in inString, string
+    endparams
 
-namespace SynPSG
+    stack record
+        outString, string
+    endrecord
+proc
 
-	function HtmlEncode, string
-		required in inString, string
-		endparams
+    outString = ""
 
-		stack record
-			outString, string
-		endrecord
-	proc
+    if (inString.Length > 0)
+    begin
+        data ix, int
+        for ix from 1 thru %trim(inString)
+        begin
+            using inString(ix:1) select
+            ("&"), outString += "&amp;"
+            ('"'), outString += "&quot;"
+            ("<"), outString += "&lt;"
+            (">"), outString += "&gt;"
+            (),    outString += inString(ix:1)
+            endusing
+        end
+    end
 
-		outString = ""
+    freturn outString
 
-		if (inString.Length > 0)
-		begin
-			data ix, int
-			for ix from 1 thru %trim(inString)
-			begin
-				using inString(ix:1) select
-				("&"), outString += "&amp;"
-				('"'), outString += "&quot;"
-				("<"), outString += "&lt;"
-				(">"), outString += "&gt;"
-				(),    outString += inString(ix:1)
-				endusing
-			end
-		end
-
-		freturn outString
-
-	endfunction
-		
-endnamespace
-
+endfunction

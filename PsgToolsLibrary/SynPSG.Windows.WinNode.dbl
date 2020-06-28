@@ -20,31 +20,26 @@
 
 .ifdef D_GUI
 
-namespace SynPSG.Windows
+function WinNode, string
 
-	function WinNode, string
-		endparams
+    .define MAXLENGTH ,31
 
-		.define MAXLENGTH ,31
+    .align
+    stack record
+        dll     ,i4
+        len     ,i4
+        name    ,a MAXLENGTH + 1
+    endrecord
 
-		.align
-		stack record
-			dll     ,i4
-			len     ,i4
-			name    ,a MAXLENGTH + 1
-		endrecord
-
-	proc
+proc
 		
-		len = ^size(name)
-		dll = %dll_open("kernel32")
-		xcall dll_call(dll,DLL_TYPE_WINAPI,"GetComputerNameA", ^addr(name), ^addr(len))
-		xcall dll_close(dll)
+    len = ^size(name)
+    dll = %dll_open("kernel32")
+    xcall dll_call(dll,DLL_TYPE_WINAPI,"GetComputerNameA", ^addr(name), ^addr(len))
+    xcall dll_close(dll)
 
-		freturn name(1:len)
+    freturn name(1:len)
 
-	endfunction
-
-endnamespace
+endfunction
 
 .endc

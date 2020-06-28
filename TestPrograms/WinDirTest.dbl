@@ -1,6 +1,6 @@
 
-import SynPSG.Windows
-import System.collections
+import SynPsg.Windows
+import System.Collections
 
 main test
 

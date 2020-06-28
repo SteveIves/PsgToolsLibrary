@@ -1,8 +1,7 @@
 
-import System
-import SynPSG.System.Net
-import SynPSG.System.Net.Mail
-import SynPSG.System.Security
+import SynPsg.System.Net
+import SynPsg.System.Net.Mail
+import SynPsg.System.Security
 
 main
 	record
@@ -19,14 +18,14 @@ proc
 
 	;;Get the name or IP address of the SMTP server
 	msg = new MailMessage()
-	msg.From = new MailAddress("steve@steveives.com","Steve Ives")
+	msg.From = new MailAddress("test@synergexpsg.com","Synergex PSG Test Mailbox")
 	msg.Subject = "Test message sent via authenticated connection."
 	msg.To.Add("steve.ives@synergex.com")
 	msg.Body = "<html><head></head><body><pre>This is the message body.<br>This is also the message body!</pre></body></html>"
 	msg.IsBodyHtml = true
 
-	client = new SmtpClient("mail.steveives.com")
-	client.Credentials = new NetworkCredential("steve@steveives.com","Sv1000Monster")
+	client = new SmtpClient("mail.synergexpsg.com")
+	client.Credentials = new NetworkCredential("test@synergexpsg.com","p@ssw0rd")
 
 	try
 	begin

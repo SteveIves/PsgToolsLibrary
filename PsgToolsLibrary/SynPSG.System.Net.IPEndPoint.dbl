@@ -42,9 +42,9 @@
 
 namespace SynPSG.System.Net
 	
-	public class IPEndPoint
+    public class IPEndPoint
 		
-		public Address          ,integer
+        public Address          ,integer
         public Port             ,integer
 
         public method IPEndPoint
@@ -73,7 +73,7 @@ namespace SynPSG.System.Net
             mreturn (%atrim(dotAddress) + ":" + %string(Port))
         endmethod
 	
-	endclass
+    endclass
 
 endnamespace
 

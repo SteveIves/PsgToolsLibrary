@@ -1,5 +1,5 @@
 
-import SynPSG
+import SynPsg
 import System.Collections
 
 main TestMailServerClient
@@ -11,9 +11,9 @@ endrecord
 proc
     open(1,i,"tt:")
 
-    mailClient = new MailServerClient("steve.ives@synergex.com","steve.ives@synergex.com")
-    mailClient.SmtpServer = "exch2013.synergex.loc"
-    mailClient.FromName = "Steve Ives"
+    mailClient = new MailServerClient("test@synergexpsg.com","steve.ives@synergex.com")
+    mailClient.SmtpServer = "mail.synergexpsg.com"
+    mailClient.FromName = "PSG Test Email Account"
     mailClient.Subject = "Here are some files for you!"
     mailClient.BodyTextOrFile = "<html><head></head><body><H1>Your Files Have Arrived!</H1><p>They are attached to this message. <b>Enjoy!</B>.</p></body></html>"
     mailClient.AddAttachment("C:\Program Files (x86)\Synergex\SynergyDE\Manuals\lic103.pdf")

@@ -40,9 +40,9 @@
 ;;
 ;;*****************************************************************************
 
-import SynPSG
-import SynPSG.Windows
-import SynPSG.System.Net.Sockets
+import SynPsg
+import SynPsg.Windows
+import SynPsg.System.Net.Sockets
 
 main FtpClientExample
 

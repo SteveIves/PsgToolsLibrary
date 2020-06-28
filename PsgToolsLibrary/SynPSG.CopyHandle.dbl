@@ -38,68 +38,64 @@
 ;*****************************************************************************
 ;
 
-namespace SynPSG
+subroutine CopyHandle
 
-	subroutine CopyHandle
+    required in  a_handle_in	,i4		;Handle to copy
+    required out a_handle_out	,i4		;New handle
+    endparams
 
-		required in  a_handle_in	,i4		;Handle to copy
-		required out a_handle_out	,i4		;New handle
-		endparams
-
-		.define D_MAXSIZE   65535   ;If we need to copy the data in "chunks" then this
-									;is the size of a chunk.  The maximum size we can
-									;address in Synergy is 1-byte less than 64K, so
-									;the maximum chunk size is 65535
-		structure chunk
-							,a D_MAXSIZE
-		endstructure
+    .define D_MAXSIZE   65535   ;If we need to copy the data in "chunks" then this
+    ;is the size of a chunk.  The maximum size we can
+    ;address in Synergy is 1-byte less than 64K, so
+    ;the maximum chunk size is 65535
+    structure chunk
+        ,a D_MAXSIZE
+    endstructure
 		
-		stack record ivars
-			total_size      ,i4     ;Size of handle to be copied (bytes)
-			chunks          ,i4     ;How many chunks are needed?
-			count           ,i4     ;Loop counter
-			leftover        ,i4     ;Bytes left over after copying chunks
-		endrecord
+    stack record ivars
+        total_size      ,i4     ;Size of handle to be copied (bytes)
+        chunks          ,i4     ;How many chunks are needed?
+        count           ,i4     ;Loop counter
+        leftover        ,i4     ;Bytes left over after copying chunks
+    endrecord
 		
-	proc
+proc
 
-		clear ^i(ivars)
+    clear ^i(ivars)
 
-		;Get the size of the handle to be copied
-		total_size = mem_proc(DM_GETSIZE,a_handle_in)
+    ;Get the size of the handle to be copied
+    total_size = mem_proc(DM_GETSIZE,a_handle_in)
 
-		;If the out handle is already allocated then resize the memory to the
-		;size of the handle to be copied.  Otherwise allocate a new static handle
-		;of that size.
-		if (a_handle_out) then
-			a_handle_out = mem_proc(DM_RESIZ,total_size,a_handle_out)
-		else
-			a_handle_out = mem_proc(DM_ALLOC|DM_STATIC,total_size)
+    ;If the out handle is already allocated then resize the memory to the
+    ;size of the handle to be copied.  Otherwise allocate a new static handle
+    ;of that size.
+    if (a_handle_out) then
+        a_handle_out = mem_proc(DM_RESIZ,total_size,a_handle_out)
+    else
+        a_handle_out = mem_proc(DM_ALLOC|DM_STATIC,total_size)
 
-		;If the data is less than 64K then we can copy it in one go
-		if (total_size<=D_MAXSIZE) then
-			^m(a_handle_out) = ^m(a_handle_in)
-		else
-		begin
+    ;If the data is less than 64K then we can copy it in one go
+    if (total_size<=D_MAXSIZE) then
+        ^m(a_handle_out) = ^m(a_handle_in)
+    else
+    begin
 
-			;The data is 64K or larger, so we'll have to copy it in "chunks" of
-			;less than 64K.
+        ;The data is 64K or larger, so we'll have to copy it in "chunks" of
+        ;less than 64K.
 
-			;How many chunks will we need?
-			chunks = (total_size / D_MAXSIZE)
+        ;How many chunks will we need?
+        chunks = (total_size / D_MAXSIZE)
 
-			;Copy the full chunks
-			for count from 1 thru chunks
-				^m(chunk[count],a_handle_out) = ^m(chunk[count],a_handle_in)
+        ;Copy the full chunks
+        for count from 1 thru chunks
+            ^m(chunk[count],a_handle_out) = ^m(chunk[count],a_handle_in)
 
-			;And then copy any data remaining (less than a full chunk)
-			if (leftover=(total_size-((chunks*D_MAXSIZE))))
-				^m(chunk[chunks+1](1:leftover),a_handle_out)
-				&       = ^m(chunk[chunks+1](1:leftover),a_handle_in)
-		end
+        ;And then copy any data remaining (less than a full chunk)
+        if (leftover=(total_size-((chunks*D_MAXSIZE))))
+            ^m(chunk[chunks+1](1:leftover),a_handle_out)
+            &    = ^m(chunk[chunks+1](1:leftover),a_handle_in)
+    end
 
-		xreturn
+    xreturn
 
-	endsubroutine
-	
-endnamespace
+endsubroutine

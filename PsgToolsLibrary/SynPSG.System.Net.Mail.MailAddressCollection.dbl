@@ -36,11 +36,11 @@
 
 .ifndef DBLNET
 
-import SynPSG.System
-import SynPSG.System.IO
-import SynPSG.System.Net.Mail
-import SynPSG.System.Net.Mime
-import SynPSG.System.Net.Sockets
+import SynPsg.System
+import SynPsg.System.IO
+import SynPsg.System.Net.Mail
+import SynPsg.System.Net.Mime
+import SynPsg.System.Net.Sockets
 import System.Collections
 
 namespace SynPSG.System.Net.Mail
@@ -67,12 +67,12 @@ namespace SynPSG.System.Net.Mail
         public method Add   ,i
             in addresses    ,string
             endparams
-        record
-            tempAddress ,@MailAddress
-            email       ,string
-            begpos      ,i4
-            endpos      ,i4
-        endrecord
+            record
+                tempAddress ,@MailAddress
+                email       ,string
+                begpos      ,i4
+                endpos      ,i4
+            endrecord
         proc
             begpos=2
             while %instr(begpos,addresses,",",endpos)
@@ -120,11 +120,11 @@ namespace SynPSG.System.Net.Mail
         ;;;</summary>
         new public method ToString  ,string
             endparams
-        record
-            addresses   ,string
-            tempAddress ,@MailAddress
-            ctr         ,i4
-        endrecord
+            record
+                addresses   ,string
+                tempAddress ,@MailAddress
+                ctr         ,i4
+            endrecord
         proc
             init addresses
             for ctr from 1 thru mAddressCollection.Count

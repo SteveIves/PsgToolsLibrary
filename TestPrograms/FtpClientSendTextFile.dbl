@@ -40,8 +40,8 @@
 ;;
 ;;*****************************************************************************
 
-import SynPSG
-import SynPSG.System.Net.Sockets
+import SynPsg
+import SynPsg.System.Net.Sockets
 
 main FtpClientSendTextFile
 

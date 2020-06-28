@@ -1,6 +1,6 @@
 
-import SynPSG.SevenZipAPI
-import SynPSG.System.IO
+import SynPsg.SevenZipAPI
+import SynPsg.System.IO
 
 main SevenTestZip
 	record 

@@ -1,7 +1,7 @@
 
 import System.Collections
-import SynPSG.Windows
-import SynPSG.System.IO
+import SynPsg.Windows
+import SynPsg.System.IO
 
 main DirectoryTests
 	

@@ -38,141 +38,141 @@ import System.Collections
 
 namespace SynPSG.SubversionAPI
 
-	public class Subversion
+    public class Subversion
 		
-		private url, 		string
-		private uid, 		string
-		private pwd, 		string
-		private mMessages, 	@ArrayList
+        private url, 		string
+        private uid, 		string
+        private pwd, 		string
+        private mMessages, 	@ArrayList
 		
-		public method Subversion
-			required in repoUrl, string
-			required in username, string
-			required in password, string
-			endparams
-			record 
-				ch,	int
-				buffer,	a64
-			endrecord
-		proc
-			;;Save the repo data
-			url = repoUrl.Trim()
-			uid = username.Trim()
-			pwd = password.Trim()
+        public method Subversion
+            required in repoUrl, string
+            required in username, string
+            required in password, string
+            endparams
+            record 
+                ch,	int
+                buffer,	a64
+            endrecord
+        proc
+            ;;Save the repo data
+            url = repoUrl.Trim()
+            uid = username.Trim()
+            pwd = password.Trim()
 
-			mMessages = new ArrayList()
+            mMessages = new ArrayList()
 			
-			;;Make sure we find an svn.exe in PATH
-			open(ch=0,i,"|svn help")
-			repeat
-			begin
-				reads(ch,buffer,eof)
-				if (buffer=="'svn' is not recognized as an internal or external command")
-				begin
-					close ch
-					throw new ApplicationException("svn.exe was not found in your PATH!")
-				end
-			end
-		eof,	close ch
-		endmethod
+            ;;Make sure we find an svn.exe in PATH
+            open(ch=0,i,"|svn help")
+            repeat
+            begin
+                reads(ch,buffer,eof)
+                if (buffer=="'svn' is not recognized as an internal or external command")
+                begin
+                    close ch
+                    throw new ApplicationException("svn.exe was not found in your PATH!")
+                end
+            end
+        eof,	close ch
+        endmethod
 
 		
-		public method GetRepositoryInfo,	@RepositoryInfo
-			endparams
-			record
-				ch,			int
-				buffer,			a256
-				info,			@RepositoryInfo
-			endrecord
-		proc
-			mMessages.Clear()
-			open(ch=0,i,"|svn info --username " + uid + " --password " + pwd + " --non-interactive --trust-server-cert " + url)
-			;Path: FlexCon
-			;URL: http://sivesw8x64:8080/svn/FlexCon
-			;Relative URL: ^/
-			;Repository Root: http://sivesw8x64:8080/svn/FlexCon
-			;Repository UUID: 33807f0c-819f-1542-b365-92cdf49528d8
-			;Revision: 59
-			;Node Kind: directory
-			;Last Changed Author: stevei
-			;Last Changed Rev: 59
-			;Last Changed Date: 2014-03-10 17:40:45 -0400 (Mon, 10 Mar 2014)
-			info = new RepositoryInfo()
-			repeat
-			begin
-				reads(ch,buffer,eof)
-				using buffer select
-				("Path: "),
-					info.Path =  %atrim(buffer - "Path: ")
-				("URL: "),
-					info.URL =  %atrim(buffer - "URL: ")
-				("Relative URL: "),
-					info.RelativeURL =  %atrim(buffer - "Relative URL: ")
-				("Repository Root: "),
-					info.URL =  %atrim(buffer - "URL: ")
-				("Repository Root: "),
-					info.Root =  %atrim(buffer - "Repository Root: ")
-				("Repository UUID: "),
-					info.UUID =  %atrim(buffer - "Repository UUID: ")
-				("Revision: "),
-					info.Revision =  %integer(%atrim(buffer - "Revision: "))
-				("Node Kind: "),
-					info.NodeKind =  %atrim(buffer - "Node Kind: ")
-				("Last Changed Author: "),
-					info.LastChangedAuthor =  %atrim(buffer - "Last Changed Author: ")
-				("Last Changed Rev: "),
-					info.LastChangedRevision =  %atrim(buffer - "Last Changed Rev: ")
-				("Last Changed Date: "),
-					info.LastChangedDate =  %atrim(buffer - "Last Changed Date: ")
-				endusing
-			end
-		eof,	close ch
-			mreturn info
-		endmethod
+        public method GetRepositoryInfo,	@RepositoryInfo
+            endparams
+            record
+                ch,			int
+                buffer,			a256
+                info,			@RepositoryInfo
+            endrecord
+        proc
+            mMessages.Clear()
+            open(ch=0,i,"|svn info --username " + uid + " --password " + pwd + " --non-interactive --trust-server-cert " + url)
+            ;Path: FlexCon
+            ;URL: http://sivesw8x64:8080/svn/FlexCon
+            ;Relative URL: ^/
+            ;Repository Root: http://sivesw8x64:8080/svn/FlexCon
+            ;Repository UUID: 33807f0c-819f-1542-b365-92cdf49528d8
+            ;Revision: 59
+            ;Node Kind: directory
+            ;Last Changed Author: stevei
+            ;Last Changed Rev: 59
+            ;Last Changed Date: 2014-03-10 17:40:45 -0400 (Mon, 10 Mar 2014)
+            info = new RepositoryInfo()
+            repeat
+            begin
+                reads(ch,buffer,eof)
+                using buffer select
+                ("Path: "),
+                    info.Path =  %atrim(buffer - "Path: ")
+                ("URL: "),
+                    info.URL =  %atrim(buffer - "URL: ")
+                ("Relative URL: "),
+                    info.RelativeURL =  %atrim(buffer - "Relative URL: ")
+                ("Repository Root: "),
+                    info.URL =  %atrim(buffer - "URL: ")
+                ("Repository Root: "),
+                    info.Root =  %atrim(buffer - "Repository Root: ")
+                ("Repository UUID: "),
+                    info.UUID =  %atrim(buffer - "Repository UUID: ")
+                ("Revision: "),
+                    info.Revision =  %integer(%atrim(buffer - "Revision: "))
+                ("Node Kind: "),
+                    info.NodeKind =  %atrim(buffer - "Node Kind: ")
+                ("Last Changed Author: "),
+                    info.LastChangedAuthor =  %atrim(buffer - "Last Changed Author: ")
+                ("Last Changed Rev: "),
+                    info.LastChangedRevision =  %atrim(buffer - "Last Changed Rev: ")
+                ("Last Changed Date: "),
+                    info.LastChangedDate =  %atrim(buffer - "Last Changed Date: ")
+                endusing
+            end
+        eof,	close ch
+            mreturn info
+        endmethod
 		
-		public method ExportRevision, boolean
-			required in revision, 	int
-			required in folder, 	string
-			endparams
-			record 
-				ok, 		boolean
-				command, 	string
-				ch,		int
-				buffer,		a256
-			endrecord
-		proc
-			ok = true
-			mMessages.Clear()
-			command = "|svn export -q -r " + %string(revision) + " --username " + uid + " --password " + pwd + " --non-interactive --trust-server-cert " + url + " " + folder.Trim()
-			open(ch=0,i,command)
-			repeat
-			begin
-				reads(ch,buffer,eof)
-				if (!buffer)
-					exitloop
-				mMessages.Add((string)%atrim(buffer))
-				ok = false
-			end
-		eof,	close ch
-			mreturn ok
-		endmethod
+        public method ExportRevision, boolean
+            required in revision, 	int
+            required in folder, 	string
+            endparams
+            record 
+                ok, 		boolean
+                command, 	string
+                ch,		int
+                buffer,		a256
+            endrecord
+        proc
+            ok = true
+            mMessages.Clear()
+            command = "|svn export -q -r " + %string(revision) + " --username " + uid + " --password " + pwd + " --non-interactive --trust-server-cert " + url + " " + folder.Trim()
+            open(ch=0,i,command)
+            repeat
+            begin
+                reads(ch,buffer,eof)
+                if (!buffer)
+                    exitloop
+                mMessages.Add((string)%atrim(buffer))
+                ok = false
+            end
+        eof,	close ch
+            mreturn ok
+        endmethod
 		
-	endclass
+    endclass
 	
-	public class RepositoryInfo
+    public class RepositoryInfo
 
-		public Path,			string
-		public URL,			string
-		public RelativeURL,		string
-		public Root,			string
-		public UUID,			string
-		Public Revision,		int
-		public NodeKind,		string
-		Public LastChangedAuthor,	string
-		Public LastChangedRevision,	int
-		public LastChangedDate,		string
+        public Path,			string
+        public URL,			string
+        public RelativeURL,		string
+        public Root,			string
+        public UUID,			string
+        Public Revision,		int
+        public NodeKind,		string
+        Public LastChangedAuthor,	string
+        Public LastChangedRevision,	int
+        public LastChangedDate,		string
 		
-	endclass
+    endclass
 
 endnamespace
 

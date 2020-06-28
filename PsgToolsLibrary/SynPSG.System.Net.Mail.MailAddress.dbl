@@ -36,13 +36,14 @@
 
 .ifndef DBLNET
 
-import SynPSG.System
-import SynPSG.System.IO
-import SynPSG.System.Net.Mail
-import SynPSG.System.Net.Mime
-import SynPSG.System.Net.Sockets
+import SynPsg.System
+import SynPsg.System.IO
+import SynPsg.System.Net.Mail
+import SynPsg.System.Net.Mime
+import SynPsg.System.Net.Sockets
 
 namespace SynPSG.System.Net.Mail
+
     class MailAddress
         private mAddress        ,string
         private mDisplayName    ,string
@@ -156,7 +157,7 @@ namespace SynPSG.System.Net.Mail
                 addrStart += 1
                 while(addrStart < addrEnd && Address(addrStart:1) == ' ')
                     addrStart += 1
-                end
+            end
             else
             begin
                 addrStart = 1
@@ -190,18 +191,18 @@ namespace SynPSG.System.Net.Mail
         private method setHostAndUser   ,void
             in required Address ,string
             endparams
-        record
-            atPos   ,i4
-        endrecord
+            record
+                atPos   ,i4
+            endrecord
         proc
             mHost=""
             mUser=""
             if %instr(2,Address,"@",atPos)
-                begin
+            begin
                 mUser = Address(1:atPos-1)
                 if (atPos<%trim(Address))
                     mHost = Address(atPos+1,%trim(Address))
-                end
+            end
             if (mHost.length==0 || mUser.length==0)
                 throw new exception("The specified string is not in the form required for an e-mail address.")
         endmethod

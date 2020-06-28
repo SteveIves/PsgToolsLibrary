@@ -79,7 +79,7 @@
 ;1.2     27th June 2011
 ;Now copes with a Repository include being the first record in the data division.
 
-import System.collections
+import System.Collections
 
 main createDoc
 
