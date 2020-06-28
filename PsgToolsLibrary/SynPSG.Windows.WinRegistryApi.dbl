@@ -55,7 +55,7 @@ namespace SynPSG.Windows
         required out a_reghdl, D_ADDR
         endparams
         .define REGISTRY_INTERNAL
-        .include "STDLIBINC:RegistryApi.def"
+        .include "PSGLIBINC:RegistryApi.def"
         .align
         stack record
             status      ,i4     ;;Return status
@@ -87,7 +87,7 @@ namespace SynPSG.Windows
 		required inout a_reghdl, D_ADDR
         endparams
         .define REGISTRY_INTERNAL
-        .include "STDLIBINC:RegistryApi.def"
+        .include "PSGLIBINC:RegistryApi.def"
     proc
         onerror error
         a_reghdl = dll_close(a_reghdl)
@@ -113,7 +113,7 @@ namespace SynPSG.Windows
         a_flush     ,n      ;;(Optional) flush   (flush to disk after create)
         endparams
         .define REGISTRY_INTERNAL
-        .include "STDLIBINC:RegistryApi.def"
+        .include "PSGLIBINC:RegistryApi.def"
         .align
         stack record ivars
             status      ,i4     ;;Return status
@@ -188,7 +188,7 @@ namespace SynPSG.Windows
         a_key       ,a      ;;Path below hive    (e.g. "Software\SomeCompany\Someproduct")
         endparams
         .define REGISTRY_INTERNAL
-        .include "STDLIBINC:RegistryApi.def"
+        .include "PSGLIBINC:RegistryApi.def"
         .align
         stack record
             status      ,i4     ;;Return status
@@ -232,7 +232,7 @@ namespace SynPSG.Windows
         a_flush     ,n      ;;(Optional) flush   (flush to disk after delete)
         endparams
         .define REGISTRY_INTERNAL
-        .include "STDLIBINC:RegistryApi.def"
+        .include "PSGLIBINC:RegistryApi.def"
         .align
         stack record ivars
             status      ,i4     ;;Return status
@@ -325,7 +325,7 @@ namespace SynPSG.Windows
         a_size      ,n      ;;Value size         (returned, size in bytes of returned data)
         endparams
         .define REGISTRY_INTERNAL
-        .include "STDLIBINC:RegistryApi.def"
+        .include "PSGLIBINC:RegistryApi.def"
         .align
         stack record ivars
             status      ,i4     ;;Return status
@@ -448,7 +448,7 @@ namespace SynPSG.Windows
         a_data      ,n      ;;Value data         (returned)
         endparams
         .define REGISTRY_INTERNAL
-        .include "STDLIBINC:RegistryApi.def"
+        .include "PSGLIBINC:RegistryApi.def"
         .align
         stack record ivars
             status      ,i4     ;;Return status
@@ -548,7 +548,7 @@ namespace SynPSG.Windows
         a_data      ,a      ;;Value data         (returned)
         endparams
         .define REGISTRY_INTERNAL
-        .include "STDLIBINC:RegistryApi.def"
+        .include "PSGLIBINC:RegistryApi.def"
         .align
         stack record ivars
             status      ,i4     ;;Return status
@@ -687,7 +687,7 @@ namespace SynPSG.Windows
         a_freemem   ,n      ;;(Optional) Free dynamic memory after set
         endparams
         .define REGISTRY_INTERNAL
-        .include "STDLIBINC:RegistryApi.def"
+        .include "PSGLIBINC:RegistryApi.def"
         .align
         stack record ivars
             status      ,i4     ;;Return status
@@ -793,7 +793,7 @@ namespace SynPSG.Windows
         a_flush     ,n      ;;(Optional) flush   (flush to disk after set)
         endparams
         .define REGISTRY_INTERNAL
-        .include "STDLIBINC:RegistryApi.def"
+        .include "PSGLIBINC:RegistryApi.def"
         .align
         stack record ivars
             status      ,i4     ;;Return status
@@ -898,7 +898,7 @@ namespace SynPSG.Windows
         a_flush     ,n      ;;(Optional) flush   (flush to disk after set)
         endparams
         .define REGISTRY_INTERNAL
-        .include "STDLIBINC:RegistryApi.def"
+        .include "PSGLIBINC:RegistryApi.def"
         .align                  ;;A new comment
         stack record ivars
             status      ,i4     ;;Return status

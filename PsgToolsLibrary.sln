@@ -5,6 +5,31 @@ VisualStudioVersion = 16.0.30204.135
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{BBD0F5D1-1CC4-42FD-BA4C-A96779C64378}") = "PsgToolsLibrary", "PsgToolsLibrary\PsgToolsLibrary.synproj", "{AEA1A298-8D1D-4872-B7CD-0D07A46511E4}"
 EndProject
+Project("{BBD0F5D1-1CC4-42FD-BA4C-A96779C64378}") = "TestPrograms", "TestPrograms\TestPrograms.synproj", "{1B2EA17C-0396-4B97-A3CB-38A1243556D9}"
+EndProject
+Project("{BBD0F5D1-1CC4-42FD-BA4C-A96779C64378}") = "UtilityPrograms", "UtilityPrograms\UtilityPrograms.synproj", "{CE2DF895-4D9F-45A7-A701-A05E5E08A4B8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Includes", "Includes", "{883F3165-E5EF-476C-8188-2162FB4937E8}"
+	ProjectSection(SolutionItems) = preProject
+		Includes\RegistryApi.def = Includes\RegistryApi.def
+		Includes\smtpmail.def = Includes\smtpmail.def
+		Includes\timezone.def = Includes\timezone.def
+		Includes\WinError.def = Includes\WinError.def
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F3C00A6C-C44E-44EB-A8A7-C7B66984AD84}"
+	ProjectSection(SolutionItems) = preProject
+		localTZ.ini = localTZ.ini
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BatchFiles", "BatchFiles", "{58E94031-4517-4D94-B063-7FA369C60D95}"
+	ProjectSection(SolutionItems) = preProject
+		BatrchFiles\WindowsServiceRegister.bat = BatrchFiles\WindowsServiceRegister.bat
+		BatrchFiles\WindowsServiceRemove.bat = BatrchFiles\WindowsServiceRemove.bat
+		BatrchFiles\WindowsServiceStart.bat = BatrchFiles\WindowsServiceStart.bat
+		BatrchFiles\WindowsServiceStop.bat = BatrchFiles\WindowsServiceStop.bat
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +46,22 @@ Global
 		{AEA1A298-8D1D-4872-B7CD-0D07A46511E4}.Release|x64.Build.0 = Release|x64
 		{AEA1A298-8D1D-4872-B7CD-0D07A46511E4}.Release|x86.ActiveCfg = Release|x86
 		{AEA1A298-8D1D-4872-B7CD-0D07A46511E4}.Release|x86.Build.0 = Release|x86
+		{1B2EA17C-0396-4B97-A3CB-38A1243556D9}.Debug|x64.ActiveCfg = Debug|x64
+		{1B2EA17C-0396-4B97-A3CB-38A1243556D9}.Debug|x64.Build.0 = Debug|x64
+		{1B2EA17C-0396-4B97-A3CB-38A1243556D9}.Debug|x86.ActiveCfg = Debug|x86
+		{1B2EA17C-0396-4B97-A3CB-38A1243556D9}.Debug|x86.Build.0 = Debug|x86
+		{1B2EA17C-0396-4B97-A3CB-38A1243556D9}.Release|x64.ActiveCfg = Release|x64
+		{1B2EA17C-0396-4B97-A3CB-38A1243556D9}.Release|x64.Build.0 = Release|x64
+		{1B2EA17C-0396-4B97-A3CB-38A1243556D9}.Release|x86.ActiveCfg = Release|x86
+		{1B2EA17C-0396-4B97-A3CB-38A1243556D9}.Release|x86.Build.0 = Release|x86
+		{CE2DF895-4D9F-45A7-A701-A05E5E08A4B8}.Debug|x64.ActiveCfg = Debug|x64
+		{CE2DF895-4D9F-45A7-A701-A05E5E08A4B8}.Debug|x64.Build.0 = Debug|x64
+		{CE2DF895-4D9F-45A7-A701-A05E5E08A4B8}.Debug|x86.ActiveCfg = Debug|x86
+		{CE2DF895-4D9F-45A7-A701-A05E5E08A4B8}.Debug|x86.Build.0 = Debug|x86
+		{CE2DF895-4D9F-45A7-A701-A05E5E08A4B8}.Release|x64.ActiveCfg = Release|x64
+		{CE2DF895-4D9F-45A7-A701-A05E5E08A4B8}.Release|x64.Build.0 = Release|x64
+		{CE2DF895-4D9F-45A7-A701-A05E5E08A4B8}.Release|x86.ActiveCfg = Release|x86
+		{CE2DF895-4D9F-45A7-A701-A05E5E08A4B8}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

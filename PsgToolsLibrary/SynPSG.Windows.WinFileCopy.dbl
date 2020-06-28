@@ -29,7 +29,8 @@ namespace SynPSG.Windows
 		a_confirm	,n		;Confirm actions (TRUE=YES)
 		endparams
 
-		.include "WND:windows.def"
+        .include "WND:tools.def"
+        .include "WND:windows.def"
 
 		.align
 		stack record
@@ -64,9 +65,9 @@ namespace SynPSG.Windows
 		if (^passed(a_confirm).and.a_confirm)
 		begin
 			if (!status) then
-				xcall info("Failed to copy " + %atrim(a_from) + " to " + %atrim(a_to) + "!")
+				xcall u_msgbox("Failed to copy " + %atrim(a_from) + " to " + %atrim(a_to) + "!",D_MCENTER|D_MOK|D_MICONINFO,"Information")
 			else
-				xcall info("Copied " + %atrim(a_from) + " to " + %atrim(a_to))
+                xcall u_msgbox("Copied " + %atrim(a_from) + " to " + %atrim(a_to),D_MCENTER|D_MOK|D_MICONINFO,"Information")
 		end
 
 		xcall dll_close(dll)
