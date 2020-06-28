@@ -1,0 +1,69 @@
+﻿<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(SolutionDir)Common.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Configuration)' == '' ">x86</Platform>
+    <Name>UtilityPrograms</Name>
+    <StartupObject>Program1.dbl</StartupObject>
+    <OutputName>$(StartupObject)</OutputName>
+    <ProjectGuid>{ce2df895-4d9f-45a7-a701-a05e5e08a4b8}</ProjectGuid>
+    <ProjectTypeGuids>{7B8CF543-378A-4EC1-BB1B-98E4DC6E6820};{BBD0F5D1-1CC4-42fd-BA4C-A96779C64378}</ProjectTypeGuids>
+    <OutputType>mainline</OutputType>
+    <DBL_SingleCompilationUnit>false</DBL_SingleCompilationUnit>
+    <DBL_qTrim>True</DBL_qTrim>
+    <DBL_qAlign>True</DBL_qAlign>
+    <EnableCommonProperties>True</EnableCommonProperties>
+    <CommonPropertiesFileLocation>$(SolutionDir)Common.props</CommonPropertiesFileLocation>
+    <RootNamespace>UtilityPrograms</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x86</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Debug</DebugOptimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Debug</DebugOptimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x86</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Optimize</DebugOptimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Optimize</DebugOptimize>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Traditional.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="CreateDoc.dbl" />
+    <Compile Include="TestKeys.dbl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PsgToolsLibrary\PsgToolsLibrary.synproj">
+      <Name>PsgToolsLibrary</Name>
+      <Project>{aea1a298-8d1d-4872-b7cd-0d07a46511e4}</Project>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

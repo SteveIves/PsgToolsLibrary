@@ -1,0 +1,102 @@
+﻿<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(SolutionDir)Common.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Configuration)' == '' ">x86</Platform>
+    <Name>TestPrograms</Name>
+    <StartupObject>Program1.dbl</StartupObject>
+    <OutputName>$(StartupObject)</OutputName>
+    <ProjectGuid>{1b2ea17c-0396-4b97-a3cb-38a1243556d9}</ProjectGuid>
+    <ProjectTypeGuids>{7B8CF543-378A-4EC1-BB1B-98E4DC6E6820};{BBD0F5D1-1CC4-42fd-BA4C-A96779C64378}</ProjectTypeGuids>
+    <OutputType>mainline</OutputType>
+    <DBL_SingleCompilationUnit>false</DBL_SingleCompilationUnit>
+    <DBL_qTrim>True</DBL_qTrim>
+    <DBL_qAlign>True</DBL_qAlign>
+    <EnableCommonProperties>True</EnableCommonProperties>
+    <CommonPropertiesFileLocation>$(SolutionDir)Common.props</CommonPropertiesFileLocation>
+    <RootNamespace>TestPrograms</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x86</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Debug</DebugOptimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Debug</DebugOptimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x86</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Optimize</DebugOptimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Optimize</DebugOptimize>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Traditional.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="ArrayListOfDecimal.dbl" />
+    <Compile Include="ClipBoardTest.dbl" />
+    <Compile Include="CopyFromScreenTest.dbl" />
+    <Compile Include="CopyHandleTest.dbl" />
+    <Compile Include="DirectoryTests.dbl" />
+    <Compile Include="FileDialogTests.dbl" />
+    <Compile Include="FtpClientReceiveTextFile.dbl" />
+    <Compile Include="FtpClientSendTextFile.dbl" />
+    <Compile Include="FtpClientTest.dbl" />
+    <Compile Include="FtpReceiveMultipleFiles.dbl" />
+    <Compile Include="FtpSendMultipleFiles.dbl" />
+    <Compile Include="ReportClassColorChart.dbl" />
+    <Compile Include="ReportClassTest.dbl" />
+    <Compile Include="RightClickToClipboard.dbl" />
+    <Compile Include="ScheduledTask.dbl" />
+    <Compile Include="ScheduledTaskCreate.dbl" />
+    <Compile Include="ScheduledTaskGetStatus.dbl" />
+    <Compile Include="ScheduledTaskRemove.dbl" />
+    <Compile Include="ScheduledTaskRunNow.dbl" />
+    <Compile Include="ScheduledTasksSummary.dbl" />
+    <Compile Include="SelectExample.dbl" />
+    <Compile Include="SevenZipTest.dbl" />
+    <Compile Include="SmtpClient.dbl" />
+    <Compile Include="SmtpClient_Authenticated.dbl" />
+    <Compile Include="SparseSelect.dbl" />
+    <Compile Include="TestMailServerClient.dbl" />
+    <Compile Include="TestScrollWindow.dbl" />
+    <Compile Include="WinDirTest.dbl" />
+    <Compile Include="WindowsService.dbl" />
+    <Compile Include="WinPathTest.dbl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PdfLibrary\PdfLibrary.synproj">
+      <Name>PdfLibrary</Name>
+      <Project>{a588a51b-0093-4ab3-88c4-e2d0a7edcb63}</Project>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\PsgToolsLibrary\PsgToolsLibrary.synproj">
+      <Name>PsgToolsLibrary</Name>
+      <Project>{aea1a298-8d1d-4872-b7cd-0d07a46511e4}</Project>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

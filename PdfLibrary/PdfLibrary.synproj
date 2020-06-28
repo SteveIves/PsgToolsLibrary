@@ -1,0 +1,118 @@
+﻿<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(SolutionDir)Common.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Configuration)' == '' ">x86</Platform>
+    <Name>PdfLibrary</Name>
+    <StartupObject>
+    </StartupObject>
+    <OutputName>PdfLibrary</OutputName>
+    <ProjectGuid>{a588a51b-0093-4ab3-88c4-e2d0a7edcb63}</ProjectGuid>
+    <ProjectTypeGuids>{7B8CF543-378A-4EC1-BB1B-98E4DC6E6820};{BBD0F5D1-1CC4-42fd-BA4C-A96779C64378}</ProjectTypeGuids>
+    <OutputType>elb</OutputType>
+    <DBL_qTrim>True</DBL_qTrim>
+    <DBL_qAlign>True</DBL_qAlign>
+    <EnableCommonProperties>True</EnableCommonProperties>
+    <CommonPropertiesFileLocation>$(SolutionDir)Common.props</CommonPropertiesFileLocation>
+    <RootNamespace>PdfLibrary</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x86</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Debug</DebugOptimize>
+    <DBLink_ReferenceCheck>True</DBLink_ReferenceCheck>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Debug</DebugOptimize>
+    <DBLink_ReferenceCheck>True</DBLink_ReferenceCheck>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x86</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Optimize</DebugOptimize>
+    <DBLink_ReferenceCheck>True</DBLink_ReferenceCheck>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Optimize</DebugOptimize>
+    <DBLink_ReferenceCheck>True</DBLink_ReferenceCheck>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Traditional.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\AutoBox.dbl">
+      <Link>AutoBox.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\AutoBoxAbsolute.dbl">
+      <Link>AutoBoxAbsolute.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\AutoBoxRowCol.dbl">
+      <Link>AutoBoxRowCol.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\AutoImage.dbl">
+      <Link>AutoImage.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\AutoItem.dbl">
+      <Link>AutoItem.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\AutoLine.dbl">
+      <Link>AutoLine.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\AutoLineAbsolute.dbl">
+      <Link>AutoLineAbsolute.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\AutoLineRowCol.dbl">
+      <Link>AutoLineRowCol.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\AutoText.dbl">
+      <Link>AutoText.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\AutoTextAbsolute.dbl">
+      <Link>AutoTextAbsolute.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\AutoTextRowCol.dbl">
+      <Link>AutoTextRowCol.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\ChartDataSet.dbl">
+      <Link>ChartDataSet.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\ChartItem.dbl">
+      <Link>ChartItem.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\ChartSeries.dbl">
+      <Link>ChartSeries.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\Enumerations.dbl">
+      <Link>Enumerations.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\pdfdbl.dbl">
+      <Link>pdfdbl.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\PdfFile.dbl">
+      <Link>PdfFile.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\PDF\Structures.dbl">
+      <Link>Structures.dbl</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

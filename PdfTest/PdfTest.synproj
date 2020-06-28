@@ -1,0 +1,123 @@
+﻿<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(SolutionDir)Common.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Configuration)' == '' ">x86</Platform>
+    <Name>PdfTest</Name>
+    <StartupObject>&lt;Synergy Main&gt;</StartupObject>
+    <OutputName>PdfTest</OutputName>
+    <ProjectGuid>{60060afb-b755-46d9-96a8-424086850815}</ProjectGuid>
+    <ProjectTypeGuids>{7B8CF543-378A-4EC1-BB1B-98E4DC6E6820};{BBD0F5D1-1CC4-42fd-BA4C-A96779C64378}</ProjectTypeGuids>
+    <OutputType>application</OutputType>
+    <DBL_qTrim>True</DBL_qTrim>
+    <DBL_qAlign>True</DBL_qAlign>
+    <EnableCommonProperties>True</EnableCommonProperties>
+    <CommonPropertiesFileLocation>$(SolutionDir)Common.props</CommonPropertiesFileLocation>
+    <RootNamespace>PdfTest</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x86</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Debug</DebugOptimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Debug</DebugOptimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x86</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Optimize</DebugOptimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Optimize</DebugOptimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\AttachFileTest.dbl">
+      <Link>AttachFileTest.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\AutoItems.dbl">
+      <Link>AutoItems.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\BlueAndRedBox.dbl">
+      <Link>BlueAndRedBox.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\CirclesTest.dbl">
+      <Link>CirclesTest.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\DblMessagesReport.dbl">
+      <Link>DblMessagesReport.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\DeliveryTicket.dbl">
+      <Link>DeliveryTicket.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\DesignGrid.dbl">
+      <Link>DesignGrid.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\FontsTest.dbl">
+      <Link>FontsTest.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\HeaderBodyFooter.dbl">
+      <Link>HeaderBodyFooter.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\HelloPdf.dbl">
+      <Link>HelloPdf.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\InfoPage.dbl">
+      <Link>InfoPage.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\Landscape132.dbl">
+      <Link>Landscape132.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\MixedPageOrientation.dbl">
+      <Link>MixedPageOrientation.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\MultiSeriesBarChart.dbl">
+      <Link>MultiSeriesBarChart.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\PdfTest.dbl">
+      <Link>PdfTest.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\PieChartTest.dbl">
+      <Link>PieChartTest.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\Portrait100.dbl">
+      <Link>Portrait100.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\SingleSeriesBarChart.dbl">
+      <Link>SingleSeriesBarChart.dbl</Link>
+    </Compile>
+    <Compile Include="..\..\SynPSG_PDF\SOURCE\EXAMPLES\WritesModeTest.dbl">
+      <Link>WritesModeTest.dbl</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PdfLibrary\PdfLibrary.synproj">
+      <Name>PdfLibrary</Name>
+      <Project>{a588a51b-0093-4ab3-88c4-e2d0a7edcb63}</Project>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Traditional.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>

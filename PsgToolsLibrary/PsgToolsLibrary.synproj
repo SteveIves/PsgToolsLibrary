@@ -1,0 +1,176 @@
+﻿<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(SolutionDir)Common.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Configuration)' == '' ">x86</Platform>
+    <Name>PsgToolsLibrary</Name>
+    <StartupObject>
+    </StartupObject>
+    <OutputName>PsgToolsLibrary</OutputName>
+    <ProjectGuid>{aea1a298-8d1d-4872-b7cd-0d07a46511e4}</ProjectGuid>
+    <ProjectTypeGuids>{7B8CF543-378A-4EC1-BB1B-98E4DC6E6820};{BBD0F5D1-1CC4-42fd-BA4C-A96779C64378}</ProjectTypeGuids>
+    <OutputType>elb</OutputType>
+    <DBL_qTrim>True</DBL_qTrim>
+    <DBL_qAlign>True</DBL_qAlign>
+    <EnableCommonProperties>True</EnableCommonProperties>
+    <CommonPropertiesFileLocation>$(SolutionDir)Common.props</CommonPropertiesFileLocation>
+    <RootNamespace>PsgToolsLibrary</RootNamespace>
+    <DBL_DisWarnOptCheck>True</DBL_DisWarnOptCheck>
+    <DBL_DisWarnOpt>762</DBL_DisWarnOpt>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x86</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Debug</DebugOptimize>
+    <DBLink_ReferenceCheck>True</DBLink_ReferenceCheck>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Debug</DebugOptimize>
+    <DBLink_ReferenceCheck>True</DBLink_ReferenceCheck>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x86</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Optimize</DebugOptimize>
+    <DBLink_ReferenceCheck>True</DBLink_ReferenceCheck>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+    <OutputPath>$(SolutionDir)exe\$(Configuration)\$(Platform)</OutputPath>
+    <UnevaluatedOutputPath>EXE:</UnevaluatedOutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DebugOptimize>Optimize</DebugOptimize>
+    <DBLink_ReferenceCheck>True</DBLink_ReferenceCheck>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Traditional.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="SynPSG.CanadianProvince.dbl" />
+    <Compile Include="SynPSG.CopyHandle.dbl" />
+    <Compile Include="SynPSG.DataServer.dbl" />
+    <Compile Include="SynPSG.DateTimeTools.dbl" />
+    <Compile Include="SynPSG.FileTools.dbl" />
+    <Compile Include="SynPSG.FtpClient.dbl" />
+    <Compile Include="SynPSG.get_precision.dbl" />
+    <Compile Include="SynPSG.GoToUserFolder.dbl" />
+    <Compile Include="SynPSG.HtmlEncode.dbl" />
+    <Compile Include="SynPSG.HttpQueryString.dbl" />
+    <Compile Include="SynPSG.IsNumeric.dbl" />
+    <Compile Include="SynPSG.IsoCountry.dbl" />
+    <Compile Include="SynPSG.LPQUE.dbl" />
+    <Compile Include="SynPSG.MailServerClient.dbl" />
+    <Compile Include="SynPSG.MonthNumberToShortName.dbl" />
+    <Compile Include="SynPSG.MonthShortNameToNumber.dbl" />
+    <Compile Include="SynPSG.ScrollWindow.dbl" />
+    <Compile Include="SynPSG.SevenZipAPI.dbl" />
+    <Compile Include="SynPSG.StringUtil.dbl" />
+    <Compile Include="SynPSG.SubversionAPI.dbl" />
+    <Compile Include="SynPSG.System.Convert.dbl" />
+    <Compile Include="SynPSG.System.CredentialCache.dbl" />
+    <Compile Include="SynPSG.System.Datetime.dbl" />
+    <Compile Include="SynPSG.System.Environment.dbl" />
+    <Compile Include="SynPSG.System.IO.Directory.dbl" />
+    <Compile Include="SynPSG.System.IO.File.dbl" />
+    <Compile Include="SynPSG.System.IO.FileStream.dbl" />
+    <Compile Include="SynPSG.System.IO.MemoryStream.dbl" />
+    <Compile Include="SynPSG.System.IO.Stream.dbl" />
+    <Compile Include="SynPSG.System.Net.DNS.dbl" />
+    <Compile Include="SynPSG.System.Net.IPEndPoint.dbl" />
+    <Compile Include="SynPSG.System.Net.IPHostEntry.dbl" />
+    <Compile Include="SynPSG.System.Net.Mail.Attachment.dbl" />
+    <Compile Include="SynPSG.System.Net.Mail.AttachmentBase.dbl" />
+    <Compile Include="SynPSG.System.Net.Mail.AttachmentCollection.dbl" />
+    <Compile Include="SynPSG.System.Net.Mail.MailAddress.dbl" />
+    <Compile Include="SynPSG.System.Net.Mail.MailAddressCollection.dbl" />
+    <Compile Include="SynPSG.System.Net.Mail.MailMessage.dbl" />
+    <Compile Include="SynPSG.System.Net.Mail.SmtpClient.dbl" />
+    <Compile Include="SynPSG.System.Net.Mime.ContentDisposition.dbl" />
+    <Compile Include="SynPSG.System.Net.Mime.ContentType.dbl" />
+    <Compile Include="SynPSG.System.Net.NetworkCredential.dbl" />
+    <Compile Include="SynPSG.System.Net.Sockets.NetworkStream.dbl" />
+    <Compile Include="SynPSG.System.Net.Sockets.Socket.dbl" />
+    <Compile Include="SynPSG.System.Net.Sockets.SocketException.dbl" />
+    <Compile Include="SynPSG.System.Net.Sockets.TcpClient.dbl" />
+    <Compile Include="SynPSG.System.Net.Sockets.TcpListener.dbl" />
+    <Compile Include="SynPSG.System.Security.SecureString.dbl" />
+    <Compile Include="SynPSG.System.SynDatetime.dbl" />
+    <Compile Include="SynPSG.System.Text.Encoding.ASCIIEncoding.dbl" />
+    <Compile Include="SynPSG.System.Uri.dbl" />
+    <Compile Include="SynPSG.TimeUtil.dbl" />
+    <Compile Include="SynPSG.UI.dbl" />
+    <Compile Include="SynPSG.UrlEncode.dbl" />
+    <Compile Include="SynPSG.UsState.dbl" />
+    <Compile Include="SynPSG.Windows.Clipboard.dbl" />
+    <Compile Include="SynPSG.Windows.PrintAPI.dbl" />
+    <Compile Include="SynPSG.Windows.RdpClientName.dbl" />
+    <Compile Include="SynPSG.Windows.Report.dbl" />
+    <Compile Include="SynPSG.Windows.RightClickToClipboard.dbl" />
+    <Compile Include="SynPSG.Windows.WinAppNoReSize.dbl" />
+    <Compile Include="SynPSG.Windows.WinAppOneInstance.dbl" />
+    <Compile Include="SynPSG.Windows.WinBeep.dbl" />
+    <Compile Include="SynPSG.Windows.WinButtonAnywhere.dbl" />
+    <Compile Include="SynPSG.Windows.WinDir.dbl" />
+    <Compile Include="SynPSG.Windows.WinFileCopy.dbl" />
+    <Compile Include="SynPSG.Windows.WinFileTime.dbl" />
+    <Compile Include="SynPSG.Windows.WinGetWindowHandle.dbl" />
+    <Compile Include="SynPSG.Windows.WinGuid.dbl" />
+    <Compile Include="SynPSG.Windows.WinLogout.dbl" />
+    <Compile Include="SynPSG.Windows.WinMem.dbl" />
+    <Compile Include="SynPSG.Windows.WinNode.dbl" />
+    <Compile Include="SynPSG.Windows.WinOpenFileDialog.dbl" />
+    <Compile Include="SynPSG.Windows.WinPath.dbl" />
+    <Compile Include="SynPSG.Windows.WinRegistryApi.dbl" />
+    <Compile Include="SynPSG.Windows.WinRemoveAppCaption.dbl" />
+    <Compile Include="SynPSG.Windows.WinSaveFileDialog.dbl" />
+    <Compile Include="SynPSG.Windows.WinScheduledTask.dbl" />
+    <Compile Include="SynPSG.Windows.WinSetTime.dbl" />
+    <Compile Include="SynPSG.Windows.WinSound.dbl" />
+    <Compile Include="SynPSG.Windows.WinSysPath.dbl" />
+    <Compile Include="SynPSG.Windows.WinTempDir.dbl" />
+    <Compile Include="SynPSG.Windows.WinTempFile.dbl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="DBLDIR:axlib.elb">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DBLDIR:synxml.elb">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RPSLIB:ddlib.elb">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RPTLIB:synrpt.elb">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="WND:script.elb">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="WND:tklib.elb">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PdfLibrary\PdfLibrary.synproj">
+      <Name>PdfLibrary</Name>
+      <Project>{a588a51b-0093-4ab3-88c4-e2d0a7edcb63}</Project>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
