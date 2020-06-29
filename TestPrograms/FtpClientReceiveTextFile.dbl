@@ -49,25 +49,35 @@ main FtpClientReceiveTextFile
 		ftpClient, @FtpClient
 	endrecord
 
+    .define D_FTP_SERVER	""
+    .define D_FTP_PORT		21
+    .define D_FTP_MODE		FtpConnectMode.Passive
+
+    .define D_FTP_USER		""
+    .define D_FTP_PASSWORD	""
+
+    .define D_FILE_NAME		"testfile.txt"
+    .define D_TRANSFER_TYPE	FtpTransferType.Ascii		
 proc
 
 	open(1,i,"TT:")
 
 	;Create an instance of the FTP client
-    ftpClient = new ftpclient("ftp.synergexpsg.com",21,FtpConnectMode.Passive)
+    ftpClient = new ftpclient(D_FTP_SERVER,D_FTP_PORT,D_FTP_MODE)
 
 	;Connect to the remote server
 	writes(1,'Connecting ...')
-	if (!ftpClient.Connect("staples","p@ssw0rd")) then 
+	if (!ftpClient.Connect(D_FTP_USER,D_FTP_PASSWORD)) then 
 		writes(1,ftpClient.ErrorMessage)
 	else
 	begin
 		;;Delete any existing file
-		xcall delet("textfile.txt")
+		xcall delet(D_FILE_NAME)
 		
 		;Get file from server
-		writes(1,'Downloading textfile.txt from server...')
-		if (!ftpClient.Download("textfile.txt"))
+        writes(1,'Downloading from server...')
+		ftpClient.TransferType = FtpTransferType.Ascii
+		if (!ftpClient.Download(D_FILE_NAME))
 			writes(1,ftpClient.ErrorMessage)
 
 		writes(1,'Disconnecting...')

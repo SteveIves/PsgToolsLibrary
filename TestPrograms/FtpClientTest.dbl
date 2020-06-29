@@ -50,34 +50,42 @@ main FtpClientExample
 		ftpClient, @FtpClient
 	endrecord
 
-	.define FILE_NAME     "bridge.jpg"
-	.define NEW_FILE_NAME "bridge_new.jpg"
+    .define D_FTP_SERVER	""
+    .define D_FTP_PORT		21
+	.define D_FTP_MODE		FtpConnectMode.Passive
+
+	.define D_FTP_USER		""
+    .define D_FTP_PASSWORD	""
+
+	.define D_FILE_NAME		"testfile.txt"
+    .define D_NEW_FILE_NAME	"newfile.txt"
+	.define D_TRANSFER_TYPE	FtpTransferType.Ascii		
 
 proc
 
     open(1,i,"TT:")
 
-	xcall delet(FILE_NAME)
+	xcall delet(D_FILE_NAME)
 	
 	;Create an instance of the FTP client
-    ftpClient = new ftpclient("ftp.synergexpsg.com",21,FtpConnectMode.Passive)
+    ftpClient = new ftpclient(D_FTP_SERVER,D_FTP_PORT,D_FTP_MODE)
 	ftpClient.LocalDirectory = %WinTempDir
 
 	;Connect to the remote server
 	writes(1,'Connecting ...')
-	if (!ftpClient.Connect("staples","p@ssw0rd")) then 
+	if (!ftpClient.Connect(D_FTP_USER,D_FTP_PASSWORD)) then 
 		writes(1,ftpClient.ErrorMessage)
 	else
 	begin
 		;Receive a binary file from the server
-		writes(1,"Downloading bridge.jpg from server...")
-		if (!ftpClient.Download("bridge.jpg","bridge.jpg",FtpTransferType.Binary)) then 
+		writes(1,"Downloading from server...")
+		if (!ftpClient.Download(D_FILE_NAME,D_FILE_NAME,D_TRANSFER_TYPE)) then 
 			writes(1,ftpClient.ErrorMessage)
 		else
 		begin
-			;Send the binary file back to the server
-			writes(1,"Uploading bridge.jpg to server as bridge_new.jpg...")
-			if (!ftpClient.Upload("bridge.jpg","bridge_new.jpg",FtpTransferType.Binary))
+			;Send the binary file back to the server as a different name
+			writes(1,"Uploading to server as bridge_new.jpg...")
+			if (!ftpClient.Upload(D_FILE_NAME,D_NEW_FILE_NAME,D_TRANSFER_TYPE))
 				writes(1,ftpClient.ErrorMessage)
 		end
 

@@ -11,6 +11,16 @@ main
 		client,			@SmtpClient
 		errorMessage,	string
 	endrecord
+
+    .define D_SMTP_SERVER		""
+    .define D_SMTP_PORT			25
+    .define D_SENDER_ADDRESS	""
+    .define D_SENDER_NAME		""
+
+    .define D_RECIPIENT_ADDRESS	""
+    .define D_SUBJECT			"Test message sent via authenticated connection."
+    .define D_BODY				"<html><head></head><body><p>This is the message body.</p><p>This is also the message body!</p></body></html>"
+
 proc
 	ok = true
 	errorMessage = ""
@@ -19,13 +29,13 @@ proc
 
 	;;Get the name or IP address of the SMTP server
 	msg = new MailMessage()
-	msg.From = new MailAddress("test@synergexpsg.com")
-	msg.Subject = "Test message sent via unauthenticated connection."
-	msg.To.Add("steve.ives@synergex.com")
-	msg.Body = "<html><head></head><body><pre>This is the message body.<br>This is also the message body!</pre></body></html>"
+	msg.From = new MailAddress(D_SENDER_ADDRESS,D_SENDER_NAME)
+	msg.Subject = D_SUBJECT
+	msg.To.Add(D_RECIPIENT_ADDRESS)
+	msg.Body = D_BODY
 	msg.IsBodyHtml = true
 
-	client = new SmtpClient("mail.synergexpsg.com")
+	client = new SmtpClient(D_SMTP_SERVER,D_SMTP_PORT)
 
 	try
 	begin

@@ -6,6 +6,8 @@
 ;;
 ;; Description: Communictates with an SMTP server in order to send email
 ;;
+;;              ;SI: I don't believe the STARTTLS code is working!!!!
+;;
 ;; IMPORTANT:   Just like the underlying .NET Framework class, this class
 ;;              supports using the "SMTP Service Extension for Secure SMTP
 ;;              over Transport Layer Security" as defined in RFC 3207.
@@ -207,9 +209,11 @@ namespace SynPSG.System.Net.Mail
 
             if(responseMessage.StartsWith("TLS "))
             begin
-                sendPacket("STARTTLS TLS1.0",true)
+                sendPacket("STARTTLS",true)
                 receivePacket()
                 CheckResponseCode(220)
+
+                ;TODO: There should be a TLS negotiation here!!!!
 
                 sendPacket("EHLO " + message.From.Host,true)
                 receivePacket()
